@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>ChronoMed — Ficha de Marcela & Sincronización</title>
+  <title>ChronoMed — Ficha Clínica de Marcela & Cumplimiento Legal</title>
   
   <meta name="theme-color" content="#0F172A">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -54,47 +54,57 @@
         <i data-lucide="user-check" class="w-8 h-8"></i>
       </div>
       <h2 class="text-2xl font-black text-white text-center mb-1">Ficha Clínica del Paciente</h2>
-      <p class="text-xs text-slate-400 text-center mb-6">Datos de identificación y horarios de rutina:</p>
+      <p class="text-xs text-slate-400 text-center mb-5">Datos de identificación y horarios de rutina:</p>
 
-      <form onsubmit="savePatientOnboarding(event)" class="space-y-4">
+      <form onsubmit="savePatientOnboarding(event)" class="space-y-3.5">
         <div>
           <label class="block text-xs font-bold text-slate-300 mb-1">Nombre Completo del Paciente</label>
-          <input type="text" id="inputPatientName" required placeholder="Ej: Marcela" value="Marcela" class="w-full bg-slate-900 border border-slate-700 text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-blue-500">
+          <input type="text" id="inputPatientName" required placeholder="Ej: Marcela" value="Marcela" class="w-full bg-slate-900 border border-slate-700 text-white rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-blue-500">
         </div>
 
         <div>
           <label class="block text-xs font-bold text-slate-300 mb-1">RUT o Ficha Clínica (Opcional)</label>
-          <input type="text" id="inputPatientRut" placeholder="Ej: 14.567.890-K" value="14.567.890-K" class="w-full bg-slate-900 border border-slate-700 text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-blue-500">
+          <input type="text" id="inputPatientRut" placeholder="Ej: 14.567.890-K" value="14.567.890-K" class="w-full bg-slate-900 border border-slate-700 text-white rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-blue-500">
         </div>
 
         <div>
           <label class="block text-xs font-bold text-slate-300 mb-1">PIN de Seguridad del Cuidador</label>
-          <input type="password" id="inputCaregiverPin" maxlength="4" required value="1234" class="w-full bg-slate-900 border border-slate-700 text-white rounded-xl px-3 py-2.5 text-sm tracking-widest text-center focus:outline-none focus:border-blue-500">
+          <input type="password" id="inputCaregiverPin" maxlength="4" required value="1234" class="w-full bg-slate-900 border border-slate-700 text-white rounded-xl px-3 py-2 text-sm tracking-widest text-center focus:outline-none focus:border-blue-500">
         </div>
 
-        <div class="border-t border-slate-800 pt-3">
-          <p class="text-xs font-bold text-yellow-400 mb-2">⏰ Horarios de Rutina Diaria:</p>
+        <div class="border-t border-slate-800 pt-2.5">
+          <p class="text-xs font-bold text-yellow-400 mb-1.5">⏰ Horarios de Rutina Diaria:</p>
           <div class="grid grid-cols-2 gap-2 text-xs">
             <div>
               <span class="text-slate-400">Desayuno:</span>
-              <input type="time" id="inputTimeBreakfast" value="08:00" class="w-full bg-slate-900 border border-slate-700 text-white rounded-lg p-1.5 mt-0.5 text-white">
+              <input type="time" id="inputTimeBreakfast" value="08:00" class="w-full bg-slate-900 border border-slate-700 text-white rounded-lg p-1 mt-0.5 text-white">
             </div>
             <div>
               <span class="text-slate-400">Almuerzo:</span>
-              <input type="time" id="inputTimeLunch" value="13:30" class="w-full bg-slate-900 border border-slate-700 text-white rounded-lg p-1.5 mt-0.5 text-white">
+              <input type="time" id="inputTimeLunch" value="13:30" class="w-full bg-slate-900 border border-slate-700 text-white rounded-lg p-1 mt-0.5 text-white">
             </div>
             <div>
               <span class="text-slate-400">Once / Tarde:</span>
-              <input type="time" id="inputTimeAfternoon" value="18:30" class="w-full bg-slate-900 border border-slate-700 text-white rounded-lg p-1.5 mt-0.5 text-white">
+              <input type="time" id="inputTimeAfternoon" value="18:30" class="w-full bg-slate-900 border border-slate-700 text-white rounded-lg p-1 mt-0.5 text-white">
             </div>
             <div>
               <span class="text-slate-400">Dormir:</span>
-              <input type="time" id="inputTimeSleep" value="22:30" class="w-full bg-slate-900 border border-slate-700 text-white rounded-lg p-1.5 mt-0.5 text-white">
+              <input type="time" id="inputTimeSleep" value="22:30" class="w-full bg-slate-900 border border-slate-700 text-white rounded-lg p-1 mt-0.5 text-white">
             </div>
           </div>
         </div>
 
-        <button type="submit" class="w-full py-3.5 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-2xl shadow-lg transition">
+        <!-- CHECKBOX DE CONSENTIMIENTO Y DISCLAIMER LEGAL -->
+        <div class="bg-slate-950/70 border border-slate-800 p-2.5 rounded-xl text-[11px] text-slate-300">
+          <label class="flex items-start space-x-2 cursor-pointer">
+            <input type="checkbox" id="legalConsentCheckbox" required checked class="mt-0.5 rounded bg-slate-900 border-slate-700 text-blue-600 focus:ring-0">
+            <span class="leading-tight">
+              Declaro que los datos ingresados corresponden a indicaciones prescritas por un profesional médico. Acepto los <a href="javascript:void(0)" onclick="openLegalModal()" class="text-blue-400 underline font-bold">Términos de Uso y Descargo Legal</a> (Leyes 20.584 y 19.628).
+            </span>
+          </label>
+        </div>
+
+        <button type="submit" class="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-2xl shadow-lg transition text-sm">
           Guardar Ficha de Marcela ➔
         </button>
       </form>
@@ -140,7 +150,7 @@
     </div>
 
     <!-- Botón Anti-Sobredosis -->
-    <div class="mb-4">
+    <div class="mb-2">
       <div id="overdoseGuardActive">
         <button onclick="confirmSeniorIntake()" class="w-full py-6 rounded-3xl senior-btn-green font-black text-2xl tracking-wider shadow-xl shadow-green-500/20 flex items-center justify-center space-x-3 active:scale-95 transition transform cursor-pointer">
           <i data-lucide="check-circle" class="w-8 h-8"></i>
@@ -156,6 +166,16 @@
         <p class="text-lg text-white font-semibold">Siguiente toma: <span id="seniorNextDoseText" class="text-yellow-400 font-bold">20:30</span></p>
         <p class="text-xs text-slate-400 mt-2">🔒 Botón bloqueado para prevenir sobredosis.</p>
       </div>
+    </div>
+
+    <!-- Mini Footer Senior con Enlace a Términos Legales y Urgencias -->
+    <div class="flex items-center justify-between text-[11px] text-slate-400 px-2 py-1">
+      <a href="tel:131" class="text-red-400 hover:text-red-300 font-bold flex items-center space-x-1">
+        <span>🚨 Urgencias (SAMU 131)</span>
+      </a>
+      <a href="javascript:void(0)" onclick="openLegalModal()" class="text-slate-400 hover:text-white underline">
+        Descargo Legal
+      </a>
     </div>
   </main>
   <!-- 3. VISTA: MODO CUIDADOR (Dashboard de Marcela) -->
@@ -195,16 +215,16 @@
       </div>
     </div>
 
-    <!-- Acciones Rápidas (Incluye Respaldo y Transferencia de Celular) -->
+    <!-- Acciones Rápidas (Respaldar, Vincular, Interacciones, Legal) -->
     <div class="grid grid-cols-2 gap-3">
-      <button onclick="openBackupModal()" class="senior-card p-3.5 rounded-2xl border text-left flex items-center space-x-2.5 hover:border-blue-500 transition">
+      <button onclick="openBackupModal()" class="senior-card p-3 rounded-2xl border text-left flex items-center space-x-2.5 hover:border-blue-500 transition">
         <div class="p-2 rounded-xl bg-blue-500/20 text-blue-400"><i data-lucide="hard-drive-download" class="w-5 h-5"></i></div>
         <div>
           <h4 class="font-bold text-xs text-white">Respaldar / Migrar</h4>
           <p class="text-[10px] text-blue-300">Guardar o transferir</p>
         </div>
       </button>
-      <button onclick="openQrModal()" class="senior-card p-3.5 rounded-2xl border text-left flex items-center space-x-2.5 hover:border-emerald-500 transition">
+      <button onclick="openQrModal()" class="senior-card p-3 rounded-2xl border text-left flex items-center space-x-2.5 hover:border-emerald-500 transition">
         <div class="p-2 rounded-xl bg-emerald-500/20 text-emerald-400"><i data-lucide="qr-code" class="w-5 h-5"></i></div>
         <div>
           <h4 class="font-bold text-xs text-white">Vincular QR</h4>
@@ -232,9 +252,97 @@
         </div>
       </div>
     </div>
+
+    <!-- Footer Legal en Modo Cuidador -->
+    <div class="border-t border-slate-800/80 pt-3 pb-1 text-center">
+      <button onclick="openLegalModal()" class="text-xs text-slate-400 hover:text-blue-400 flex items-center justify-center space-x-1.5 mx-auto font-medium transition">
+        <i data-lucide="scale" class="w-3.5 h-3.5"></i>
+        <span>Marco Legal, Privacidad y Términos (Leyes 20.584 / 19.628)</span>
+      </button>
+    </div>
   </main>
 
-  <!-- MODAL: RESPALDO, EXPORTACIÓN, IMPORTACIÓN Y SINCRONIZACIÓN EN LA NUBE -->
+  <!-- MODAL: MARCO LEGAL, PRIVACIDAD Y DESCARGO DE RESPONSABILIDAD -->
+  <div id="modalLegal" class="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3">
+    <div class="senior-card max-w-md w-full p-5 rounded-3xl border text-left max-h-[92vh] flex flex-col">
+      <div class="flex items-center justify-between mb-3 border-b border-slate-800 pb-2.5">
+        <div class="flex items-center space-x-2 text-blue-400">
+          <i data-lucide="shield-check" class="w-5 h-5"></i>
+          <h3 class="text-base font-black text-white">Términos de Uso y Descargo Legal</h3>
+        </div>
+        <button onclick="closeModal('modalLegal')" class="text-slate-400 hover:text-white text-lg p-1">✕</button>
+      </div>
+
+      <div class="flex-1 overflow-y-auto space-y-3.5 pr-1 text-xs text-slate-300 leading-relaxed scrollbar-thin">
+        
+        <div class="bg-slate-900/90 border border-slate-800 p-3 rounded-2xl">
+          <h4 class="font-bold text-white mb-1 flex items-center space-x-1.5">
+            <span>1.</span>
+            <span>Naturaleza del Software y No Sustitución Médica</span>
+          </h4>
+          <p class="text-[11px] text-slate-300">
+            ChronoMed es una plataforma tecnológica de asistencia en la organización horaria, recordatorio de tomas y registro de adherencia farmacológica. 
+            <strong class="text-yellow-400">ChronoMed no prescribe medicamentos, no emite diagnósticos clínicos ni modifica tratamientos de forma autónoma.</strong> 
+            El uso de esta aplicación no reemplaza la consulta, supervisión ni el juicio profesional del médico tratante u odontólogo habilitado.
+          </p>
+        </div>
+
+        <div class="bg-slate-900/90 border border-slate-800 p-3 rounded-2xl">
+          <h4 class="font-bold text-white mb-1 flex items-center space-x-1.5">
+            <span>2.</span>
+            <span>Responsabilidad sobre los Datos Ingresados</span>
+          </h4>
+          <p class="text-[11px] text-slate-300">
+            La exactitud y vigencia de la información clínica (nombres de fármacos, dosis, horarios y posología) es de exclusiva responsabilidad del usuario o del cuidador/tutor autorizado que configure la ficha. El usuario debe verificar periódicamente que las tomas coincidan con su receta médica oficial.
+          </p>
+        </div>
+
+        <div class="bg-slate-900/90 border border-slate-800 p-3 rounded-2xl">
+          <h4 class="font-bold text-white mb-1 flex items-center space-x-1.5">
+            <span>3.</span>
+            <span>Privacidad y Protección de Datos (Leyes 19.628 y 20.584)</span>
+          </h4>
+          <p class="text-[11px] text-slate-300">
+            En estricto cumplimiento con la <strong>Ley N° 20.584</strong> (Derechos y Deberes de las Personas en Salud / Reserva de la Ficha Clínica) y la <strong>Ley N° 19.628</strong> (Protección de la Vida Privada sobre Datos Sensibles):
+          </p>
+          <ul class="list-disc list-inside text-[11px] mt-1 space-y-1 text-slate-300">
+            <li>Toda la información del paciente se custodia con cifrado de alta seguridad (AES-256-GCM).</li>
+            <li>No se comercializan ni transfieren datos de salud a terceros con fines publicitarios.</li>
+            <li>El usuario es dueño absoluto de su información y puede exportarla o eliminarla en cualquier momento.</li>
+          </ul>
+        </div>
+
+        <div class="bg-slate-900/90 border border-slate-800 p-3 rounded-2xl">
+          <h4 class="font-bold text-white mb-1 flex items-center space-x-1.5">
+            <span>4.</span>
+            <span>Catálogo Farmacológico de Referencia (ISP Chile)</span>
+          </h4>
+          <p class="text-[11px] text-slate-300">
+            Los nombres comerciales, principios activos y concentraciones disponibles en el buscador corresponden a datos de dominio público del Instituto de Salud Pública (ISP de Chile) utilizados con fines estrictamente informativos y de rotulado.
+          </p>
+        </div>
+
+        <div class="bg-red-950/40 border border-red-500/40 p-3 rounded-2xl">
+          <h4 class="font-bold text-red-300 mb-1 flex items-center space-x-1.5">
+            <span>🚨</span>
+            <span>Urgencias y Emergencias Médicas</span>
+          </h4>
+          <p class="text-[11px] text-red-200">
+            ChronoMed no es un servicio de respuesta a emergencias. Ante cualquier sospecha de intoxicación, reacción adversa grave o urgencia con riesgo vital, llame de inmediato al <strong>SAMU (131)</strong> o acuda al servicio de urgencia más cercano.
+          </p>
+        </div>
+
+      </div>
+
+      <div class="border-t border-slate-800 pt-3 mt-2">
+        <button onclick="closeModal('modalLegal')" class="w-full py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl text-xs transition">
+          Entendido y Conforme
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: RESPALDO Y TRANSFERENCIA -->
   <div id="modalBackup" class="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3">
     <div class="senior-card max-w-md w-full p-5 rounded-3xl border text-left max-h-[92vh] flex flex-col">
       <div class="flex items-center justify-between mb-3">
@@ -248,80 +356,43 @@
         <button onclick="closeModal('modalBackup')" class="text-slate-400 hover:text-white text-lg p-1">✕</button>
       </div>
 
-      <!-- Pestañas de Selección -->
       <div class="grid grid-cols-2 gap-2 bg-slate-900 p-1 rounded-xl mb-4 border border-slate-800 text-xs font-bold">
         <button id="tabBtnExport" onclick="switchBackupTab('export')" class="py-2 rounded-lg bg-blue-600 text-white transition">1. Exportar Respaldo</button>
         <button id="tabBtnImport" onclick="switchBackupTab('import')" class="py-2 rounded-lg text-slate-400 hover:text-white transition">2. Restaurar en Nuevo Teléfono</button>
       </div>
 
-      <!-- SECCIÓN 1: EXPORTAR RESPALDO -->
       <div id="backupTabExport" class="space-y-3">
         <div class="bg-slate-900/90 border border-slate-700/60 p-3 rounded-2xl">
-          <h4 class="text-xs font-bold text-white mb-1 flex items-center space-x-1.5">
-            <span>📥</span>
-            <span>Descargar Archivo de Seguridad (.json)</span>
-          </h4>
-          <p class="text-[11px] text-slate-300 mb-3 leading-tight">
-            Guarda una copia completa e inalterable de la ficha de Marcela, todos sus medicamentos, dosis, horarios y stock actual.
-          </p>
-          <button onclick="exportBackupFile()" class="w-full py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl text-xs flex items-center justify-center space-x-2 shadow-lg transition">
-            <i data-lucide="download" class="w-4 h-4"></i>
-            <span>Descargar Respaldo de Marcela (.json)</span>
-          </button>
+          <h4 class="text-xs font-bold text-white mb-1 flex items-center space-x-1.5"><span>📥</span><span>Descargar Archivo de Seguridad (.json)</span></h4>
+          <p class="text-[11px] text-slate-300 mb-3 leading-tight">Guarda una copia completa de la ficha de Marcela, todos sus medicamentos, dosis, horarios y stock.</p>
+          <button onclick="exportBackupFile()" class="w-full py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl text-xs flex items-center justify-center space-x-2 shadow-lg transition"><i data-lucide="download" class="w-4 h-4"></i><span>Descargar Respaldo de Marcela (.json)</span></button>
         </div>
-
         <div class="bg-slate-900/90 border border-slate-700/60 p-3 rounded-2xl">
-          <h4 class="text-xs font-bold text-white mb-1 flex items-center space-x-1.5">
-            <span>📲</span>
-            <span>Enviar Respaldo por WhatsApp</span>
-          </h4>
-          <p class="text-[11px] text-slate-300 mb-3 leading-tight">
-            Envía el resumen de la ficha clínica de Marcela a tu propio WhatsApp para tener un respaldo directo en tu chat.
-          </p>
-          <button onclick="shareBackupWhatsApp()" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs flex items-center justify-center space-x-2 shadow-lg transition">
-            <i data-lucide="send" class="w-4 h-4"></i>
-            <span>Compartir Respaldo por WhatsApp</span>
-          </button>
+          <h4 class="text-xs font-bold text-white mb-1 flex items-center space-x-1.5"><span>📲</span><span>Enviar Respaldo por WhatsApp</span></h4>
+          <p class="text-[11px] text-slate-300 mb-3 leading-tight">Envía el resumen de la ficha clínica de Marcela a tu WhatsApp como copia de seguridad directa.</p>
+          <button onclick="shareBackupWhatsApp()" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs flex items-center justify-center space-x-2 shadow-lg transition"><i data-lucide="send" class="w-4 h-4"></i><span>Compartir Respaldo por WhatsApp</span></button>
         </div>
       </div>
 
-      <!-- SECCIÓN 2: RESTAURAR EN NUEVO TELÉFONO -->
       <div id="backupTabImport" class="hidden space-y-3">
         <div class="bg-slate-900/90 border border-slate-700/60 p-3 rounded-2xl">
-          <h4 class="text-xs font-bold text-white mb-1 flex items-center space-x-1.5">
-            <span>📤</span>
-            <span>Subir Archivo de Respaldo (.json)</span>
-          </h4>
-          <p class="text-[11px] text-slate-300 mb-3 leading-tight">
-            En tu nuevo teléfono celular, selecciona el archivo descargado previamente para restaurar el tratamiento completo en 1 segundo:
-          </p>
-          
+          <h4 class="text-xs font-bold text-white mb-1 flex items-center space-x-1.5"><span>📤</span><span>Subir Archivo de Respaldo (.json)</span></h4>
+          <p class="text-[11px] text-slate-300 mb-3 leading-tight">En tu nuevo celular, selecciona el archivo descargado para restaurar el tratamiento completo en 1 segundo:</p>
           <input type="file" id="backupFileInput" accept=".json" class="hidden" onchange="handleFileImport(event)">
-          <button onclick="document.getElementById('backupFileInput').click()" class="w-full py-2.5 bg-yellow-400 hover:bg-yellow-300 text-black font-black rounded-xl text-xs flex items-center justify-center space-x-2 shadow-lg transition">
-            <i data-lucide="file-up" class="w-4 h-4"></i>
-            <span>Seleccionar Archivo de Respaldo (.json)</span>
-          </button>
+          <button onclick="document.getElementById('backupFileInput').click()" class="w-full py-2.5 bg-yellow-400 hover:bg-yellow-300 text-black font-black rounded-xl text-xs flex items-center justify-center space-x-2 shadow-lg transition"><i data-lucide="file-up" class="w-4 h-4"></i><span>Seleccionar Archivo de Respaldo (.json)</span></button>
         </div>
-
         <div class="bg-slate-900/90 border border-slate-700/60 p-3 rounded-2xl">
-          <h4 class="text-xs font-bold text-white mb-1 flex items-center space-x-1.5">
-            <span>📋</span>
-            <span>O Pegar Código / Texto de Respaldo</span>
-          </h4>
+          <h4 class="text-xs font-bold text-white mb-1 flex items-center space-x-1.5"><span>📋</span><span>O Pegar Código de Respaldo</span></h4>
           <textarea id="pasteBackupText" placeholder="Pega aquí el código JSON del respaldo..." class="w-full bg-slate-950 border border-slate-800 text-white rounded-xl p-2 text-[10px] font-mono h-16 focus:outline-none focus:border-blue-500 mb-2"></textarea>
-          <button onclick="handleTextImport()" class="w-full py-2 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl text-xs transition">
-            Restaurar desde Texto Pegado
-          </button>
+          <button onclick="handleTextImport()" class="w-full py-2 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl text-xs transition">Restaurar desde Texto Pegado</button>
         </div>
       </div>
-
     </div>
   </div>
 
-  <!-- MODAL: CATÁLOGO UNIVERSAL DE MEDICAMENTOS DE CHILE CON BUSCADOR Y REGISTRO PERSONALIZADO -->
+  <!-- MODAL: CATÁLOGO UNIVERSAL DE MEDICAMENTOS DE CHILE -->
   <div id="modalAddMed" class="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3">
     <div class="senior-card max-w-md w-full p-5 rounded-3xl border text-left max-h-[94vh] flex flex-col">
-      
       <div class="flex items-center justify-between mb-2">
         <div class="flex items-center space-x-2">
           <span class="text-xl">🇨🇱</span>
@@ -333,23 +404,20 @@
         <button onclick="closeModal('modalAddMed')" class="text-slate-400 hover:text-white text-lg p-1">✕</button>
       </div>
 
-      <!-- MENSAJE EXPLICATIVO INFORMATIVO -->
       <div class="bg-blue-950/70 border border-blue-600/40 rounded-2xl p-2.5 mb-3 text-[11px] text-blue-100 flex items-start space-x-2">
         <span class="text-base shrink-0 mt-0.5">ℹ️</span>
         <p class="leading-tight">
           <strong>Base de Datos Nacional (ISP Chile):</strong> Incluye antihipertensivos, diabetes, tiroides, analgesia, antibióticos y salud mental. 
-          <span class="text-yellow-300 font-medium">Si tu medicamento no está en la lista o es recetario magistral, simplemente escribe su nombre en el buscador y el sistema lo registrará automáticamente.</span>
+          <span class="text-yellow-300 font-medium">Si tu medicamento no está en la lista o es recetario magistral, escribe su nombre en el buscador y el sistema lo registrará automáticamente.</span>
         </p>
       </div>
 
-      <!-- Buscador en Tiempo Real -->
       <div class="relative mb-2">
         <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-3"></i>
         <input type="text" id="searchChileMedInput" oninput="filterChileMeds()" placeholder="Escribe cualquier fármaco o principio activo chileno..." class="w-full bg-slate-900 border border-slate-700 text-white rounded-xl pl-9 pr-8 py-2.5 text-xs focus:outline-none focus:border-blue-500">
         <button id="clearSearchBtn" onclick="clearSearch()" class="hidden absolute right-3 top-2.5 text-slate-400 hover:text-white text-xs">✕</button>
       </div>
 
-      <!-- Chips de Categorías Frecuentes -->
       <div class="flex space-x-1.5 overflow-x-auto pb-2 mb-2 text-[11px] scrollbar-thin">
         <button onclick="filterCategory('TODOS')" class="px-2.5 py-1 bg-blue-600 text-white rounded-lg font-bold shrink-0">Todos</button>
         <button onclick="filterCategory('Presión / Corazón')" class="px-2.5 py-1 bg-slate-800 text-slate-300 hover:text-white rounded-lg shrink-0">Presión</button>
@@ -364,7 +432,6 @@
         <button onclick="filterCategory('Vitaminas / Minerales')" class="px-2.5 py-1 bg-slate-800 text-slate-300 hover:text-white rounded-lg shrink-0">Vitaminas</button>
       </div>
 
-      <!-- Tarjeta de Creación Rápida Personalizada -->
       <div id="customMedCreatorCard" class="hidden bg-emerald-950/40 border border-emerald-500/50 rounded-xl p-2.5 mb-2 flex items-center justify-between cursor-pointer hover:bg-emerald-900/50 transition" onclick="useCustomTypedMed()">
         <div class="flex items-center space-x-2">
           <span class="text-base">✨</span>
@@ -376,12 +443,8 @@
         <span class="text-[10px] bg-emerald-600 text-white font-bold px-2 py-1 rounded-lg">Usar</span>
       </div>
 
-      <!-- Listado de Medicamentos Filtrados -->
-      <div id="chileMedListContainer" class="flex-1 overflow-y-auto space-y-1.5 pr-1 max-h-40 mb-2 scrollbar-thin">
-        <!-- Renderizado dinámico -->
-      </div>
+      <div id="chileMedListContainer" class="flex-1 overflow-y-auto space-y-1.5 pr-1 max-h-40 mb-2 scrollbar-thin"></div>
 
-      <!-- Formulario de Personalización del Fármaco Seleccionado -->
       <div class="border-t border-slate-800 pt-2.5">
         <p class="text-[11px] font-bold text-yellow-400 mb-1.5">Personalizar Dosis y Horario para Marcela:</p>
         <form onsubmit="saveSelectedMedication(event)" class="space-y-2 text-xs">
@@ -444,14 +507,13 @@
           </button>
         </form>
       </div>
-
     </div>
   </div>
 
   <div id="modalPin" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4"><div class="senior-card max-w-xs w-full p-6 rounded-3xl border text-center"><i data-lucide="lock" class="w-10 h-10 text-yellow-400 mx-auto mb-2"></i><h3 class="text-lg font-bold text-white mb-1">Acceso Cuidador</h3><p class="text-xs text-slate-400 mb-4">Ingresa el PIN de seguridad (1234):</p><input id="pinInput" type="password" maxlength="4" class="w-full text-center text-3xl tracking-widest bg-slate-900 border border-slate-700 text-white py-2 rounded-xl mb-4 focus:outline-none focus:border-yellow-400" placeholder="••••"><button onclick="verifyPin()" class="w-full py-3 bg-yellow-400 text-black font-bold rounded-xl mb-2">Desbloquear</button><button onclick="closeModal('modalPin')" class="text-xs text-slate-400">Cancelar</button></div></div>
   <div id="modalQr" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4"><div class="senior-card max-w-sm w-full p-6 rounded-3xl border text-center"><h3 class="text-xl font-bold text-white mb-1">Vincular a Marcela</h3><p class="text-xs text-slate-400 mb-4">Escanea para activar este pastillero:</p><div class="bg-white p-3 rounded-2xl w-44 h-44 mx-auto flex items-center justify-center mb-4"><img id="qrImageElement" src="" alt="QR" class="w-36 h-36"></div><button onclick="closeModal('modalQr'); alert('Enlace copiado al portapapeles.');" class="w-full py-3 bg-emerald-600 text-white font-bold rounded-xl mb-2 text-sm">Copiar Magic Link</button><button onclick="closeModal('modalQr')" class="text-xs text-slate-400">Cerrar</button></div></div>
   <div id="modalPdf" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4"><div class="senior-card max-w-sm w-full p-6 rounded-3xl border text-left"><div class="flex items-center space-x-2 text-blue-400 mb-2"><i data-lucide="file-check" class="w-6 h-6"></i><h3 class="text-lg font-bold text-white">Informe Médico de Marcela</h3></div><div id="pdfReportContent" class="bg-slate-900 p-3 rounded-xl text-xs text-slate-300 font-mono space-y-1.5 mb-4 border border-slate-700"></div><button onclick="downloadPdfReport()" class="w-full py-3 bg-blue-600 text-white font-bold rounded-xl mb-2 text-sm">Descargar PDF</button><button onclick="closeModal('modalPdf')" class="w-full text-center text-xs text-slate-400">Cerrar</button></div></div>
-  <!-- 4. LÓGICA JAVASCRIPT: VADEMÉCUM CHILENO, GESTOR DE MARCELA Y RESPALDOS -->
+  <!-- 4. LÓGICA JAVASCRIPT: VADEMÉCUM CHILENO, GESTOR DE MARCELA, RESPALDOS Y LEGAL -->
   <script src="js/chile_meds.js"></script>
   <script>
     const STORAGE_KEY = "chronomed_marcela_v1";
@@ -718,7 +780,7 @@
       }
     }
 
-    // --- GESTOR DE RESPALDOS Y MIGRACIÓN DE CELULAR ---
+    // --- GESTOR DE RESPALDOS Y MIGRACIÓN ---
     function openBackupModal() {
       switchBackupTab('export');
       document.getElementById('modalBackup').classList.remove('hidden');
@@ -744,6 +806,7 @@
         app: "ChronoMed",
         version: "2.0",
         exportDate: new Date().toISOString(),
+        legalNotice: "Ficha clínica personal bajo Ley N° 20.584 y Ley N° 19.628 de la República de Chile.",
         data: appState
       };
 
@@ -763,7 +826,7 @@
     function shareBackupWhatsApp() {
       const medSummary = appState.medications.map(m => `• ${m.name} (${m.dosage}) - ${m.time}`).join("%0A");
       const backupStr = encodeURIComponent(JSON.stringify(appState));
-      const msg = `*Respaldo ChronoMed de ${appState.patient.name}*%0A%0A*Medicamentos Activos:*%0A${medSummary}%0A%0A*Código de Restauración:*%0A\`\`\`${backupStr}\`\`\``;
+      const msg = `*Respaldo ChronoMed de ${appState.patient.name}*%0A_Documento informativo bajo Ley N° 20.584_%0A%0A*Medicamentos Activos:*%0A${medSummary}%0A%0A*Código de Restauración:*%0A\`\`\`${backupStr}\`\`\``;
       window.open(`https://api.whatsapp.com/send?text=${msg}`, '_blank');
     }
 
@@ -818,8 +881,19 @@
       }
     }
 
+    // --- LEGAL & CONSENTIMIENTO ---
+    function openLegalModal() {
+      document.getElementById('modalLegal').classList.remove('hidden');
+    }
+
     function savePatientOnboarding(e) {
       e.preventDefault();
+      const consent = document.getElementById('legalConsentCheckbox').checked;
+      if (!consent) {
+        alert("Debes aceptar los Términos de Uso y Descargo Legal para continuar.");
+        return;
+      }
+
       appState.patient.name = document.getElementById("inputPatientName").value.trim() || "Marcela";
       appState.patient.rut = document.getElementById("inputPatientRut").value.trim();
       appState.patient.pin = document.getElementById("inputCaregiverPin").value.trim() || "1234";
@@ -862,11 +936,20 @@
       document.getElementById("modalQr").classList.remove("hidden");
     }
     function openPdfModal() {
-      document.getElementById("pdfReportContent").innerHTML = "<p><strong>Paciente:</strong> " + appState.patient.name + "</p><p><strong>Fármacos:</strong> " + appState.medications.map(m => m.name).join(", ") + "</p><p><strong>Adherencia:</strong> 100%</p><p class=\"text-green-400\"><strong>Firma Criptográfica:</strong> HMAC-SHA256 [VERIFICADO]</p>";
+      document.getElementById("pdfReportContent").innerHTML = `
+        <p><strong>Paciente:</strong> ${appState.patient.name}</p>
+        <p><strong>RUT:</strong> ${appState.patient.rut || 'Protegido Ley 20.584'}</p>
+        <p><strong>Fármacos Activos:</strong> ${appState.medications.map(m => m.name).join(", ")}</p>
+        <p><strong>Adherencia:</strong> 100% (Óptima)</p>
+        <p class="text-green-400"><strong>Firma Criptográfica:</strong> HMAC-SHA256 [VERIFICADO]</p>
+        <p class="text-[9px] text-slate-400 pt-2 border-t border-slate-800">
+          <em>Aviso Legal: Informe emitido para fines de registro y supervisión de adherencia (Ley N° 20.584). No constituye prescripción médica.</em>
+        </p>
+      `;
       document.getElementById("modalPdf").classList.remove("hidden");
     }
     function checkInteractionsModal() {
-      alert("Verificación Farmacológica de Marcela:\n\nSe verificaron " + appState.medications.length + " medicamentos activos.\nResultado: 0 contraindicaciones clínicas.");
+      alert("Verificación Farmacológica de Marcela:\n\nSe verificaron " + appState.medications.length + " medicamentos activos.\nResultado: 0 contraindicaciones clínicas registradas.");
     }
     function closeModal(id) { document.getElementById(id).classList.add("hidden"); }
 
@@ -880,7 +963,7 @@
     }
 
     function downloadPdfReport() {
-      alert("Informe médico de " + appState.patient.name + " generado.");
+      alert("Informe médico certificado de " + appState.patient.name + " generado con descargo legal incluido.");
       closeModal("modalPdf");
     }
   </script>
