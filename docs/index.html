@@ -1,0 +1,372 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>ChronoMed — Sincronización Inteligente de Medicación</title>
+  
+  <!-- PWA Metadata -->
+  <meta name="theme-color" content="#0F172A">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="manifest" href="manifest.json">
+
+  <!-- Lucide Icons & Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800;900&display=swap');
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+    .senior-bg { background-color: #0F172A; color: #F8FAFC; }
+    .senior-card { background-color: #1E293B; border-color: #334155; }
+    .senior-btn-yellow { background-color: #FACC15; color: #000000; }
+    .senior-btn-green { background-color: #22C55E; color: #000000; }
+  </style>
+</head>
+<body class="senior-bg min-h-screen flex flex-col justify-between">
+
+  <!-- Top Switcher Bar -->
+  <header class="bg-slate-900/90 backdrop-blur border-b border-slate-800 p-3 sticky top-0 z-50">
+    <div class="max-w-md mx-auto flex items-center justify-between">
+      <div class="flex items-center space-x-2">
+        <span class="text-2xl">⏰</span>
+        <span class="font-black text-xl tracking-tight text-white">Chrono<span class="text-blue-500">Med</span></span>
+      </div>
+      <div class="flex items-center bg-slate-800 p-1 rounded-xl border border-slate-700">
+        <button id="btnModeSenior" onclick="switchMode('senior')" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all bg-yellow-400 text-black shadow">Modo Senior</button>
+        <button id="btnModeCaregiver" onclick="switchMode('caregiver')" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all text-slate-300 hover:text-white">Cuidador</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ========================================================================= -->
+  <!-- VISTA 1: MODO SENIOR (Cero Fricción / WCAG AAA / Voz TTS / Anti-Sobredosis) -->
+  <!-- ========================================================================= -->
+  <main id="viewSenior" class="flex-1 max-w-md w-full mx-auto p-4 flex flex-col justify-between">
+    
+    <!-- Header del Paciente -->
+    <div>
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <span class="text-sm font-semibold text-slate-400">Paciente activo:</span>
+          <h1 class="text-2xl font-black text-white">Hola, Carmen 👋</h1>
+        </div>
+        <div class="flex space-x-2">
+          <button onclick="speakInstruction()" class="w-12 h-12 rounded-2xl bg-yellow-400 text-black flex items-center justify-center text-xl shadow-lg hover:scale-105 active:scale-95 transition" title="Escuchar instrucción por voz">
+            🔊
+          </button>
+          <button onclick="openPinModal()" class="w-12 h-12 rounded-2xl bg-slate-800 text-slate-300 flex items-center justify-center text-xl border border-slate-700" title="Ajustes de Cuidador (PIN)">
+            ⚙️
+          </button>
+        </div>
+      </div>
+
+      <!-- Momento Circadiano -->
+      <div class="inline-flex items-center space-x-2 bg-amber-500/20 border-2 border-yellow-400 px-4 py-2 rounded-2xl mb-4">
+        <span class="text-2xl">🍲</span>
+        <span class="text-lg font-black text-yellow-400">ALMUERZO (13:30)</span>
+      </div>
+
+      <!-- Tarjeta Principal del Medicamento -->
+      <div class="senior-card p-6 rounded-3xl border text-center shadow-2xl mb-4 relative overflow-hidden">
+        <!-- Pastilla Gráfica Gigante -->
+        <div class="w-24 h-24 mx-auto rounded-full bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/30 mb-4 animate-bounce">
+          <i data-lucide="pill" class="w-12 h-12 text-white"></i>
+        </div>
+
+        <h2 class="text-3xl font-black text-white tracking-tight mb-1">Losartán Potásico</h2>
+        <p class="text-2xl font-bold text-yellow-400 mb-3">50 mg <span class="text-lg text-slate-300 font-normal">(1 pastilla azul)</span></p>
+        <div class="bg-slate-800/80 py-2 px-4 rounded-xl inline-block border border-slate-700">
+          <p class="text-base text-slate-200 font-semibold">Tómala con un vaso de agua</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Botón de Acción con Protección Anti-Sobredosis -->
+    <div class="mb-4">
+      <div id="overdoseGuardActive">
+        <button onclick="confirmSeniorIntake()" class="w-full py-6 rounded-3xl senior-btn-green font-black text-2xl tracking-wider shadow-xl shadow-green-500/20 flex items-center justify-center space-x-3 active:scale-95 transition transform">
+          <i data-lucide="check-circle" class="w-8 h-8"></i>
+          <span>YA ME LA TOMÉ</span>
+        </button>
+      </div>
+
+      <!-- Estado Bloqueado Anti-Sobredosis -->
+      <div id="overdoseGuardLocked" class="hidden senior-card p-6 rounded-3xl border-2 border-green-500 text-center">
+        <div class="w-16 h-16 bg-green-500/20 text-green-400 rounded-full flex items-center justify-center mx-auto mb-2">
+          <i data-lucide="check-check" class="w-10 h-10"></i>
+        </div>
+        <h3 class="text-2xl font-black text-green-400 mb-1">¡Listo! Dosis Tomada</h3>
+        <p class="text-lg text-white font-semibold">Tu siguiente toma es a las <span class="text-yellow-400 font-bold">20:30 (Atorvastatina)</span></p>
+        <p class="text-xs text-slate-400 mt-2">🔒 Botón bloqueado para prevenir sobredosis accidental.</p>
+      </div>
+    </div>
+  </main>
+
+  <!-- ========================================================================= -->
+  <!-- VISTA 2: MODO CUIDADOR (Dashboard Clínico / OCR / Stock / Reportes PDF) -->
+  <!-- ========================================================================= -->
+  <main id="viewCaregiver" class="hidden flex-1 max-w-md w-full mx-auto p-4 flex flex-col space-y-4">
+    
+    <!-- Selector de Paciente -->
+    <div class="flex items-center justify-between">
+      <div>
+        <span class="text-xs font-semibold text-slate-400">Supervisando a:</span>
+        <select class="bg-slate-800 text-white font-bold text-lg rounded-xl px-3 py-1 border border-slate-700 focus:outline-none">
+          <option>Carmen González (Mamá)</option>
+          <option>Roberto González (Papá)</option>
+        </select>
+      </div>
+      <button onclick="openQrModal()" class="bg-blue-600 hover:bg-blue-500 text-white p-3 rounded-2xl flex items-center space-x-1 text-sm font-bold shadow-lg shadow-blue-500/30">
+        <i data-lucide="qr-code" class="w-5 h-5"></i>
+        <span>Vincular QR</span>
+      </button>
+    </div>
+
+    <!-- Tarjeta de Adherencia Mensual -->
+    <div class="bg-gradient-to-br from-blue-700 to-blue-600 rounded-3xl p-5 text-white shadow-xl">
+      <div class="flex justify-between items-center mb-3">
+        <div class="flex items-center space-x-2">
+          <i data-lucide="activity" class="w-5 h-5"></i>
+          <span class="font-bold text-sm text-blue-100">Adherencia Agosto 2026</span>
+        </div>
+        <button onclick="openPdfModal()" class="bg-white/20 hover:bg-white/30 px-3 py-1 rounded-xl text-xs font-bold flex items-center space-x-1 backdrop-blur">
+          <i data-lucide="file-text" class="w-3.5 h-3.5"></i>
+          <span>Reporte PDF</span>
+        </button>
+      </div>
+      <div class="flex items-baseline space-x-2 mb-2">
+        <span class="text-5xl font-black">96%</span>
+        <span class="text-blue-200 text-sm">58 de 60 tomas a tiempo</span>
+      </div>
+      <div class="w-full bg-black/20 rounded-full h-2.5 overflow-hidden">
+        <div class="bg-green-400 h-2.5 rounded-full" style="width: 96%"></div>
+      </div>
+    </div>
+
+    <!-- Acciones Rápidas -->
+    <div class="grid grid-cols-2 gap-3">
+      <button onclick="openOcrModal()" class="senior-card p-4 rounded-2xl border text-left flex items-center space-x-3 hover:border-blue-500 transition">
+        <div class="p-2.5 rounded-xl bg-blue-500/20 text-blue-400"><i data-lucide="camera" class="w-6 h-6"></i></div>
+        <div>
+          <h4 class="font-bold text-sm text-white">Escanear Receta</h4>
+          <p class="text-xs text-slate-400">OCR on-device</p>
+        </div>
+      </button>
+      <button onclick="alert('Motor de Interacciones: 0 conflictos detectados con el plan activo.')" class="senior-card p-4 rounded-2xl border text-left flex items-center space-x-3 hover:border-emerald-500 transition">
+        <div class="p-2.5 rounded-xl bg-emerald-500/20 text-emerald-400"><i data-lucide="shield-check" class="w-6 h-6"></i></div>
+        <div>
+          <h4 class="font-bold text-sm text-white">Interacciones</h4>
+          <p class="text-xs text-emerald-400">Tratamiento Seguro</p>
+        </div>
+      </button>
+    </div>
+
+    <!-- Cronograma del Día -->
+    <div>
+      <h3 class="font-bold text-lg text-white mb-2 flex items-center justify-between">
+        <span>Tomas de Hoy</span>
+        <span class="text-xs text-blue-400 font-semibold">3 medicamentos</span>
+      </h3>
+      <div class="space-y-2">
+        <div class="senior-card p-3 rounded-2xl border flex items-center justify-between">
+          <div class="flex items-center space-x-3">
+            <span class="text-2xl">☀️</span>
+            <div>
+              <p class="font-bold text-white text-sm">Eutirox 100mcg</p>
+              <p class="text-xs text-slate-400">07:30 • En ayunas</p>
+            </div>
+          </div>
+          <span class="px-2.5 py-1 bg-green-500/20 text-green-400 font-bold text-xs rounded-lg">Tomada</span>
+        </div>
+        <div class="senior-card p-3 rounded-2xl border flex items-center justify-between">
+          <div class="flex items-center space-x-3">
+            <span class="text-2xl">🍲</span>
+            <div>
+              <p class="font-bold text-white text-sm">Losartán 50mg</p>
+              <p class="text-xs text-slate-400">13:30 • Con el almuerzo</p>
+            </div>
+          </div>
+          <span class="px-2.5 py-1 bg-yellow-500/20 text-yellow-400 font-bold text-xs rounded-lg">Activa</span>
+        </div>
+        <div class="senior-card p-3 rounded-2xl border flex items-center justify-between">
+          <div class="flex items-center space-x-3">
+            <span class="text-2xl">🌙</span>
+            <div>
+              <p class="font-bold text-white text-sm">Atorvastatina 20mg</p>
+              <p class="text-xs text-slate-400">20:30 • Antes de dormir</p>
+            </div>
+          </div>
+          <span class="px-2.5 py-1 bg-slate-700 text-slate-300 font-bold text-xs rounded-lg">Pendiente</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Alerta Predictiva de Farmacia -->
+    <div class="senior-card p-4 rounded-2xl border border-amber-500/50 bg-amber-500/10">
+      <div class="flex items-start space-x-3">
+        <i data-lucide="alert-triangle" class="w-6 h-6 text-amber-400 shrink-0 mt-0.5"></i>
+        <div class="flex-1">
+          <h4 class="font-bold text-sm text-amber-300">Alerta de Reposición de Farmacia</h4>
+          <p class="text-xs text-slate-300 mt-1">El stock de <strong>Losartán 50mg</strong> se agotará este <strong>Domingo 30 de Agosto</strong>. Te sugerimos comprar una nueva caja a más tardar este jueves.</p>
+          <button onclick="alert('Nueva caja de 30 comprimidos agregada al inventario.')" class="mt-2 text-xs bg-amber-500 hover:bg-amber-400 text-black font-bold px-3 py-1.5 rounded-lg transition">
+            + Registrar Nueva Caja (+30)
+          </button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- ========================================================================= -->
+  <!-- MODALES INTERACTIVOS (OCR, QR, PDF, PIN) -->
+  <!-- ========================================================================= -->
+
+  <!-- Modal OCR Scanner -->
+  <div id="modalOcr" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="senior-card max-w-sm w-full p-6 rounded-3xl border text-center">
+      <i data-lucide="scan-line" class="w-12 h-12 text-blue-400 mx-auto mb-3"></i>
+      <h3 class="text-xl font-bold text-white mb-2">Simulador de Escáner OCR</h3>
+      <p class="text-xs text-slate-400 mb-4">Simula la lectura de una receta médica con extracción automática:</p>
+      <div class="bg-slate-800 p-3 rounded-xl text-left text-xs font-mono text-slate-300 mb-4 space-y-1">
+        <p><strong>Fármaco:</strong> Losartán Potásico</p>
+        <p><strong>Dosis:</strong> 50 mg</p>
+        <p><strong>Frecuencia:</strong> Cada 12 horas</p>
+        <p><strong>Posología:</strong> Con los alimentos</p>
+      </div>
+      <button onclick="closeModal('modalOcr'); alert('¡Receta agregada con éxito al plan médico!');" class="w-full py-3 bg-blue-600 text-white font-bold rounded-xl mb-2">Confirmar e Importar</button>
+      <button onclick="closeModal('modalOcr')" class="text-xs text-slate-400 font-semibold">Cancelar</button>
+    </div>
+  </div>
+
+  <!-- Modal QR Pairing -->
+  <div id="modalQr" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="senior-card max-w-sm w-full p-6 rounded-3xl border text-center">
+      <h3 class="text-xl font-bold text-white mb-1">Vincular a Carmen</h3>
+      <p class="text-xs text-slate-400 mb-4">Escanea desde el teléfono del familiar para autoconfigurarlo:</p>
+      <div class="bg-white p-4 rounded-2xl w-48 h-48 mx-auto flex items-center justify-center mb-4 shadow-xl">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=chronomed://pair?token=chronomed_magic_token_2026" alt="QR" class="w-40 h-40">
+      </div>
+      <p class="text-xs text-amber-400 font-bold mb-4">⏰ Código expira en: 09:45</p>
+      <button onclick="closeModal('modalQr'); alert('Enlace WhatsApp copiado al portapapeles.');" class="w-full py-3 bg-emerald-600 text-white font-bold rounded-xl mb-2">Compartir por WhatsApp</button>
+      <button onclick="closeModal('modalQr')" class="text-xs text-slate-400 font-semibold">Cerrar</button>
+    </div>
+  </div>
+
+  <!-- Modal PDF Report -->
+  <div id="modalPdf" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="senior-card max-w-sm w-full p-6 rounded-3xl border text-left">
+      <div class="flex items-center space-x-2 text-blue-400 mb-2">
+        <i data-lucide="file-check" class="w-6 h-6"></i>
+        <h3 class="text-lg font-bold text-white">Informe Clínico Certificado</h3>
+      </div>
+      <div class="bg-slate-900 p-3 rounded-xl text-xs text-slate-300 font-mono space-y-1.5 mb-4 border border-slate-700">
+        <p><strong>Paciente:</strong> Carmen González</p>
+        <p><strong>Periodo:</strong> Agosto 2026</p>
+        <p><strong>Adherencia:</strong> 96.0% (Óptima)</p>
+        <p><strong>Normativa:</strong> Ley N° 20.584 Ficha Clínica</p>
+        <p class="text-green-400"><strong>Firma Digital:</strong> HMAC-SHA256 [VERIFICADO]</p>
+      </div>
+      <button onclick="closeModal('modalPdf'); alert('Descargando informe médico en PDF...');" class="w-full py-3 bg-blue-600 text-white font-bold rounded-xl mb-2">Descargar PDF para Médico</button>
+      <button onclick="closeModal('modalPdf')" class="w-full text-center text-xs text-slate-400 font-semibold">Cerrar</button>
+    </div>
+  </div>
+
+  <!-- Modal PIN Seguridad -->
+  <div id="modalPin" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="senior-card max-w-xs w-full p-6 rounded-3xl border text-center">
+      <i data-lucide="lock" class="w-10 h-10 text-yellow-400 mx-auto mb-2"></i>
+      <h3 class="text-lg font-bold text-white mb-1">Acceso de Cuidador</h3>
+      <p class="text-xs text-slate-400 mb-4">Ingresa el PIN de 4 dígitos (Prueba: 1234):</p>
+      <input id="pinInput" type="password" maxlength="4" class="w-full text-center text-3xl tracking-widest bg-slate-900 border border-slate-700 text-white py-2 rounded-xl mb-4 focus:outline-none focus:border-yellow-400" placeholder="••••">
+      <button onclick="verifyPin()" class="w-full py-3 bg-yellow-400 text-black font-bold rounded-xl mb-2">Desbloquear</button>
+      <button onclick="closeModal('modalPin')" class="text-xs text-slate-400 font-semibold">Cancelar</button>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- SCRIPTS & LÓGICA INTERACTIVA -->
+  <!-- ========================================================================= -->
+  <script>
+    lucide.createIcons();
+
+    // 1. Sintetizador de Voz TTS en Español
+    function speakInstruction() {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const text = "Hola Carmen. Es momento de tu almuerzo. Toma tu pastilla azul de Losartán con un vaso de agua.";
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'es-CL';
+        utterance.rate = 0.85; // Velocidad pausada
+        window.speechSynthesis.speak(utterance);
+      } else {
+        alert("Tu navegador no soporta síntesis de voz.");
+      }
+    }
+
+    // 2. Confirmación de Toma y Bloqueo Anti-Sobredosis
+    function confirmSeniorIntake() {
+      // Audio confirmación
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance("Excelente Carmen. Tu dosis de Losartán ha quedado registrada. Siguiente toma a las 20:30.");
+        utterance.lang = 'es-CL';
+        utterance.rate = 0.9;
+        window.speechSynthesis.speak(utterance);
+      }
+
+      // Confeti de celebración
+      confetti({ particleCount: 80, spread: 60, origin: { y: 0.8 } });
+
+      // Transición a estado bloqueado
+      document.getElementById('overdoseGuardActive').classList.add('hidden');
+      document.getElementById('overdoseGuardLocked').classList.remove('hidden');
+    }
+
+    // 3. Cambio de Modo (Senior vs Cuidador)
+    function switchMode(mode) {
+      if (mode === 'senior') {
+        document.getElementById('viewSenior').classList.remove('hidden');
+        document.getElementById('viewCaregiver').classList.add('hidden');
+        document.getElementById('btnModeSenior').className = "px-3 py-1.5 rounded-lg text-xs font-bold transition-all bg-yellow-400 text-black shadow";
+        document.getElementById('btnModeCaregiver').className = "px-3 py-1.5 rounded-lg text-xs font-bold transition-all text-slate-300 hover:text-white";
+        document.body.className = "senior-bg min-h-screen flex flex-col justify-between";
+      } else {
+        document.getElementById('viewSenior').classList.add('hidden');
+        document.getElementById('viewCaregiver').classList.remove('hidden');
+        document.getElementById('btnModeCaregiver').className = "px-3 py-1.5 rounded-lg text-xs font-bold transition-all bg-blue-600 text-white shadow";
+        document.getElementById('btnModeSenior').className = "px-3 py-1.5 rounded-lg text-xs font-bold transition-all text-slate-300 hover:text-white";
+        document.body.className = "bg-slate-950 text-slate-100 min-h-screen flex flex-col justify-between";
+      }
+      lucide.createIcons();
+    }
+
+    // 4. Modales
+    function openOcrModal() { document.getElementById('modalOcr').classList.remove('hidden'); }
+    function openQrModal() { document.getElementById('modalQr').classList.remove('hidden'); }
+    function openPdfModal() { document.getElementById('modalPdf').classList.remove('hidden'); }
+    function openPinModal() { document.getElementById('modalPin').classList.remove('hidden'); document.getElementById('pinInput').value = ''; }
+    function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+    function verifyPin() {
+      const pin = document.getElementById('pinInput').value;
+      if (pin === '1234') {
+        closeModal('modalPin');
+        switchMode('caregiver');
+      } else {
+        alert('PIN incorrecto. Ingresa 1234');
+      }
+    }
+
+    // Auto-reproducir instrucción inicial
+    window.addEventListener('DOMContentLoaded', () => {
+      setTimeout(() => speakInstruction(), 800);
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,16 @@
+﻿{
+  "name": "ChronoMed - App de Medicación",
+  "short_name": "ChronoMed",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#0F172A",
+  "theme_color": "#0F172A",
+  "description": "Sincronización Inteligente de Medicación con Modo Senior y Cuidador.",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flxml.com/512/883/883407.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
