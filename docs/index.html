@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>ChronoMed — Vademécum Completo de Chile & Ficha de Marcela</title>
+  <title>ChronoMed — Ficha de Marcela & Sincronización</title>
   
   <meta name="theme-color" content="#0F172A">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -195,20 +195,20 @@
       </div>
     </div>
 
-    <!-- Acciones Rápidas -->
+    <!-- Acciones Rápidas (Incluye Respaldo y Transferencia de Celular) -->
     <div class="grid grid-cols-2 gap-3">
+      <button onclick="openBackupModal()" class="senior-card p-3.5 rounded-2xl border text-left flex items-center space-x-2.5 hover:border-blue-500 transition">
+        <div class="p-2 rounded-xl bg-blue-500/20 text-blue-400"><i data-lucide="hard-drive-download" class="w-5 h-5"></i></div>
+        <div>
+          <h4 class="font-bold text-xs text-white">Respaldar / Migrar</h4>
+          <p class="text-[10px] text-blue-300">Guardar o transferir</p>
+        </div>
+      </button>
       <button onclick="openQrModal()" class="senior-card p-3.5 rounded-2xl border text-left flex items-center space-x-2.5 hover:border-emerald-500 transition">
         <div class="p-2 rounded-xl bg-emerald-500/20 text-emerald-400"><i data-lucide="qr-code" class="w-5 h-5"></i></div>
         <div>
           <h4 class="font-bold text-xs text-white">Vincular QR</h4>
           <p class="text-[10px] text-slate-400">Zero-Setup</p>
-        </div>
-      </button>
-      <button onclick="checkInteractionsModal()" class="senior-card p-3.5 rounded-2xl border text-left flex items-center space-x-2.5 hover:border-blue-500 transition">
-        <div class="p-2 rounded-xl bg-blue-500/20 text-blue-400"><i data-lucide="shield-check" class="w-5 h-5"></i></div>
-        <div>
-          <h4 class="font-bold text-xs text-white">Interacciones</h4>
-          <p class="text-[10px] text-emerald-400">0 Conflictos</p>
         </div>
       </button>
     </div>
@@ -233,6 +233,90 @@
       </div>
     </div>
   </main>
+
+  <!-- MODAL: RESPALDO, EXPORTACIÓN, IMPORTACIÓN Y SINCRONIZACIÓN EN LA NUBE -->
+  <div id="modalBackup" class="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3">
+    <div class="senior-card max-w-md w-full p-5 rounded-3xl border text-left max-h-[92vh] flex flex-col">
+      <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center space-x-2">
+          <span class="text-xl">💾</span>
+          <div>
+            <h3 class="text-base font-black text-white">Respaldo y Transferencia de Celular</h3>
+            <p class="text-[10px] text-slate-400">Nunca pierdas los datos de Marcela al cambiar de teléfono</p>
+          </div>
+        </div>
+        <button onclick="closeModal('modalBackup')" class="text-slate-400 hover:text-white text-lg p-1">✕</button>
+      </div>
+
+      <!-- Pestañas de Selección -->
+      <div class="grid grid-cols-2 gap-2 bg-slate-900 p-1 rounded-xl mb-4 border border-slate-800 text-xs font-bold">
+        <button id="tabBtnExport" onclick="switchBackupTab('export')" class="py-2 rounded-lg bg-blue-600 text-white transition">1. Exportar Respaldo</button>
+        <button id="tabBtnImport" onclick="switchBackupTab('import')" class="py-2 rounded-lg text-slate-400 hover:text-white transition">2. Restaurar en Nuevo Teléfono</button>
+      </div>
+
+      <!-- SECCIÓN 1: EXPORTAR RESPALDO -->
+      <div id="backupTabExport" class="space-y-3">
+        <div class="bg-slate-900/90 border border-slate-700/60 p-3 rounded-2xl">
+          <h4 class="text-xs font-bold text-white mb-1 flex items-center space-x-1.5">
+            <span>📥</span>
+            <span>Descargar Archivo de Seguridad (.json)</span>
+          </h4>
+          <p class="text-[11px] text-slate-300 mb-3 leading-tight">
+            Guarda una copia completa e inalterable de la ficha de Marcela, todos sus medicamentos, dosis, horarios y stock actual.
+          </p>
+          <button onclick="exportBackupFile()" class="w-full py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl text-xs flex items-center justify-center space-x-2 shadow-lg transition">
+            <i data-lucide="download" class="w-4 h-4"></i>
+            <span>Descargar Respaldo de Marcela (.json)</span>
+          </button>
+        </div>
+
+        <div class="bg-slate-900/90 border border-slate-700/60 p-3 rounded-2xl">
+          <h4 class="text-xs font-bold text-white mb-1 flex items-center space-x-1.5">
+            <span>📲</span>
+            <span>Enviar Respaldo por WhatsApp</span>
+          </h4>
+          <p class="text-[11px] text-slate-300 mb-3 leading-tight">
+            Envía el resumen de la ficha clínica de Marcela a tu propio WhatsApp para tener un respaldo directo en tu chat.
+          </p>
+          <button onclick="shareBackupWhatsApp()" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs flex items-center justify-center space-x-2 shadow-lg transition">
+            <i data-lucide="send" class="w-4 h-4"></i>
+            <span>Compartir Respaldo por WhatsApp</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- SECCIÓN 2: RESTAURAR EN NUEVO TELÉFONO -->
+      <div id="backupTabImport" class="hidden space-y-3">
+        <div class="bg-slate-900/90 border border-slate-700/60 p-3 rounded-2xl">
+          <h4 class="text-xs font-bold text-white mb-1 flex items-center space-x-1.5">
+            <span>📤</span>
+            <span>Subir Archivo de Respaldo (.json)</span>
+          </h4>
+          <p class="text-[11px] text-slate-300 mb-3 leading-tight">
+            En tu nuevo teléfono celular, selecciona el archivo descargado previamente para restaurar el tratamiento completo en 1 segundo:
+          </p>
+          
+          <input type="file" id="backupFileInput" accept=".json" class="hidden" onchange="handleFileImport(event)">
+          <button onclick="document.getElementById('backupFileInput').click()" class="w-full py-2.5 bg-yellow-400 hover:bg-yellow-300 text-black font-black rounded-xl text-xs flex items-center justify-center space-x-2 shadow-lg transition">
+            <i data-lucide="file-up" class="w-4 h-4"></i>
+            <span>Seleccionar Archivo de Respaldo (.json)</span>
+          </button>
+        </div>
+
+        <div class="bg-slate-900/90 border border-slate-700/60 p-3 rounded-2xl">
+          <h4 class="text-xs font-bold text-white mb-1 flex items-center space-x-1.5">
+            <span>📋</span>
+            <span>O Pegar Código / Texto de Respaldo</span>
+          </h4>
+          <textarea id="pasteBackupText" placeholder="Pega aquí el código JSON del respaldo..." class="w-full bg-slate-950 border border-slate-800 text-white rounded-xl p-2 text-[10px] font-mono h-16 focus:outline-none focus:border-blue-500 mb-2"></textarea>
+          <button onclick="handleTextImport()" class="w-full py-2 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl text-xs transition">
+            Restaurar desde Texto Pegado
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
 
   <!-- MODAL: CATÁLOGO UNIVERSAL DE MEDICAMENTOS DE CHILE CON BUSCADOR Y REGISTRO PERSONALIZADO -->
   <div id="modalAddMed" class="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3">
@@ -280,7 +364,7 @@
         <button onclick="filterCategory('Vitaminas / Minerales')" class="px-2.5 py-1 bg-slate-800 text-slate-300 hover:text-white rounded-lg shrink-0">Vitaminas</button>
       </div>
 
-      <!-- Tarjeta de Creación Rápida Personalizada (Aparece cuando el usuario busca) -->
+      <!-- Tarjeta de Creación Rápida Personalizada -->
       <div id="customMedCreatorCard" class="hidden bg-emerald-950/40 border border-emerald-500/50 rounded-xl p-2.5 mb-2 flex items-center justify-between cursor-pointer hover:bg-emerald-900/50 transition" onclick="useCustomTypedMed()">
         <div class="flex items-center space-x-2">
           <span class="text-base">✨</span>
@@ -294,7 +378,7 @@
 
       <!-- Listado de Medicamentos Filtrados -->
       <div id="chileMedListContainer" class="flex-1 overflow-y-auto space-y-1.5 pr-1 max-h-40 mb-2 scrollbar-thin">
-        <!-- Renderizado dinámico de medicamentos de Chile -->
+        <!-- Renderizado dinámico -->
       </div>
 
       <!-- Formulario de Personalización del Fármaco Seleccionado -->
@@ -367,7 +451,7 @@
   <div id="modalPin" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4"><div class="senior-card max-w-xs w-full p-6 rounded-3xl border text-center"><i data-lucide="lock" class="w-10 h-10 text-yellow-400 mx-auto mb-2"></i><h3 class="text-lg font-bold text-white mb-1">Acceso Cuidador</h3><p class="text-xs text-slate-400 mb-4">Ingresa el PIN de seguridad (1234):</p><input id="pinInput" type="password" maxlength="4" class="w-full text-center text-3xl tracking-widest bg-slate-900 border border-slate-700 text-white py-2 rounded-xl mb-4 focus:outline-none focus:border-yellow-400" placeholder="••••"><button onclick="verifyPin()" class="w-full py-3 bg-yellow-400 text-black font-bold rounded-xl mb-2">Desbloquear</button><button onclick="closeModal('modalPin')" class="text-xs text-slate-400">Cancelar</button></div></div>
   <div id="modalQr" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4"><div class="senior-card max-w-sm w-full p-6 rounded-3xl border text-center"><h3 class="text-xl font-bold text-white mb-1">Vincular a Marcela</h3><p class="text-xs text-slate-400 mb-4">Escanea para activar este pastillero:</p><div class="bg-white p-3 rounded-2xl w-44 h-44 mx-auto flex items-center justify-center mb-4"><img id="qrImageElement" src="" alt="QR" class="w-36 h-36"></div><button onclick="closeModal('modalQr'); alert('Enlace copiado al portapapeles.');" class="w-full py-3 bg-emerald-600 text-white font-bold rounded-xl mb-2 text-sm">Copiar Magic Link</button><button onclick="closeModal('modalQr')" class="text-xs text-slate-400">Cerrar</button></div></div>
   <div id="modalPdf" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4"><div class="senior-card max-w-sm w-full p-6 rounded-3xl border text-left"><div class="flex items-center space-x-2 text-blue-400 mb-2"><i data-lucide="file-check" class="w-6 h-6"></i><h3 class="text-lg font-bold text-white">Informe Médico de Marcela</h3></div><div id="pdfReportContent" class="bg-slate-900 p-3 rounded-xl text-xs text-slate-300 font-mono space-y-1.5 mb-4 border border-slate-700"></div><button onclick="downloadPdfReport()" class="w-full py-3 bg-blue-600 text-white font-bold rounded-xl mb-2 text-sm">Descargar PDF</button><button onclick="closeModal('modalPdf')" class="w-full text-center text-xs text-slate-400">Cerrar</button></div></div>
-  <!-- 4. LÓGICA JAVASCRIPT: VADEMÉCUM CHILENO Y GESTOR DE MARCELA -->
+  <!-- 4. LÓGICA JAVASCRIPT: VADEMÉCUM CHILENO, GESTOR DE MARCELA Y RESPALDOS -->
   <script src="js/chile_meds.js"></script>
   <script>
     const STORAGE_KEY = "chronomed_marcela_v1";
@@ -631,6 +715,106 @@
         el.innerHTML = "⚠️ Quedan solo <strong>" + low.stock + " unidades</strong> de <strong>" + low.name + "</strong>. Anticipa la compra en farmacia.";
       } else {
         el.innerHTML = "✅ Todos los medicamentos tienen stock óptimo para los próximos 14 días.";
+      }
+    }
+
+    // --- GESTOR DE RESPALDOS Y MIGRACIÓN DE CELULAR ---
+    function openBackupModal() {
+      switchBackupTab('export');
+      document.getElementById('modalBackup').classList.remove('hidden');
+    }
+
+    function switchBackupTab(tab) {
+      if (tab === 'export') {
+        document.getElementById('backupTabExport').classList.remove('hidden');
+        document.getElementById('backupTabImport').classList.add('hidden');
+        document.getElementById('tabBtnExport').className = 'py-2 rounded-lg bg-blue-600 text-white transition';
+        document.getElementById('tabBtnImport').className = 'py-2 rounded-lg text-slate-400 hover:text-white transition';
+      } else {
+        document.getElementById('backupTabExport').classList.add('hidden');
+        document.getElementById('backupTabImport').classList.remove('hidden');
+        document.getElementById('tabBtnImport').className = 'py-2 rounded-lg bg-blue-600 text-white transition';
+        document.getElementById('tabBtnExport').className = 'py-2 rounded-lg text-slate-400 hover:text-white transition';
+      }
+      lucide.createIcons();
+    }
+
+    function exportBackupFile() {
+      const backupData = {
+        app: "ChronoMed",
+        version: "2.0",
+        exportDate: new Date().toISOString(),
+        data: appState
+      };
+
+      const jsonStr = JSON.stringify(backupData, null, 2);
+      const blob = new Blob([jsonStr], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `respaldo_chronomed_${appState.patient.name.toLowerCase()}_${new Date().toISOString().slice(0,10)}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      alert("✅ Respaldo descargado exitosamente. Guárdalo o envíalo a tu nuevo celular.");
+    }
+
+    function shareBackupWhatsApp() {
+      const medSummary = appState.medications.map(m => `• ${m.name} (${m.dosage}) - ${m.time}`).join("%0A");
+      const backupStr = encodeURIComponent(JSON.stringify(appState));
+      const msg = `*Respaldo ChronoMed de ${appState.patient.name}*%0A%0A*Medicamentos Activos:*%0A${medSummary}%0A%0A*Código de Restauración:*%0A\`\`\`${backupStr}\`\`\``;
+      window.open(`https://api.whatsapp.com/send?text=${msg}`, '_blank');
+    }
+
+    function handleFileImport(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        try {
+          const parsed = JSON.parse(evt.target.result);
+          const stateToRestore = parsed.data || parsed;
+          if (stateToRestore && stateToRestore.patient && stateToRestore.medications) {
+            appState = stateToRestore;
+            saveState();
+            renderAll();
+            closeModal('modalBackup');
+            confetti({ particleCount: 100, spread: 80, origin: { y: 0.6 } });
+            alert(`🎉 ¡Ficha de ${appState.patient.name} restaurada con éxito con ${appState.medications.length} medicamentos!`);
+          } else {
+            alert("El archivo no tiene el formato correcto de ChronoMed.");
+          }
+        } catch (err) {
+          alert("Error al leer el archivo de respaldo.");
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function handleTextImport() {
+      const text = document.getElementById('pasteBackupText').value.trim();
+      if (!text) {
+        alert("Por favor pega el código de respaldo.");
+        return;
+      }
+      try {
+        const decoded = text.startsWith("%7B") ? decodeURIComponent(text) : text;
+        const parsed = JSON.parse(decoded);
+        const stateToRestore = parsed.data || parsed;
+        if (stateToRestore && stateToRestore.patient && stateToRestore.medications) {
+          appState = stateToRestore;
+          saveState();
+          renderAll();
+          closeModal('modalBackup');
+          confetti({ particleCount: 100, spread: 80, origin: { y: 0.6 } });
+          alert(`🎉 ¡Ficha de ${appState.patient.name} restaurada con éxito!`);
+        } else {
+          alert("El texto pegado no es válido.");
+        }
+      } catch(e) {
+        alert("Formato de texto inválido.");
       }
     }
 
