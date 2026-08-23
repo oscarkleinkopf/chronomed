@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>ChronoMed — Ficha Clínica de Marcela</title>
+  <title>ChronoMed — Vademécum Completo de Chile & Ficha de Marcela</title>
   
   <meta name="theme-color" content="#0F172A">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -28,6 +28,8 @@
     .senior-card { background-color: #1E293B !important; border-color: #334155 !important; }
     .senior-btn-green { background-color: #22C55E !important; color: #000000 !important; }
     .senior-btn-yellow { background-color: #FACC15 !important; color: #000000 !important; }
+    .scrollbar-thin::-webkit-scrollbar { width: 4px; height: 4px; }
+    .scrollbar-thin::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
   </style>
 </head>
 <body class="senior-bg min-h-screen flex flex-col justify-between">
@@ -232,68 +234,97 @@
     </div>
   </main>
 
-  <!-- MODAL: CATÁLOGO DE MEDICAMENTOS CHILE CON BUSCADOR Y AUTOCOMPLETADO -->
+  <!-- MODAL: CATÁLOGO UNIVERSAL DE MEDICAMENTOS DE CHILE CON BUSCADOR Y REGISTRO PERSONALIZADO -->
   <div id="modalAddMed" class="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3">
-    <div class="senior-card max-w-md w-full p-5 rounded-3xl border text-left max-h-[92vh] flex flex-col">
+    <div class="senior-card max-w-md w-full p-5 rounded-3xl border text-left max-h-[94vh] flex flex-col">
       
       <div class="flex items-center justify-between mb-2">
         <div class="flex items-center space-x-2">
           <span class="text-xl">🇨🇱</span>
-          <h3 class="text-lg font-black text-white">Medicamentos Chile</h3>
+          <div>
+            <h3 class="text-base font-black text-white">Catálogo Farmacéutico de Chile</h3>
+            <span id="medCounterBadge" class="text-[10px] text-emerald-400 font-semibold">150+ fármacos ISP disponibles</span>
+          </div>
         </div>
-        <button onclick="closeModal('modalAddMed')" class="text-slate-400 hover:text-white text-lg">✕</button>
+        <button onclick="closeModal('modalAddMed')" class="text-slate-400 hover:text-white text-lg p-1">✕</button>
+      </div>
+
+      <!-- MENSAJE EXPLICATIVO INFORMATIVO -->
+      <div class="bg-blue-950/70 border border-blue-600/40 rounded-2xl p-2.5 mb-3 text-[11px] text-blue-100 flex items-start space-x-2">
+        <span class="text-base shrink-0 mt-0.5">ℹ️</span>
+        <p class="leading-tight">
+          <strong>Base de Datos Nacional (ISP Chile):</strong> Incluye antihipertensivos, diabetes, tiroides, analgesia, antibióticos y salud mental. 
+          <span class="text-yellow-300 font-medium">Si tu medicamento no está en la lista o es recetario magistral, simplemente escribe su nombre en el buscador y el sistema lo registrará automáticamente.</span>
+        </p>
       </div>
 
       <!-- Buscador en Tiempo Real -->
-      <div class="relative mb-3">
+      <div class="relative mb-2">
         <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-3"></i>
-        <input type="text" id="searchChileMedInput" oninput="filterChileMeds()" placeholder="Buscar por nombre o principio activo (ej: Losartán, Eutirox, Paracetamol...)" class="w-full bg-slate-900 border border-slate-700 text-white rounded-xl pl-9 pr-3 py-2.5 text-xs focus:outline-none focus:border-blue-500">
+        <input type="text" id="searchChileMedInput" oninput="filterChileMeds()" placeholder="Escribe cualquier fármaco o principio activo chileno..." class="w-full bg-slate-900 border border-slate-700 text-white rounded-xl pl-9 pr-8 py-2.5 text-xs focus:outline-none focus:border-blue-500">
+        <button id="clearSearchBtn" onclick="clearSearch()" class="hidden absolute right-3 top-2.5 text-slate-400 hover:text-white text-xs">✕</button>
       </div>
 
       <!-- Chips de Categorías Frecuentes -->
-      <div class="flex space-x-1.5 overflow-x-auto pb-2 mb-2 text-[11px] scrollbar-none">
+      <div class="flex space-x-1.5 overflow-x-auto pb-2 mb-2 text-[11px] scrollbar-thin">
         <button onclick="filterCategory('TODOS')" class="px-2.5 py-1 bg-blue-600 text-white rounded-lg font-bold shrink-0">Todos</button>
         <button onclick="filterCategory('Presión / Corazón')" class="px-2.5 py-1 bg-slate-800 text-slate-300 hover:text-white rounded-lg shrink-0">Presión</button>
         <button onclick="filterCategory('Diabetes / Azúcar')" class="px-2.5 py-1 bg-slate-800 text-slate-300 hover:text-white rounded-lg shrink-0">Diabetes</button>
-        <button onclick="filterCategory('Tiroides')" class="px-2.5 py-1 bg-slate-800 text-slate-300 hover:text-white rounded-lg shrink-0">Tiroides</button>
-        <button onclick="filterCategory('Colesterol')" class="px-2.5 py-1 bg-slate-800 text-slate-300 hover:text-white rounded-lg shrink-0">Colesterol</button>
+        <button onclick="filterCategory('Tiroides / Hormonas')" class="px-2.5 py-1 bg-slate-800 text-slate-300 hover:text-white rounded-lg shrink-0">Tiroides</button>
+        <button onclick="filterCategory('Colesterol / Lípidos')" class="px-2.5 py-1 bg-slate-800 text-slate-300 hover:text-white rounded-lg shrink-0">Colesterol</button>
         <button onclick="filterCategory('Dolor / Inflamación')" class="px-2.5 py-1 bg-slate-800 text-slate-300 hover:text-white rounded-lg shrink-0">Dolor</button>
         <button onclick="filterCategory('Estómago / Digestivo')" class="px-2.5 py-1 bg-slate-800 text-slate-300 hover:text-white rounded-lg shrink-0">Estómago</button>
-        <button onclick="filterCategory('Ánimo / Sueño')" class="px-2.5 py-1 bg-slate-800 text-slate-300 hover:text-white rounded-lg shrink-0">Ánimo/Sueño</button>
+        <button onclick="filterCategory('Ánimo / Sueño / Neuro')" class="px-2.5 py-1 bg-slate-800 text-slate-300 hover:text-white rounded-lg shrink-0">Ánimo/Sueño</button>
+        <button onclick="filterCategory('Antibióticos / Infecciones')" class="px-2.5 py-1 bg-slate-800 text-slate-300 hover:text-white rounded-lg shrink-0">Antibióticos</button>
+        <button onclick="filterCategory('Respiratorio / Alergias')" class="px-2.5 py-1 bg-slate-800 text-slate-300 hover:text-white rounded-lg shrink-0">Respiratorio</button>
+        <button onclick="filterCategory('Vitaminas / Minerales')" class="px-2.5 py-1 bg-slate-800 text-slate-300 hover:text-white rounded-lg shrink-0">Vitaminas</button>
+      </div>
+
+      <!-- Tarjeta de Creación Rápida Personalizada (Aparece cuando el usuario busca) -->
+      <div id="customMedCreatorCard" class="hidden bg-emerald-950/40 border border-emerald-500/50 rounded-xl p-2.5 mb-2 flex items-center justify-between cursor-pointer hover:bg-emerald-900/50 transition" onclick="useCustomTypedMed()">
+        <div class="flex items-center space-x-2">
+          <span class="text-base">✨</span>
+          <div>
+            <p class="text-xs font-bold text-emerald-300" id="customMedCreatorTitle">Registrar fármaco personalizado</p>
+            <p class="text-[10px] text-slate-300">Click para autocompletar el formulario con este nombre</p>
+          </div>
+        </div>
+        <span class="text-[10px] bg-emerald-600 text-white font-bold px-2 py-1 rounded-lg">Usar</span>
       </div>
 
       <!-- Listado de Medicamentos Filtrados -->
-      <div id="chileMedListContainer" class="flex-1 overflow-y-auto space-y-1.5 pr-1 max-h-48 mb-3">
+      <div id="chileMedListContainer" class="flex-1 overflow-y-auto space-y-1.5 pr-1 max-h-40 mb-2 scrollbar-thin">
         <!-- Renderizado dinámico de medicamentos de Chile -->
       </div>
 
       <!-- Formulario de Personalización del Fármaco Seleccionado -->
-      <div class="border-t border-slate-800 pt-3">
-        <p class="text-[11px] font-bold text-yellow-400 mb-2">Personalizar Dosis y Horario para Marcela:</p>
+      <div class="border-t border-slate-800 pt-2.5">
+        <p class="text-[11px] font-bold text-yellow-400 mb-1.5">Personalizar Dosis y Horario para Marcela:</p>
         <form onsubmit="saveSelectedMedication(event)" class="space-y-2 text-xs">
           <div class="grid grid-cols-2 gap-2">
             <div>
               <label class="text-[10px] font-semibold text-slate-400">Medicamento</label>
-              <input type="text" id="selectedMedName" required class="w-full bg-slate-900 border border-slate-700 text-white rounded-lg p-2 text-xs">
+              <input type="text" id="selectedMedName" required placeholder="Nombre del fármaco" class="w-full bg-slate-900 border border-slate-700 text-white rounded-lg p-2 text-xs focus:border-blue-500 focus:outline-none">
             </div>
             <div>
               <label class="text-[10px] font-semibold text-slate-400">Dosis / Concentración</label>
-              <input type="text" id="selectedMedDosage" required class="w-full bg-slate-900 border border-slate-700 text-white rounded-lg p-2 text-xs">
+              <input type="text" id="selectedMedDosage" required placeholder="Ej: 50 mg o 1 comp." class="w-full bg-slate-900 border border-slate-700 text-white rounded-lg p-2 text-xs focus:border-blue-500 focus:outline-none">
             </div>
           </div>
 
           <div class="grid grid-cols-3 gap-2">
             <div>
               <label class="text-[10px] font-semibold text-slate-400">Frecuencia</label>
-              <select id="selectedMedFrequency" class="w-full bg-slate-900 border border-slate-700 text-white rounded-lg p-2 text-xs">
+              <select id="selectedMedFrequency" class="w-full bg-slate-900 border border-slate-700 text-white rounded-lg p-2 text-xs text-white">
                 <option value="24">Cada 24h</option>
                 <option value="12">Cada 12h</option>
                 <option value="8">Cada 8h</option>
+                <option value="6">Cada 6h</option>
               </select>
             </div>
             <div>
               <label class="text-[10px] font-semibold text-slate-400">Momento</label>
-              <select id="selectedMedMeal" class="w-full bg-slate-900 border border-slate-700 text-white rounded-lg p-2 text-xs">
+              <select id="selectedMedMeal" class="w-full bg-slate-900 border border-slate-700 text-white rounded-lg p-2 text-xs text-white">
                 <option value="WITH_MEAL">Con comida</option>
                 <option value="FASTING">En ayunas</option>
                 <option value="BEFORE_SLEEP">Al acostarse</option>
@@ -301,28 +332,30 @@
             </div>
             <div>
               <label class="text-[10px] font-semibold text-slate-400">Hora</label>
-              <input type="time" id="selectedMedTime" value="08:00" class="w-full bg-slate-900 border border-slate-700 text-white rounded-lg p-2 text-xs">
+              <input type="time" id="selectedMedTime" value="08:00" class="w-full bg-slate-900 border border-slate-700 text-white rounded-lg p-2 text-xs text-white">
             </div>
           </div>
 
           <div class="grid grid-cols-2 gap-2">
             <div>
               <label class="text-[10px] font-semibold text-slate-400">Color Pastilla</label>
-              <select id="selectedMedColor" class="w-full bg-slate-900 border border-slate-700 text-white rounded-lg p-2 text-xs">
+              <select id="selectedMedColor" class="w-full bg-slate-900 border border-slate-700 text-white rounded-lg p-2 text-xs text-white">
                 <option value="#3B82F6">Azul 🔵</option>
                 <option value="#FFFFFF">Blanca ⚪</option>
                 <option value="#FACC15">Amarilla 🟡</option>
                 <option value="#EF4444">Roja 🔴</option>
                 <option value="#10B981">Verde 🟢</option>
+                <option value="#A855F7">Morada 🟣</option>
+                <option value="#F97316">Naranja 🟠</option>
               </select>
             </div>
             <div>
               <label class="text-[10px] font-semibold text-slate-400">Stock Inicial (unidades)</label>
-              <input type="number" id="selectedMedStock" value="30" min="1" required class="w-full bg-slate-900 border border-slate-700 text-white rounded-lg p-2 text-xs">
+              <input type="number" id="selectedMedStock" value="30" min="1" required class="w-full bg-slate-900 border border-slate-700 text-white rounded-lg p-2 text-xs text-white">
             </div>
           </div>
 
-          <button type="submit" class="w-full py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl shadow-lg mt-1 text-xs">
+          <button type="submit" class="w-full py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl shadow-lg mt-1 text-xs transition">
             + Agregar al Tratamiento de Marcela
           </button>
         </form>
@@ -334,52 +367,9 @@
   <div id="modalPin" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4"><div class="senior-card max-w-xs w-full p-6 rounded-3xl border text-center"><i data-lucide="lock" class="w-10 h-10 text-yellow-400 mx-auto mb-2"></i><h3 class="text-lg font-bold text-white mb-1">Acceso Cuidador</h3><p class="text-xs text-slate-400 mb-4">Ingresa el PIN de seguridad (1234):</p><input id="pinInput" type="password" maxlength="4" class="w-full text-center text-3xl tracking-widest bg-slate-900 border border-slate-700 text-white py-2 rounded-xl mb-4 focus:outline-none focus:border-yellow-400" placeholder="••••"><button onclick="verifyPin()" class="w-full py-3 bg-yellow-400 text-black font-bold rounded-xl mb-2">Desbloquear</button><button onclick="closeModal('modalPin')" class="text-xs text-slate-400">Cancelar</button></div></div>
   <div id="modalQr" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4"><div class="senior-card max-w-sm w-full p-6 rounded-3xl border text-center"><h3 class="text-xl font-bold text-white mb-1">Vincular a Marcela</h3><p class="text-xs text-slate-400 mb-4">Escanea para activar este pastillero:</p><div class="bg-white p-3 rounded-2xl w-44 h-44 mx-auto flex items-center justify-center mb-4"><img id="qrImageElement" src="" alt="QR" class="w-36 h-36"></div><button onclick="closeModal('modalQr'); alert('Enlace copiado al portapapeles.');" class="w-full py-3 bg-emerald-600 text-white font-bold rounded-xl mb-2 text-sm">Copiar Magic Link</button><button onclick="closeModal('modalQr')" class="text-xs text-slate-400">Cerrar</button></div></div>
   <div id="modalPdf" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4"><div class="senior-card max-w-sm w-full p-6 rounded-3xl border text-left"><div class="flex items-center space-x-2 text-blue-400 mb-2"><i data-lucide="file-check" class="w-6 h-6"></i><h3 class="text-lg font-bold text-white">Informe Médico de Marcela</h3></div><div id="pdfReportContent" class="bg-slate-900 p-3 rounded-xl text-xs text-slate-300 font-mono space-y-1.5 mb-4 border border-slate-700"></div><button onclick="downloadPdfReport()" class="w-full py-3 bg-blue-600 text-white font-bold rounded-xl mb-2 text-sm">Descargar PDF</button><button onclick="closeModal('modalPdf')" class="w-full text-center text-xs text-slate-400">Cerrar</button></div></div>
-  <!-- 4. LÓGICA JAVASCRIPT: CATÁLOGO CHILENO Y GESTOR DE MARCELA -->
+  <!-- 4. LÓGICA JAVASCRIPT: VADEMÉCUM CHILENO Y GESTOR DE MARCELA -->
+  <script src="js/chile_meds.js"></script>
   <script>
-    // Catálogo Farmacológico de Chile (ISP / Farmacias Principales)
-    const CHILE_MED_CATALOG = [
-      { name: "Losartán Potásico", active: "Losartán", category: "Presión / Corazón", dosage: "50 mg", color: "#3B82F6", colorName: "azul", meal: "WITH_MEAL", defaultTime: "13:30", freq: 12 },
-      { name: "Enalapril Maleato", active: "Enalapril", category: "Presión / Corazón", dosage: "10 mg", color: "#FFFFFF", colorName: "blanca", meal: "WITH_MEAL", defaultTime: "08:00", freq: 12 },
-      { name: "Amlodipino", active: "Amlodipino", category: "Presión / Corazón", dosage: "5 mg", color: "#FFFFFF", colorName: "blanca", meal: "WITH_MEAL", defaultTime: "08:00", freq: 24 },
-      { name: "Atenolol", active: "Atenolol", category: "Presión / Corazón", dosage: "50 mg", color: "#FACC15", colorName: "amarilla", meal: "WITH_MEAL", defaultTime: "08:00", freq: 24 },
-      { name: "Carvedilol", active: "Carvedilol", category: "Presión / Corazón", dosage: "12.5 mg", color: "#FFFFFF", colorName: "blanca", meal: "WITH_MEAL", defaultTime: "08:00", freq: 12 },
-      { name: "Hidroclorotiazida", active: "Hidroclorotiazida", category: "Presión / Corazón", dosage: "25 mg", color: "#FACC15", colorName: "amarilla", meal: "WITH_MEAL", defaultTime: "08:00", freq: 24 },
-      { name: "Valsartán", active: "Valsartán", category: "Presión / Corazón", dosage: "80 mg", color: "#EF4444", colorName: "roja", meal: "WITH_MEAL", defaultTime: "08:00", freq: 24 },
-
-      { name: "Metformina Clorhidrato", active: "Metformina", category: "Diabetes / Azúcar", dosage: "850 mg", color: "#FFFFFF", colorName: "blanca", meal: "WITH_MEAL", defaultTime: "13:30", freq: 12 },
-      { name: "Glibenclamida", active: "Glibenclamida", category: "Diabetes / Azúcar", dosage: "5 mg", color: "#FACC15", colorName: "amarilla", meal: "WITH_MEAL", defaultTime: "08:00", freq: 24 },
-      { name: "Jardiance", active: "Empagliflozina", category: "Diabetes / Azúcar", dosage: "10 mg", color: "#FACC15", colorName: "amarilla", meal: "WITH_MEAL", defaultTime: "08:00", freq: 24 },
-      { name: "Januvia", active: "Sitagliptina", category: "Diabetes / Azúcar", dosage: "50 mg", color: "#FFFFFF", colorName: "blanca", meal: "WITH_MEAL", defaultTime: "08:00", freq: 24 },
-
-      { name: "Eutirox", active: "Levotiroxina", category: "Tiroides", dosage: "100 mcg", color: "#FFFFFF", colorName: "blanca", meal: "FASTING", defaultTime: "07:30", freq: 24 },
-      { name: "Levotiroxina Sódica", active: "Levotiroxina", category: "Tiroides", dosage: "50 mcg", color: "#FFFFFF", colorName: "blanca", meal: "FASTING", defaultTime: "07:30", freq: 24 },
-
-      { name: "Atorvastatina", active: "Atorvastatina", category: "Colesterol", dosage: "20 mg", color: "#FACC15", colorName: "amarilla", meal: "BEFORE_SLEEP", defaultTime: "22:00", freq: 24 },
-      { name: "Rosuvastatina", active: "Rosuvastatina", category: "Colesterol", dosage: "10 mg", color: "#EF4444", colorName: "roja", meal: "BEFORE_SLEEP", defaultTime: "22:00", freq: 24 },
-
-      { name: "Omeprazol", active: "Omeprazol", category: "Estómago / Digestivo", dosage: "20 mg", color: "#EF4444", colorName: "roja", meal: "FASTING", defaultTime: "07:30", freq: 24 },
-      { name: "Nexium", active: "Esomeprazol", category: "Estómago / Digestivo", dosage: "40 mg", color: "#EF4444", colorName: "roja", meal: "FASTING", defaultTime: "07:30", freq: 24 },
-      { name: "Famotidina", active: "Famotidina", category: "Estómago / Digestivo", dosage: "20 mg", color: "#FFFFFF", colorName: "blanca", meal: "BEFORE_SLEEP", defaultTime: "22:00", freq: 24 },
-      { name: "Domperidona", active: "Domperidona", category: "Estómago / Digestivo", dosage: "10 mg", color: "#FFFFFF", colorName: "blanca", meal: "WITH_MEAL", defaultTime: "13:00", freq: 8 },
-
-      { name: "Paracetamol", active: "Paracetamol", category: "Dolor / Inflamación", dosage: "500 mg", color: "#FFFFFF", colorName: "blanca", meal: "WITH_MEAL", defaultTime: "12:00", freq: 8 },
-      { name: "Kitadol", active: "Paracetamol", category: "Dolor / Inflamación", dosage: "1 g", color: "#FFFFFF", colorName: "blanca", meal: "WITH_MEAL", defaultTime: "12:00", freq: 8 },
-      { name: "Ibuprofeno", active: "Ibuprofeno", category: "Dolor / Inflamación", dosage: "400 mg", color: "#EF4444", colorName: "roja", meal: "WITH_MEAL", defaultTime: "13:30", freq: 8 },
-      { name: "Actron", active: "Ibuprofeno", category: "Dolor / Inflamación", dosage: "600 mg", color: "#EF4444", colorName: "roja", meal: "WITH_MEAL", defaultTime: "13:30", freq: 8 },
-      { name: "Celebra", active: "Celecoxib", category: "Dolor / Inflamación", dosage: "200 mg", color: "#FACC15", colorName: "amarilla", meal: "WITH_MEAL", defaultTime: "08:00", freq: 24 },
-      { name: "Ketoprofeno", active: "Ketoprofeno", category: "Dolor / Inflamación", dosage: "100 mg", color: "#FFFFFF", colorName: "blanca", meal: "WITH_MEAL", defaultTime: "13:30", freq: 12 },
-
-      { name: "Sertralina", active: "Sertralina", category: "Ánimo / Sueño", dosage: "50 mg", color: "#3B82F6", colorName: "azul", meal: "WITH_MEAL", defaultTime: "08:00", freq: 24 },
-      { name: "Escitalopram", active: "Escitalopram", category: "Ánimo / Sueño", dosage: "10 mg", color: "#FFFFFF", colorName: "blanca", meal: "WITH_MEAL", defaultTime: "08:00", freq: 24 },
-      { name: "Clonazepam / Rivotril", active: "Clonazepam", category: "Ánimo / Sueño", dosage: "0.5 mg", color: "#EF4444", colorName: "roja", meal: "BEFORE_SLEEP", defaultTime: "22:30", freq: 24 },
-      { name: "Alprazolam", active: "Alprazolam", category: "Ánimo / Sueño", dosage: "0.5 mg", color: "#3B82F6", colorName: "azul", meal: "BEFORE_SLEEP", defaultTime: "22:30", freq: 24 },
-      { name: "Zopiclona", active: "Zopiclona", category: "Ánimo / Sueño", dosage: "7.5 mg", color: "#3B82F6", colorName: "azul", meal: "BEFORE_SLEEP", defaultTime: "22:30", freq: 24 },
-      { name: "Pregabalina", active: "Pregabalina", category: "Ánimo / Sueño", dosage: "75 mg", color: "#EF4444", colorName: "roja", meal: "BEFORE_SLEEP", defaultTime: "22:00", freq: 24 },
-
-      { name: "Aspirina Protect", active: "Ácido Acetilsalicílico", category: "Presión / Corazón", dosage: "100 mg", color: "#FFFFFF", colorName: "blanca", meal: "WITH_MEAL", defaultTime: "13:30", freq: 24 },
-      { name: "Xarelto", active: "Rivaroxabán", category: "Presión / Corazón", dosage: "20 mg", color: "#EF4444", colorName: "roja", meal: "WITH_MEAL", defaultTime: "13:30", freq: 24 }
-    ];
-
     const STORAGE_KEY = "chronomed_marcela_v1";
 
     let appState = {
@@ -399,9 +389,7 @@
     let currentCategoryFilter = "TODOS";
 
     function loadState() {
-      // Limpiar versiones anteriores con Carmen
       localStorage.removeItem("chronomed_state_v1");
-      
       const s = localStorage.getItem(STORAGE_KEY);
       if (s) {
         try { appState = JSON.parse(s); } catch(e){}
@@ -493,29 +481,42 @@
       renderAll();
     }
 
-    // --- Catálogo y Buscador de Medicamentos Chile ---
-    function renderChileCatalog(items = CHILE_MED_CATALOG) {
+    // --- Catálogo y Buscador Universal de Chile ---
+    function getCatalog() {
+      return window.CHILE_MED_CATALOG || [];
+    }
+
+    function renderChileCatalog(items) {
+      const allMeds = getCatalog();
+      const list = items || allMeds;
       const container = document.getElementById("chileMedListContainer");
       container.innerHTML = "";
 
-      if (items.length === 0) {
-        container.innerHTML = "<p class='text-xs text-slate-400 text-center py-4'>No se encontraron medicamentos. Puedes escribir uno personalizado abajo.</p>";
+      document.getElementById("medCounterBadge").innerText = `${list.length} de ${allMeds.length} fármacos ISP`;
+
+      if (list.length === 0) {
+        container.innerHTML = `
+          <div class="p-3 text-center bg-slate-900/60 rounded-xl border border-slate-800">
+            <p class="text-xs font-bold text-yellow-400">¿No está en el listado estándar?</p>
+            <p class="text-[11px] text-slate-300 mt-1">Usa la tarjeta verde de arriba para registrarlo como fármaco personalizado.</p>
+          </div>
+        `;
         return;
       }
 
-      items.forEach(med => {
+      list.forEach(med => {
         const row = document.createElement("div");
-        row.className = "bg-slate-900/80 hover:bg-slate-800 p-2 rounded-xl border border-slate-700/60 flex items-center justify-between cursor-pointer transition";
+        row.className = "bg-slate-900/90 hover:bg-slate-800 p-2.5 rounded-xl border border-slate-700/60 flex items-center justify-between cursor-pointer transition";
         row.onclick = () => selectChileMed(med);
         row.innerHTML = `
           <div class="flex items-center space-x-2.5">
-            <div class="w-3 h-3 rounded-full shrink-0" style="background-color: ${med.color}"></div>
+            <div class="w-3.5 h-3.5 rounded-full shrink-0 shadow" style="background-color: ${med.color}"></div>
             <div>
-              <p class="font-bold text-white text-xs">${med.name} <span class="text-yellow-400">${med.dosage}</span></p>
-              <p class="text-[10px] text-slate-400">${med.active} • <span class="text-blue-400">${med.category}</span></p>
+              <p class="font-bold text-white text-xs">${med.name} <span class="text-yellow-400 font-bold">${med.dosage}</span></p>
+              <p class="text-[10px] text-slate-400">${med.active} • <span class="text-blue-400 font-semibold">${med.category}</span></p>
             </div>
           </div>
-          <button type="button" class="text-[10px] bg-blue-600/30 text-blue-300 hover:bg-blue-600 hover:text-white px-2 py-1 rounded-lg font-bold transition">
+          <button type="button" class="text-[10px] bg-blue-600 hover:bg-blue-500 text-white px-2.5 py-1 rounded-lg font-bold transition">
             Seleccionar
           </button>
         `;
@@ -525,7 +526,21 @@
 
     function filterChileMeds() {
       const query = document.getElementById("searchChileMedInput").value.toLowerCase().trim();
-      let filtered = CHILE_MED_CATALOG;
+      const clearBtn = document.getElementById("clearSearchBtn");
+      const customCard = document.getElementById("customMedCreatorCard");
+      const customTitle = document.getElementById("customMedCreatorTitle");
+      const allMeds = getCatalog();
+
+      if (query.length > 0) {
+        clearBtn.classList.remove("hidden");
+        customCard.classList.remove("hidden");
+        customTitle.innerText = `Registrar "${document.getElementById("searchChileMedInput").value.trim()}"`;
+      } else {
+        clearBtn.classList.add("hidden");
+        customCard.classList.add("hidden");
+      }
+
+      let filtered = allMeds;
 
       if (currentCategoryFilter !== "TODOS") {
         filtered = filtered.filter(m => m.category === currentCategoryFilter);
@@ -535,11 +550,17 @@
         filtered = filtered.filter(m => 
           m.name.toLowerCase().includes(query) || 
           m.active.toLowerCase().includes(query) || 
-          m.category.toLowerCase().includes(query)
+          m.category.toLowerCase().includes(query) ||
+          m.dosage.toLowerCase().includes(query)
         );
       }
 
       renderChileCatalog(filtered);
+    }
+
+    function clearSearch() {
+      document.getElementById("searchChileMedInput").value = "";
+      filterChileMeds();
     }
 
     function filterCategory(cat) {
@@ -554,8 +575,19 @@
       document.getElementById("selectedMedTime").value = med.defaultTime;
       document.getElementById("selectedMedFrequency").value = med.freq;
       document.getElementById("selectedMedColor").value = med.color;
-      
-      // Destacar visualmente el formulario
+      document.getElementById("selectedMedDosage").focus();
+    }
+
+    function useCustomTypedMed() {
+      const typed = document.getElementById("searchChileMedInput").value.trim();
+      if (!typed) return;
+
+      document.getElementById("selectedMedName").value = typed;
+      document.getElementById("selectedMedDosage").value = "1 comprimido";
+      document.getElementById("selectedMedMeal").value = "WITH_MEAL";
+      document.getElementById("selectedMedTime").value = "08:00";
+      document.getElementById("selectedMedFrequency").value = "24";
+      document.getElementById("selectedMedColor").value = "#3B82F6";
       document.getElementById("selectedMedDosage").focus();
     }
 
@@ -581,7 +613,7 @@
       saveState();
       closeModal("modalAddMed");
       renderAll();
-      alert("¡" + newMed.name + " agregado a la ficha de Marcela!");
+      alert("¡" + newMed.name + " (" + newMed.dosage + ") agregado a la ficha de Marcela!");
     }
 
     function deleteMedication(id) {
