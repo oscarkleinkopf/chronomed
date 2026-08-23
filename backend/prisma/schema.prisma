@@ -1,0 +1,122 @@
+﻿datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum AppMode {
+  STANDARD
+  SENIOR
+}
+
+enum IntakeStatus {
+  PENDING
+  TAKEN
+  MISSED
+  SKIPPED
+}
+
+enum ConfirmedBy {
+  PATIENT
+  CAREGIVER
+  SYSTEM
+}
+
+model Patient {
+  id                      String    @id @default(uuid())
+  rutEncrypted            String
+  rutBlindIndex           String    @unique
+  fullNameEncrypted       String
+  emergencyPhoneEncrypted String?
+  mode                    AppMode   @default(SENIOR)
+  seniorPinHash           String?
+  wakeUp                  String    @default("07:30")
+  breakfast               String    @default("08:00")
+  lunch                   String    @default("13:30")
+  dinner                  String    @default("20:30")
+  sleep                   String    @default("23:00")
+  createdAt               DateTime  @default(now())
+  updatedAt               DateTime  @updatedAt
+
+  caregivers              CaregiverPatient[]
+  medications             Medication[]
+  intakeLogs              IntakeLog[]
+  auditLogs               AuditLog[]
+}
+
+model Caregiver {
+  id           String             @id @default(uuid())
+  email        String             @unique
+  passwordHash String
+  fullName     String
+  createdAt    DateTime           @default(now())
+
+  patients     CaregiverPatient[]
+}
+
+model CaregiverPatient {
+  caregiverId String
+  patientId   String
+  role        String   @default("FAMILY_CAREGIVER")
+  assignedAt  DateTime @default(now())
+
+  caregiver   Caregiver @relation(fields: [caregiverId], references: [id], onDelete: Cascade)
+  patient     Patient   @relation(fields: [patientId], references: [id], onDelete: Cascade)
+
+  @@id([caregiverId, patientId])
+}
+
+model Medication {
+  id               String      @id @default(uuid())
+  patientId        String
+  commercialName   String
+  activeIngredient String
+  dosage           String
+  colorHex         String      @default("#3B82F6")
+  shape            String      @default("round")
+  frequencyHours   Int
+  mealRelation     String      @default("WITH_MEAL")
+  startDate        DateTime
+  endDate          DateTime?
+  currentUnits     Float       @default(30.0)
+  packageUnitSize  Int         @default(30)
+  unitsPerDose     Float       @default(1.0)
+  isActive         Boolean     @default(true)
+
+  patient          Patient     @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  intakeLogs       IntakeLog[]
+}
+
+model IntakeLog {
+  id              String       @id @default(uuid())
+  patientId       String
+  medicationId    String
+  scheduledTime   DateTime
+  actualTakenTime DateTime?
+  status          IntakeStatus @default(PENDING)
+  confirmedBy     ConfirmedBy?
+
+  patient         Patient      @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  medication      Medication   @relation(fields: [medicationId], references: [id], onDelete: Cascade)
+
+  @@index([patientId, scheduledTime])
+}
+
+model AuditLog {
+  id                String   @id @default(uuid())
+  timestamp         DateTime @default(now())
+  actorId           String
+  actorRole         String
+  patientId         String
+  action            String
+  resourceType      String
+  resourceId        String
+  metadataJson      String?
+  previousHash      String
+  integrityChecksum String
+
+  patient           Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+}
