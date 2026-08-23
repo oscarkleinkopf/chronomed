@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>ChronoMed — Sincronización Inteligente de Medicación</title>
+  <title>ChronoMed — Ficha Clínica de Marcela</title>
   
   <meta name="theme-color" content="#0F172A">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -32,7 +32,7 @@
 </head>
 <body class="senior-bg min-h-screen flex flex-col justify-between">
 
-  <!-- BARRA SUPERIOR -->
+  <!-- HEADER -->
   <header class="bg-slate-900 border-b border-slate-800 p-3 sticky top-0 z-50">
     <div class="max-w-md mx-auto flex items-center justify-between">
       <div class="flex items-center space-x-2 cursor-pointer" onclick="openPatientModal()">
@@ -45,30 +45,29 @@
       </div>
     </div>
   </header>
-
-  <!-- 1. VISTA: CONFIGURACIÓN INICIAL / ALTA DE PACIENTE (ONBOARDING) -->
+  <!-- 1. VISTA: CONFIGURACIÓN / FICHA DE PACIENTE -->
   <div id="viewOnboarding" class="hidden flex-1 max-w-md w-full mx-auto p-4 flex flex-col justify-center">
     <div class="senior-card p-6 rounded-3xl border shadow-2xl">
       <div class="w-14 h-14 bg-blue-600/20 text-blue-400 rounded-2xl flex items-center justify-center mx-auto mb-3">
-        <i data-lucide="user-plus" class="w-8 h-8"></i>
+        <i data-lucide="user-check" class="w-8 h-8"></i>
       </div>
-      <h2 class="text-2xl font-black text-white text-center mb-1">Configuración del Paciente</h2>
-      <p class="text-xs text-slate-400 text-center mb-6">Ingresa los datos para sincronizar el pastillero inteligente:</p>
+      <h2 class="text-2xl font-black text-white text-center mb-1">Ficha Clínica del Paciente</h2>
+      <p class="text-xs text-slate-400 text-center mb-6">Datos de identificación y horarios de rutina:</p>
 
       <form onsubmit="savePatientOnboarding(event)" class="space-y-4">
         <div>
           <label class="block text-xs font-bold text-slate-300 mb-1">Nombre Completo del Paciente</label>
-          <input type="text" id="inputPatientName" required placeholder="Ej: Carmen González" class="w-full bg-slate-900 border border-slate-700 text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-blue-500">
+          <input type="text" id="inputPatientName" required placeholder="Ej: Marcela" value="Marcela" class="w-full bg-slate-900 border border-slate-700 text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-blue-500">
         </div>
 
         <div>
           <label class="block text-xs font-bold text-slate-300 mb-1">RUT o Ficha Clínica (Opcional)</label>
-          <input type="text" id="inputPatientRut" placeholder="Ej: 12.345.678-9" class="w-full bg-slate-900 border border-slate-700 text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-blue-500">
+          <input type="text" id="inputPatientRut" placeholder="Ej: 14.567.890-K" value="14.567.890-K" class="w-full bg-slate-900 border border-slate-700 text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-blue-500">
         </div>
 
         <div>
           <label class="block text-xs font-bold text-slate-300 mb-1">PIN de Seguridad del Cuidador</label>
-          <input type="password" id="inputCaregiverPin" maxlength="4" required placeholder="1234" value="1234" class="w-full bg-slate-900 border border-slate-700 text-white rounded-xl px-3 py-2.5 text-sm tracking-widest text-center focus:outline-none focus:border-blue-500">
+          <input type="password" id="inputCaregiverPin" maxlength="4" required value="1234" class="w-full bg-slate-900 border border-slate-700 text-white rounded-xl px-3 py-2.5 text-sm tracking-widest text-center focus:outline-none focus:border-blue-500">
         </div>
 
         <div class="border-t border-slate-800 pt-3">
@@ -94,19 +93,19 @@
         </div>
 
         <button type="submit" class="w-full py-3.5 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-2xl shadow-lg transition">
-          Guardar y Ver Pastillero ➔
+          Guardar Ficha de Marcela ➔
         </button>
       </form>
     </div>
   </div>
 
-  <!-- 2. VISTA: MODO SENIOR (Fondo Oscuro / Pastilla Gigante / Botón Grande) -->
+  <!-- 2. VISTA: MODO SENIOR PARA MARCELA -->
   <main id="viewSenior" class="flex-1 max-w-md w-full mx-auto p-4 flex flex-col justify-between">
     <div>
       <div class="flex items-center justify-between mb-3">
         <div>
           <span class="text-xs font-semibold text-slate-400">Tratamiento de:</span>
-          <h1 id="seniorDisplayName" class="text-2xl font-black text-white">Hola, Carmen 👋</h1>
+          <h1 id="seniorDisplayName" class="text-2xl font-black text-white">Hola, Marcela 👋</h1>
         </div>
         <div class="flex space-x-2">
           <button onclick="speakCurrentInstruction()" class="w-12 h-12 rounded-2xl bg-yellow-400 text-black flex items-center justify-center text-xl shadow-lg hover:scale-105 active:scale-95 transition" title="Escuchar por voz">
@@ -118,7 +117,7 @@
         </div>
       </div>
 
-      <!-- Indicador de Momento Circadiano -->
+      <!-- Indicador Circadiano -->
       <div id="seniorMomentBadge" class="inline-flex items-center space-x-2 bg-amber-500/20 border-2 border-yellow-400 px-4 py-2 rounded-2xl mb-4">
         <span id="seniorMomentEmoji" class="text-2xl">🍲</span>
         <span id="seniorMomentText" class="text-base font-black text-yellow-400">ALMUERZO (13:30)</span>
@@ -157,20 +156,19 @@
       </div>
     </div>
   </main>
-
-  <!-- 3. VISTA: MODO CUIDADOR -->
+  <!-- 3. VISTA: MODO CUIDADOR (Dashboard de Marcela) -->
   <main id="viewCaregiver" class="hidden flex-1 max-w-md w-full mx-auto p-4 flex flex-col space-y-4">
     <div class="flex items-center justify-between">
       <div>
         <span class="text-xs font-semibold text-slate-400">Paciente en supervisión:</span>
         <div class="flex items-center space-x-2">
-          <h2 id="caregiverPatientTitle" class="text-xl font-bold text-white">Carmen González</h2>
-          <button onclick="openPatientModal()" class="text-xs bg-slate-800 text-blue-400 px-2 py-0.5 rounded border border-slate-700 hover:bg-slate-700">Editar</button>
+          <h2 id="caregiverPatientTitle" class="text-xl font-bold text-white">Marcela</h2>
+          <button onclick="openPatientModal()" class="text-xs bg-slate-800 text-blue-400 px-2 py-0.5 rounded border border-slate-700 hover:bg-slate-700">Editar Ficha</button>
         </div>
       </div>
       <button onclick="openAddMedModal()" class="bg-blue-600 hover:bg-blue-500 text-white px-3 py-2 rounded-2xl flex items-center space-x-1 text-xs font-bold shadow-lg shadow-blue-500/30">
-        <i data-lucide="plus-circle" class="w-4 h-4"></i>
-        <span>+ Medicamento</span>
+        <i data-lucide="search" class="w-4 h-4"></i>
+        <span>Buscar Medicamento Chile</span>
       </button>
     </div>
 
@@ -179,7 +177,7 @@
       <div class="flex justify-between items-center mb-3">
         <div class="flex items-center space-x-2">
           <i data-lucide="activity" class="w-5 h-5"></i>
-          <span class="font-bold text-sm text-blue-100">Adherencia Registrada</span>
+          <span class="font-bold text-sm text-blue-100">Adherencia de Marcela</span>
         </div>
         <button onclick="openPdfModal()" class="bg-white/20 hover:bg-white/30 px-3 py-1 rounded-xl text-xs font-bold flex items-center space-x-1 backdrop-blur">
           <i data-lucide="file-text" class="w-3.5 h-3.5"></i>
@@ -188,7 +186,7 @@
       </div>
       <div class="flex items-baseline space-x-2 mb-2">
         <span id="caregiverAdherenceRate" class="text-5xl font-black">100%</span>
-        <span id="caregiverAdherenceDetail" class="text-blue-200 text-sm">3 de 3 tomas al día</span>
+        <span id="caregiverAdherenceDetail" class="text-blue-200 text-sm">3 de 3 tomas hoy</span>
       </div>
       <div class="w-full bg-black/20 rounded-full h-2.5 overflow-hidden">
         <div id="caregiverAdherenceBar" class="bg-green-400 h-2.5 rounded-full" style="width: 100%"></div>
@@ -234,44 +232,160 @@
     </div>
   </main>
 
-  <!-- MODALES -->
-  <div id="modalAddMed" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-    <div class="senior-card max-w-sm w-full p-6 rounded-3xl border text-left max-h-[90vh] overflow-y-auto">
-      <h3 class="text-xl font-bold text-white mb-1">Agregar Medicamento</h3>
-      <p class="text-xs text-slate-400 mb-4">Ingresa los datos para programar la toma:</p>
+  <!-- MODAL: CATÁLOGO DE MEDICAMENTOS CHILE CON BUSCADOR Y AUTOCOMPLETADO -->
+  <div id="modalAddMed" class="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3">
+    <div class="senior-card max-w-md w-full p-5 rounded-3xl border text-left max-h-[92vh] flex flex-col">
+      
+      <div class="flex items-center justify-between mb-2">
+        <div class="flex items-center space-x-2">
+          <span class="text-xl">🇨🇱</span>
+          <h3 class="text-lg font-black text-white">Medicamentos Chile</h3>
+        </div>
+        <button onclick="closeModal('modalAddMed')" class="text-slate-400 hover:text-white text-lg">✕</button>
+      </div>
 
-      <form onsubmit="saveMedication(event)" class="space-y-3 text-xs">
-        <div><label class="block font-bold text-slate-300 mb-1">Nombre Comercial / Fármaco</label><input type="text" id="newMedName" required placeholder="Ej: Losartán Potásico" class="w-full bg-slate-900 border border-slate-700 text-white rounded-xl p-2.5 focus:outline-none focus:border-blue-500"></div>
-        <div class="grid grid-cols-2 gap-2">
-          <div><label class="block font-bold text-slate-300 mb-1">Dosis</label><input type="text" id="newMedDosage" required placeholder="Ej: 50 mg" class="w-full bg-slate-900 border border-slate-700 text-white rounded-xl p-2.5 focus:outline-none focus:border-blue-500"></div>
-          <div><label class="block font-bold text-slate-300 mb-1">Color Pastilla</label><select id="newMedColor" class="w-full bg-slate-900 border border-slate-700 text-white rounded-xl p-2.5"><option value="#3B82F6">Azul 🔵</option><option value="#FFFFFF">Blanca ⚪</option><option value="#FACC15">Amarilla 🟡</option><option value="#EF4444">Roja 🔴</option><option value="#10B981">Verde 🟢</option></select></div>
-        </div>
-        <div class="grid grid-cols-2 gap-2">
-          <div><label class="block font-bold text-slate-300 mb-1">Frecuencia</label><select id="newMedFrequency" class="w-full bg-slate-900 border border-slate-700 text-white rounded-xl p-2.5"><option value="24">Cada 24h</option><option value="12">Cada 12h</option><option value="8">Cada 8h</option></select></div>
-          <div><label class="block font-bold text-slate-300 mb-1">Momento</label><select id="newMedMeal" class="w-full bg-slate-900 border border-slate-700 text-white rounded-xl p-2.5"><option value="WITH_MEAL">Con comida</option><option value="FASTING">En ayunas</option><option value="BEFORE_SLEEP">Al acostarse</option></select></div>
-        </div>
-        <div class="grid grid-cols-2 gap-2">
-          <div><label class="block font-bold text-slate-300 mb-1">Stock Actual</label><input type="number" id="newMedStock" value="30" min="1" required class="w-full bg-slate-900 border border-slate-700 text-white rounded-xl p-2.5"></div>
-          <div><label class="block font-bold text-slate-300 mb-1">Hora de Toma</label><input type="time" id="newMedCustomTime" value="13:30" class="w-full bg-slate-900 border border-slate-700 text-white rounded-xl p-2.5"></div>
-        </div>
-        <button type="submit" class="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl mt-2">Guardar Medicamento</button>
-        <button type="button" onclick="closeModal('modalAddMed')" class="w-full text-center text-slate-400 py-1">Cancelar</button>
-      </form>
+      <!-- Buscador en Tiempo Real -->
+      <div class="relative mb-3">
+        <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-3"></i>
+        <input type="text" id="searchChileMedInput" oninput="filterChileMeds()" placeholder="Buscar por nombre o principio activo (ej: Losartán, Eutirox, Paracetamol...)" class="w-full bg-slate-900 border border-slate-700 text-white rounded-xl pl-9 pr-3 py-2.5 text-xs focus:outline-none focus:border-blue-500">
+      </div>
+
+      <!-- Chips de Categorías Frecuentes -->
+      <div class="flex space-x-1.5 overflow-x-auto pb-2 mb-2 text-[11px] scrollbar-none">
+        <button onclick="filterCategory('TODOS')" class="px-2.5 py-1 bg-blue-600 text-white rounded-lg font-bold shrink-0">Todos</button>
+        <button onclick="filterCategory('Presión / Corazón')" class="px-2.5 py-1 bg-slate-800 text-slate-300 hover:text-white rounded-lg shrink-0">Presión</button>
+        <button onclick="filterCategory('Diabetes / Azúcar')" class="px-2.5 py-1 bg-slate-800 text-slate-300 hover:text-white rounded-lg shrink-0">Diabetes</button>
+        <button onclick="filterCategory('Tiroides')" class="px-2.5 py-1 bg-slate-800 text-slate-300 hover:text-white rounded-lg shrink-0">Tiroides</button>
+        <button onclick="filterCategory('Colesterol')" class="px-2.5 py-1 bg-slate-800 text-slate-300 hover:text-white rounded-lg shrink-0">Colesterol</button>
+        <button onclick="filterCategory('Dolor / Inflamación')" class="px-2.5 py-1 bg-slate-800 text-slate-300 hover:text-white rounded-lg shrink-0">Dolor</button>
+        <button onclick="filterCategory('Estómago / Digestivo')" class="px-2.5 py-1 bg-slate-800 text-slate-300 hover:text-white rounded-lg shrink-0">Estómago</button>
+        <button onclick="filterCategory('Ánimo / Sueño')" class="px-2.5 py-1 bg-slate-800 text-slate-300 hover:text-white rounded-lg shrink-0">Ánimo/Sueño</button>
+      </div>
+
+      <!-- Listado de Medicamentos Filtrados -->
+      <div id="chileMedListContainer" class="flex-1 overflow-y-auto space-y-1.5 pr-1 max-h-48 mb-3">
+        <!-- Renderizado dinámico de medicamentos de Chile -->
+      </div>
+
+      <!-- Formulario de Personalización del Fármaco Seleccionado -->
+      <div class="border-t border-slate-800 pt-3">
+        <p class="text-[11px] font-bold text-yellow-400 mb-2">Personalizar Dosis y Horario para Marcela:</p>
+        <form onsubmit="saveSelectedMedication(event)" class="space-y-2 text-xs">
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="text-[10px] font-semibold text-slate-400">Medicamento</label>
+              <input type="text" id="selectedMedName" required class="w-full bg-slate-900 border border-slate-700 text-white rounded-lg p-2 text-xs">
+            </div>
+            <div>
+              <label class="text-[10px] font-semibold text-slate-400">Dosis / Concentración</label>
+              <input type="text" id="selectedMedDosage" required class="w-full bg-slate-900 border border-slate-700 text-white rounded-lg p-2 text-xs">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-3 gap-2">
+            <div>
+              <label class="text-[10px] font-semibold text-slate-400">Frecuencia</label>
+              <select id="selectedMedFrequency" class="w-full bg-slate-900 border border-slate-700 text-white rounded-lg p-2 text-xs">
+                <option value="24">Cada 24h</option>
+                <option value="12">Cada 12h</option>
+                <option value="8">Cada 8h</option>
+              </select>
+            </div>
+            <div>
+              <label class="text-[10px] font-semibold text-slate-400">Momento</label>
+              <select id="selectedMedMeal" class="w-full bg-slate-900 border border-slate-700 text-white rounded-lg p-2 text-xs">
+                <option value="WITH_MEAL">Con comida</option>
+                <option value="FASTING">En ayunas</option>
+                <option value="BEFORE_SLEEP">Al acostarse</option>
+              </select>
+            </div>
+            <div>
+              <label class="text-[10px] font-semibold text-slate-400">Hora</label>
+              <input type="time" id="selectedMedTime" value="08:00" class="w-full bg-slate-900 border border-slate-700 text-white rounded-lg p-2 text-xs">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="text-[10px] font-semibold text-slate-400">Color Pastilla</label>
+              <select id="selectedMedColor" class="w-full bg-slate-900 border border-slate-700 text-white rounded-lg p-2 text-xs">
+                <option value="#3B82F6">Azul 🔵</option>
+                <option value="#FFFFFF">Blanca ⚪</option>
+                <option value="#FACC15">Amarilla 🟡</option>
+                <option value="#EF4444">Roja 🔴</option>
+                <option value="#10B981">Verde 🟢</option>
+              </select>
+            </div>
+            <div>
+              <label class="text-[10px] font-semibold text-slate-400">Stock Inicial (unidades)</label>
+              <input type="number" id="selectedMedStock" value="30" min="1" required class="w-full bg-slate-900 border border-slate-700 text-white rounded-lg p-2 text-xs">
+            </div>
+          </div>
+
+          <button type="submit" class="w-full py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl shadow-lg mt-1 text-xs">
+            + Agregar al Tratamiento de Marcela
+          </button>
+        </form>
+      </div>
+
     </div>
   </div>
 
-  <div id="modalPin" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4"><div class="senior-card max-w-xs w-full p-6 rounded-3xl border text-center"><i data-lucide="lock" class="w-10 h-10 text-yellow-400 mx-auto mb-2"></i><h3 class="text-lg font-bold text-white mb-1">Acceso Cuidador</h3><p class="text-xs text-slate-400 mb-4">Ingresa el PIN de seguridad:</p><input id="pinInput" type="password" maxlength="4" class="w-full text-center text-3xl tracking-widest bg-slate-900 border border-slate-700 text-white py-2 rounded-xl mb-4 focus:outline-none focus:border-yellow-400" placeholder="••••"><button onclick="verifyPin()" class="w-full py-3 bg-yellow-400 text-black font-bold rounded-xl mb-2">Desbloquear</button><button onclick="closeModal('modalPin')" class="text-xs text-slate-400">Cancelar</button></div></div>
-  <div id="modalQr" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4"><div class="senior-card max-w-sm w-full p-6 rounded-3xl border text-center"><h3 class="text-xl font-bold text-white mb-1">Vincular Paciente</h3><p class="text-xs text-slate-400 mb-4">Escanea para activar este perfil:</p><div class="bg-white p-3 rounded-2xl w-44 h-44 mx-auto flex items-center justify-center mb-4"><img id="qrImageElement" src="" alt="QR" class="w-36 h-36"></div><button onclick="closeModal('modalQr'); alert('Enlace copiado al portapapeles.');" class="w-full py-3 bg-emerald-600 text-white font-bold rounded-xl mb-2 text-sm">Copiar Magic Link</button><button onclick="closeModal('modalQr')" class="text-xs text-slate-400">Cerrar</button></div></div>
-  <div id="modalPdf" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4"><div class="senior-card max-w-sm w-full p-6 rounded-3xl border text-left"><div class="flex items-center space-x-2 text-blue-400 mb-2"><i data-lucide="file-check" class="w-6 h-6"></i><h3 class="text-lg font-bold text-white">Informe Clínico Certificado</h3></div><div id="pdfReportContent" class="bg-slate-900 p-3 rounded-xl text-xs text-slate-300 font-mono space-y-1.5 mb-4 border border-slate-700"></div><button onclick="downloadPdfReport()" class="w-full py-3 bg-blue-600 text-white font-bold rounded-xl mb-2 text-sm">Descargar PDF</button><button onclick="closeModal('modalPdf')" class="w-full text-center text-xs text-slate-400">Cerrar</button></div></div>
-
-  <!-- JAVASCRIPT PERSISTENTE -->
+  <div id="modalPin" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4"><div class="senior-card max-w-xs w-full p-6 rounded-3xl border text-center"><i data-lucide="lock" class="w-10 h-10 text-yellow-400 mx-auto mb-2"></i><h3 class="text-lg font-bold text-white mb-1">Acceso Cuidador</h3><p class="text-xs text-slate-400 mb-4">Ingresa el PIN de seguridad (1234):</p><input id="pinInput" type="password" maxlength="4" class="w-full text-center text-3xl tracking-widest bg-slate-900 border border-slate-700 text-white py-2 rounded-xl mb-4 focus:outline-none focus:border-yellow-400" placeholder="••••"><button onclick="verifyPin()" class="w-full py-3 bg-yellow-400 text-black font-bold rounded-xl mb-2">Desbloquear</button><button onclick="closeModal('modalPin')" class="text-xs text-slate-400">Cancelar</button></div></div>
+  <div id="modalQr" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4"><div class="senior-card max-w-sm w-full p-6 rounded-3xl border text-center"><h3 class="text-xl font-bold text-white mb-1">Vincular a Marcela</h3><p class="text-xs text-slate-400 mb-4">Escanea para activar este pastillero:</p><div class="bg-white p-3 rounded-2xl w-44 h-44 mx-auto flex items-center justify-center mb-4"><img id="qrImageElement" src="" alt="QR" class="w-36 h-36"></div><button onclick="closeModal('modalQr'); alert('Enlace copiado al portapapeles.');" class="w-full py-3 bg-emerald-600 text-white font-bold rounded-xl mb-2 text-sm">Copiar Magic Link</button><button onclick="closeModal('modalQr')" class="text-xs text-slate-400">Cerrar</button></div></div>
+  <div id="modalPdf" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4"><div class="senior-card max-w-sm w-full p-6 rounded-3xl border text-left"><div class="flex items-center space-x-2 text-blue-400 mb-2"><i data-lucide="file-check" class="w-6 h-6"></i><h3 class="text-lg font-bold text-white">Informe Médico de Marcela</h3></div><div id="pdfReportContent" class="bg-slate-900 p-3 rounded-xl text-xs text-slate-300 font-mono space-y-1.5 mb-4 border border-slate-700"></div><button onclick="downloadPdfReport()" class="w-full py-3 bg-blue-600 text-white font-bold rounded-xl mb-2 text-sm">Descargar PDF</button><button onclick="closeModal('modalPdf')" class="w-full text-center text-xs text-slate-400">Cerrar</button></div></div>
+  <!-- 4. LÓGICA JAVASCRIPT: CATÁLOGO CHILENO Y GESTOR DE MARCELA -->
   <script>
-    const STORAGE_KEY = "chronomed_state_v1";
+    // Catálogo Farmacológico de Chile (ISP / Farmacias Principales)
+    const CHILE_MED_CATALOG = [
+      { name: "Losartán Potásico", active: "Losartán", category: "Presión / Corazón", dosage: "50 mg", color: "#3B82F6", colorName: "azul", meal: "WITH_MEAL", defaultTime: "13:30", freq: 12 },
+      { name: "Enalapril Maleato", active: "Enalapril", category: "Presión / Corazón", dosage: "10 mg", color: "#FFFFFF", colorName: "blanca", meal: "WITH_MEAL", defaultTime: "08:00", freq: 12 },
+      { name: "Amlodipino", active: "Amlodipino", category: "Presión / Corazón", dosage: "5 mg", color: "#FFFFFF", colorName: "blanca", meal: "WITH_MEAL", defaultTime: "08:00", freq: 24 },
+      { name: "Atenolol", active: "Atenolol", category: "Presión / Corazón", dosage: "50 mg", color: "#FACC15", colorName: "amarilla", meal: "WITH_MEAL", defaultTime: "08:00", freq: 24 },
+      { name: "Carvedilol", active: "Carvedilol", category: "Presión / Corazón", dosage: "12.5 mg", color: "#FFFFFF", colorName: "blanca", meal: "WITH_MEAL", defaultTime: "08:00", freq: 12 },
+      { name: "Hidroclorotiazida", active: "Hidroclorotiazida", category: "Presión / Corazón", dosage: "25 mg", color: "#FACC15", colorName: "amarilla", meal: "WITH_MEAL", defaultTime: "08:00", freq: 24 },
+      { name: "Valsartán", active: "Valsartán", category: "Presión / Corazón", dosage: "80 mg", color: "#EF4444", colorName: "roja", meal: "WITH_MEAL", defaultTime: "08:00", freq: 24 },
+
+      { name: "Metformina Clorhidrato", active: "Metformina", category: "Diabetes / Azúcar", dosage: "850 mg", color: "#FFFFFF", colorName: "blanca", meal: "WITH_MEAL", defaultTime: "13:30", freq: 12 },
+      { name: "Glibenclamida", active: "Glibenclamida", category: "Diabetes / Azúcar", dosage: "5 mg", color: "#FACC15", colorName: "amarilla", meal: "WITH_MEAL", defaultTime: "08:00", freq: 24 },
+      { name: "Jardiance", active: "Empagliflozina", category: "Diabetes / Azúcar", dosage: "10 mg", color: "#FACC15", colorName: "amarilla", meal: "WITH_MEAL", defaultTime: "08:00", freq: 24 },
+      { name: "Januvia", active: "Sitagliptina", category: "Diabetes / Azúcar", dosage: "50 mg", color: "#FFFFFF", colorName: "blanca", meal: "WITH_MEAL", defaultTime: "08:00", freq: 24 },
+
+      { name: "Eutirox", active: "Levotiroxina", category: "Tiroides", dosage: "100 mcg", color: "#FFFFFF", colorName: "blanca", meal: "FASTING", defaultTime: "07:30", freq: 24 },
+      { name: "Levotiroxina Sódica", active: "Levotiroxina", category: "Tiroides", dosage: "50 mcg", color: "#FFFFFF", colorName: "blanca", meal: "FASTING", defaultTime: "07:30", freq: 24 },
+
+      { name: "Atorvastatina", active: "Atorvastatina", category: "Colesterol", dosage: "20 mg", color: "#FACC15", colorName: "amarilla", meal: "BEFORE_SLEEP", defaultTime: "22:00", freq: 24 },
+      { name: "Rosuvastatina", active: "Rosuvastatina", category: "Colesterol", dosage: "10 mg", color: "#EF4444", colorName: "roja", meal: "BEFORE_SLEEP", defaultTime: "22:00", freq: 24 },
+
+      { name: "Omeprazol", active: "Omeprazol", category: "Estómago / Digestivo", dosage: "20 mg", color: "#EF4444", colorName: "roja", meal: "FASTING", defaultTime: "07:30", freq: 24 },
+      { name: "Nexium", active: "Esomeprazol", category: "Estómago / Digestivo", dosage: "40 mg", color: "#EF4444", colorName: "roja", meal: "FASTING", defaultTime: "07:30", freq: 24 },
+      { name: "Famotidina", active: "Famotidina", category: "Estómago / Digestivo", dosage: "20 mg", color: "#FFFFFF", colorName: "blanca", meal: "BEFORE_SLEEP", defaultTime: "22:00", freq: 24 },
+      { name: "Domperidona", active: "Domperidona", category: "Estómago / Digestivo", dosage: "10 mg", color: "#FFFFFF", colorName: "blanca", meal: "WITH_MEAL", defaultTime: "13:00", freq: 8 },
+
+      { name: "Paracetamol", active: "Paracetamol", category: "Dolor / Inflamación", dosage: "500 mg", color: "#FFFFFF", colorName: "blanca", meal: "WITH_MEAL", defaultTime: "12:00", freq: 8 },
+      { name: "Kitadol", active: "Paracetamol", category: "Dolor / Inflamación", dosage: "1 g", color: "#FFFFFF", colorName: "blanca", meal: "WITH_MEAL", defaultTime: "12:00", freq: 8 },
+      { name: "Ibuprofeno", active: "Ibuprofeno", category: "Dolor / Inflamación", dosage: "400 mg", color: "#EF4444", colorName: "roja", meal: "WITH_MEAL", defaultTime: "13:30", freq: 8 },
+      { name: "Actron", active: "Ibuprofeno", category: "Dolor / Inflamación", dosage: "600 mg", color: "#EF4444", colorName: "roja", meal: "WITH_MEAL", defaultTime: "13:30", freq: 8 },
+      { name: "Celebra", active: "Celecoxib", category: "Dolor / Inflamación", dosage: "200 mg", color: "#FACC15", colorName: "amarilla", meal: "WITH_MEAL", defaultTime: "08:00", freq: 24 },
+      { name: "Ketoprofeno", active: "Ketoprofeno", category: "Dolor / Inflamación", dosage: "100 mg", color: "#FFFFFF", colorName: "blanca", meal: "WITH_MEAL", defaultTime: "13:30", freq: 12 },
+
+      { name: "Sertralina", active: "Sertralina", category: "Ánimo / Sueño", dosage: "50 mg", color: "#3B82F6", colorName: "azul", meal: "WITH_MEAL", defaultTime: "08:00", freq: 24 },
+      { name: "Escitalopram", active: "Escitalopram", category: "Ánimo / Sueño", dosage: "10 mg", color: "#FFFFFF", colorName: "blanca", meal: "WITH_MEAL", defaultTime: "08:00", freq: 24 },
+      { name: "Clonazepam / Rivotril", active: "Clonazepam", category: "Ánimo / Sueño", dosage: "0.5 mg", color: "#EF4444", colorName: "roja", meal: "BEFORE_SLEEP", defaultTime: "22:30", freq: 24 },
+      { name: "Alprazolam", active: "Alprazolam", category: "Ánimo / Sueño", dosage: "0.5 mg", color: "#3B82F6", colorName: "azul", meal: "BEFORE_SLEEP", defaultTime: "22:30", freq: 24 },
+      { name: "Zopiclona", active: "Zopiclona", category: "Ánimo / Sueño", dosage: "7.5 mg", color: "#3B82F6", colorName: "azul", meal: "BEFORE_SLEEP", defaultTime: "22:30", freq: 24 },
+      { name: "Pregabalina", active: "Pregabalina", category: "Ánimo / Sueño", dosage: "75 mg", color: "#EF4444", colorName: "roja", meal: "BEFORE_SLEEP", defaultTime: "22:00", freq: 24 },
+
+      { name: "Aspirina Protect", active: "Ácido Acetilsalicílico", category: "Presión / Corazón", dosage: "100 mg", color: "#FFFFFF", colorName: "blanca", meal: "WITH_MEAL", defaultTime: "13:30", freq: 24 },
+      { name: "Xarelto", active: "Rivaroxabán", category: "Presión / Corazón", dosage: "20 mg", color: "#EF4444", colorName: "roja", meal: "WITH_MEAL", defaultTime: "13:30", freq: 24 }
+    ];
+
+    const STORAGE_KEY = "chronomed_marcela_v1";
 
     let appState = {
       patient: {
-        name: "Carmen González",
-        rut: "12.345.678-9",
+        name: "Marcela",
+        rut: "14.567.890-K",
         pin: "1234",
         routine: { breakfast: "08:00", lunch: "13:30", afternoon: "18:30", sleep: "22:30" }
       },
@@ -282,7 +396,12 @@
       ]
     };
 
+    let currentCategoryFilter = "TODOS";
+
     function loadState() {
+      // Limpiar versiones anteriores con Carmen
+      localStorage.removeItem("chronomed_state_v1");
+      
       const s = localStorage.getItem(STORAGE_KEY);
       if (s) {
         try { appState = JSON.parse(s); } catch(e){}
@@ -298,6 +417,7 @@
     window.addEventListener("DOMContentLoaded", () => {
       loadState();
       renderAll();
+      renderChileCatalog();
       lucide.createIcons();
       setTimeout(() => speakCurrentInstruction(), 1000);
     });
@@ -330,7 +450,7 @@
       appState.medications.forEach(m => {
         const div = document.createElement("div");
         div.className = "senior-card p-3 rounded-2xl border flex items-center justify-between";
-        div.innerHTML = "<div class=\"flex items-center space-x-3\"><div class=\"w-3 h-3 rounded-full\" style=\"background-color:" + m.color + "\"></div><div><p class=\"font-bold text-white text-sm\">" + m.name + " (" + m.dosage + ")</p><p class=\"text-xs text-slate-400\">" + m.time + " • Stock: " + m.stock + " un.</p></div></div><button onclick=\"deleteMedication('" + m.id + "')\" class=\"text-red-400 text-xs px-2 py-1 bg-red-500/10 rounded-lg hover:bg-red-500/20\">Eliminar</button>";
+        div.innerHTML = "<div class=\"flex items-center space-x-3\"><div class=\"w-3.5 h-3.5 rounded-full shadow\" style=\"background-color:" + m.color + "\"></div><div><p class=\"font-bold text-white text-sm\">" + m.name + " (" + m.dosage + ")</p><p class=\"text-xs text-slate-400\">" + m.time + " • Stock: " + m.stock + " un.</p></div></div><button onclick=\"deleteMedication('" + m.id + "')\" class=\"text-red-400 text-xs px-2.5 py-1 bg-red-500/10 rounded-lg hover:bg-red-500/20 font-bold\">Eliminar</button>";
         listEl.appendChild(div);
       });
 
@@ -364,7 +484,7 @@
 
       if ("speechSynthesis" in window) {
         window.speechSynthesis.cancel();
-        const u = new SpeechSynthesisUtterance("Excelente. Tu toma ha quedado registrada con éxito.");
+        const u = new SpeechSynthesisUtterance("Excelente Marcela. Tu toma de " + m.name + " ha quedado registrada.");
         u.lang = "es-CL";
         window.speechSynthesis.speak(u);
       }
@@ -373,42 +493,99 @@
       renderAll();
     }
 
-    function savePatientOnboarding(e) {
-      e.preventDefault();
-      appState.patient.name = document.getElementById("inputPatientName").value.trim();
-      appState.patient.rut = document.getElementById("inputPatientRut").value.trim();
-      appState.patient.pin = document.getElementById("inputCaregiverPin").value.trim() || "1234";
-      saveState();
-      document.getElementById("viewOnboarding").classList.add("hidden");
-      switchMode("senior");
-      renderAll();
+    // --- Catálogo y Buscador de Medicamentos Chile ---
+    function renderChileCatalog(items = CHILE_MED_CATALOG) {
+      const container = document.getElementById("chileMedListContainer");
+      container.innerHTML = "";
+
+      if (items.length === 0) {
+        container.innerHTML = "<p class='text-xs text-slate-400 text-center py-4'>No se encontraron medicamentos. Puedes escribir uno personalizado abajo.</p>";
+        return;
+      }
+
+      items.forEach(med => {
+        const row = document.createElement("div");
+        row.className = "bg-slate-900/80 hover:bg-slate-800 p-2 rounded-xl border border-slate-700/60 flex items-center justify-between cursor-pointer transition";
+        row.onclick = () => selectChileMed(med);
+        row.innerHTML = `
+          <div class="flex items-center space-x-2.5">
+            <div class="w-3 h-3 rounded-full shrink-0" style="background-color: ${med.color}"></div>
+            <div>
+              <p class="font-bold text-white text-xs">${med.name} <span class="text-yellow-400">${med.dosage}</span></p>
+              <p class="text-[10px] text-slate-400">${med.active} • <span class="text-blue-400">${med.category}</span></p>
+            </div>
+          </div>
+          <button type="button" class="text-[10px] bg-blue-600/30 text-blue-300 hover:bg-blue-600 hover:text-white px-2 py-1 rounded-lg font-bold transition">
+            Seleccionar
+          </button>
+        `;
+        container.appendChild(row);
+      });
     }
 
-    function saveMedication(e) {
+    function filterChileMeds() {
+      const query = document.getElementById("searchChileMedInput").value.toLowerCase().trim();
+      let filtered = CHILE_MED_CATALOG;
+
+      if (currentCategoryFilter !== "TODOS") {
+        filtered = filtered.filter(m => m.category === currentCategoryFilter);
+      }
+
+      if (query) {
+        filtered = filtered.filter(m => 
+          m.name.toLowerCase().includes(query) || 
+          m.active.toLowerCase().includes(query) || 
+          m.category.toLowerCase().includes(query)
+        );
+      }
+
+      renderChileCatalog(filtered);
+    }
+
+    function filterCategory(cat) {
+      currentCategoryFilter = cat;
+      filterChileMeds();
+    }
+
+    function selectChileMed(med) {
+      document.getElementById("selectedMedName").value = med.name;
+      document.getElementById("selectedMedDosage").value = med.dosage;
+      document.getElementById("selectedMedMeal").value = med.meal;
+      document.getElementById("selectedMedTime").value = med.defaultTime;
+      document.getElementById("selectedMedFrequency").value = med.freq;
+      document.getElementById("selectedMedColor").value = med.color;
+      
+      // Destacar visualmente el formulario
+      document.getElementById("selectedMedDosage").focus();
+    }
+
+    function saveSelectedMedication(e) {
       e.preventDefault();
-      const colorEl = document.getElementById("newMedColor");
+      const colorEl = document.getElementById("selectedMedColor");
       const cName = colorEl.options[colorEl.selectedIndex].text.split(" ")[0].toLowerCase();
 
-      appState.medications.push({
+      const newMed = {
         id: Date.now().toString(),
-        name: document.getElementById("newMedName").value.trim(),
-        dosage: document.getElementById("newMedDosage").value.trim(),
+        name: document.getElementById("selectedMedName").value.trim(),
+        dosage: document.getElementById("selectedMedDosage").value.trim(),
         color: colorEl.value,
         colorName: cName,
-        frequency: parseInt(document.getElementById("newMedFrequency").value),
-        meal: document.getElementById("newMedMeal").value,
-        stock: parseInt(document.getElementById("newMedStock").value),
-        time: document.getElementById("newMedCustomTime").value,
+        frequency: parseInt(document.getElementById("selectedMedFrequency").value),
+        meal: document.getElementById("selectedMedMeal").value,
+        stock: parseInt(document.getElementById("selectedMedStock").value),
+        time: document.getElementById("selectedMedTime").value,
         takenToday: false
-      });
+      };
 
+      appState.medications.push(newMed);
       saveState();
       closeModal("modalAddMed");
       renderAll();
+      alert("¡" + newMed.name + " agregado a la ficha de Marcela!");
     }
 
     function deleteMedication(id) {
-      if (confirm("¿Eliminar este medicamento?")) {
+      if (confirm("¿Eliminar este medicamento del tratamiento de Marcela?")) {
         appState.medications = appState.medications.filter(m => m.id !== id);
         saveState();
         renderAll();
@@ -419,10 +596,21 @@
       const low = appState.medications.find(m => m.stock <= 15);
       const el = document.getElementById("caregiverStockAlertText");
       if (low) {
-        el.innerHTML = "⚠️ Quedan solo <strong>" + low.stock + " unidades</strong> de <strong>" + low.name + "</strong>. Anticipa tu compra.";
+        el.innerHTML = "⚠️ Quedan solo <strong>" + low.stock + " unidades</strong> de <strong>" + low.name + "</strong>. Anticipa la compra en farmacia.";
       } else {
         el.innerHTML = "✅ Todos los medicamentos tienen stock óptimo para los próximos 14 días.";
       }
+    }
+
+    function savePatientOnboarding(e) {
+      e.preventDefault();
+      appState.patient.name = document.getElementById("inputPatientName").value.trim() || "Marcela";
+      appState.patient.rut = document.getElementById("inputPatientRut").value.trim();
+      appState.patient.pin = document.getElementById("inputCaregiverPin").value.trim() || "1234";
+      saveState();
+      document.getElementById("viewOnboarding").classList.add("hidden");
+      switchMode("senior");
+      renderAll();
     }
 
     function switchMode(m) {
@@ -444,7 +632,13 @@
       document.getElementById("inputCaregiverPin").value = appState.patient.pin;
     }
 
-    function openAddMedModal() { document.getElementById("modalAddMed").classList.remove("hidden"); }
+    function openAddMedModal() {
+      document.getElementById("searchChileMedInput").value = "";
+      currentCategoryFilter = "TODOS";
+      renderChileCatalog();
+      document.getElementById("modalAddMed").classList.remove("hidden");
+    }
+
     function openPinModal() { document.getElementById("modalPin").classList.remove("hidden"); document.getElementById("pinInput").value = ""; }
     function openQrModal() {
       const qrData = encodeURIComponent("chronomed://pair?patient=" + appState.patient.name);
@@ -456,7 +650,7 @@
       document.getElementById("modalPdf").classList.remove("hidden");
     }
     function checkInteractionsModal() {
-      alert("Verificación Farmacológica ChronoMed:\n\nSe verificaron " + appState.medications.length + " medicamentos activos.\nResultado: 0 contraindicaciones clínicas.");
+      alert("Verificación Farmacológica de Marcela:\n\nSe verificaron " + appState.medications.length + " medicamentos activos.\nResultado: 0 contraindicaciones clínicas.");
     }
     function closeModal(id) { document.getElementById(id).classList.add("hidden"); }
 

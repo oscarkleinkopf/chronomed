@@ -5,22 +5,22 @@ const prisma = new PrismaClient();
 const enc = new EncryptionService();
 
 async function main() {
-  console.log('🌱 Iniciando Seeding de ChronoMed...');
+  console.log('🌱 Iniciando Seeding de ChronoMed para Marcela...');
 
   // 1. Crear Cuidador de Ejemplo
   const caregiver = await prisma.caregiver.upsert({
-    where: { email: 'ana.gonzalez@chronomed.cl' },
+    where: { email: 'cuidador.marcela@chronomed.cl' },
     update: {},
     create: {
-      email: 'ana.gonzalez@chronomed.cl',
-      fullName: 'Ana González',
-      passwordHash: '$2b$10$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW', // password123
+      email: 'cuidador.marcela@chronomed.cl',
+      fullName: 'Cuidador Principal de Marcela',
+      passwordHash: '$2b$10$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW',
       phone: '+56912345678',
     },
   });
 
-  // 2. Crear Paciente Adulto Mayor (Cifrado con Ley 20.584)
-  const rawRut = '12.345.678-9';
+  // 2. Crear Paciente Marcela (Cifrado con Ley 20.584)
+  const rawRut = '14.567.890-K';
   const encryptedRut = enc.encrypt(rawRut);
   const blindIndex = enc.generateBlindIndex(rawRut);
 
@@ -30,29 +30,29 @@ async function main() {
     create: {
       rutEncrypted: JSON.stringify(encryptedRut),
       rutBlindIndex: blindIndex,
-      fullNameEncrypted: JSON.stringify(enc.encrypt('Carmen González')),
+      fullNameEncrypted: JSON.stringify(enc.encrypt('Marcela')),
       emergencyPhoneEncrypted: JSON.stringify(enc.encrypt('+56987654321')),
       mode: 'SENIOR',
       wakeUp: '07:30',
       breakfast: '08:00',
       lunch: '13:30',
       dinner: '20:30',
-      sleep: '23:00',
+      sleep: '22:30',
     },
   });
 
-  // 3. Vincular Cuidador - Paciente
+  // 3. Vincular Cuidador - Marcela
   await prisma.caregiverPatient.upsert({
     where: { caregiverId_patientId: { caregiverId: caregiver.id, patientId: patient.id } },
     update: {},
     create: {
       caregiverId: caregiver.id,
       patientId: patient.id,
-      role: 'CUIDADORA_PRINCIPAL_HIJA',
+      role: 'CUIDADOR_PRINCIPAL',
     },
   });
 
-  // 4. Crear Tratamientos Frecuentes
+  // 4. Crear Tratamiento de Marcela (Fármacos comunes en Chile)
   await prisma.medication.createMany({
     data: [
       {
@@ -94,7 +94,7 @@ async function main() {
     ],
   });
 
-  console.log('✅ Seeding completado con éxito.');
+  console.log('✅ Seeding de Marcela completado.');
 }
 
 main()
