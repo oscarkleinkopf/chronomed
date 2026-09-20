@@ -1,6 +1,24 @@
 ﻿# Script para compilar ChronoMed en APK o PWA Web
 Write-Host "=== COMPILADOR DE INSTALADORES CHRONOMED ===" -ForegroundColor Cyan
 
+$flutterInstalled = Get-Command flutter -ErrorAction SilentlyContinue
+
+if (-not $flutterInstalled) {
+    Write-Host "`n⚠️ Flutter SDK no se encuentra en el PATH de este equipo." -ForegroundColor Yellow
+    Write-Host "Para compilar el APK nativo tienes 2 opciones:" -ForegroundColor Cyan
+    Write-Host "  1. COMPILACIÓN AUTOMÁTICA EN LA NUBE (Recomendada):" -ForegroundColor Green
+    Write-Host "     El repositorio cuenta con GitHub Actions (.github/workflows/build_apk.yml)."
+    Write-Host "     Cada push o ejecución manual compila automáticamente el archivo 'app-release.apk'"
+    Write-Host "     y lo deja disponible para descarga directa en GitHub Releases o Artifacts."
+    Write-Host ""
+    Write-Host "  2. COMPILACIÓN LOCAL:" -ForegroundColor Green
+    Write-Host "     Instala Flutter en Windows ejecutando en PowerShell:"
+    Write-Host "       winget install Flutter.Flutter"
+    Write-Host "     Luego reinicia PowerShell y vuelve a ejecutar este script."
+    Write-Host ""
+    exit 0
+}
+
 Set-Location "mobile"
 
 Write-Host "1. Obteniendo paquetes de Flutter..." -ForegroundColor Yellow
