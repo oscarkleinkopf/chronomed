@@ -44,6 +44,44 @@ jobs:
           flutter create --platforms=android --org com.chronomed .
           cp /tmp/chronomed_backup/AndroidManifest.xml android/app/src/main/AndroidManifest.xml
 
+      - name: Configure Core Library Desugaring for Local Notifications
+        run: |
+          cd mobile
+          python3 - << 'EOF'
+          import os
+
+          target = 'android/app/build.gradle'
+          is_kts = False
+          if os.path.exists('android/app/build.gradle.kts'):
+              target = 'android/app/build.gradle.kts'
+              is_kts = True
+
+          with open(target, 'r') as f:
+              content = f.read()
+
+          if is_kts:
+              if 'isCoreLibraryDesugaringEnabled' not in content:
+                  content = content.replace('compileOptions {', 'compileOptions {\n        isCoreLibraryDesugaringEnabled = true')
+              if 'coreLibraryDesugaring' not in content:
+                  if 'dependencies {' in content:
+                      content = content.replace('dependencies {', 'dependencies {\n    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")')
+                  else:
+                      content += '\ndependencies {\n    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")\n}\n'
+          else:
+              if 'coreLibraryDesugaringEnabled' not in content:
+                  content = content.replace('compileOptions {', 'compileOptions {\n        coreLibraryDesugaringEnabled true')
+              if 'coreLibraryDesugaring' not in content:
+                  if 'dependencies {' in content:
+                      content = content.replace('dependencies {', 'dependencies {\n    coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:2.0.4"')
+                  else:
+                      content += '\ndependencies {\n    coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:2.0.4"\n}\n'
+
+          with open(target, 'w') as f:
+              f.write(content)
+
+          print(f"Successfully configured desugaring in {target}")
+          EOF
+
       - name: Get Flutter Packages
         run: |
           cd mobile
