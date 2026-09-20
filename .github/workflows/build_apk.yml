@@ -44,11 +44,19 @@ jobs:
           flutter create --platforms=android --org com.chronomed .
           cp /tmp/chronomed_backup/AndroidManifest.xml android/app/src/main/AndroidManifest.xml
 
-      - name: Configure Core Library Desugaring for Local Notifications
+      - name: Configure Android Gradle Build Settings
         run: |
           cd mobile
+          cat << 'EOF' > android/app/proguard-rules.pro
+          -dontwarn **
+          -dontnote **
+          -keep class com.google.** { *; }
+          -keep class androidx.** { *; }
+          -keep class io.flutter.** { *; }
+          EOF
+
           python3 - << 'EOF'
-          import os
+          import os, re
 
           target = 'android/app/build.gradle'
           is_kts = False
@@ -59,6 +67,12 @@ jobs:
           with open(target, 'r') as f:
               content = f.read()
 
+          # Set compileSdk 34 and minSdk 23
+          content = re.sub(r'compileSdk\s*=.*', 'compileSdk = 34', content)
+          content = re.sub(r'compileSdkVersion\s+.*', 'compileSdkVersion 34', content)
+          content = re.sub(r'minSdk\s*=.*', 'minSdk = 23', content)
+          content = re.sub(r'minSdkVersion\s+.*', 'minSdkVersion 23', content)
+
           if is_kts:
               if 'isCoreLibraryDesugaringEnabled' not in content:
                   content = content.replace('compileOptions {', 'compileOptions {\n        isCoreLibraryDesugaringEnabled = true')
@@ -67,6 +81,8 @@ jobs:
                       content = content.replace('dependencies {', 'dependencies {\n    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")')
                   else:
                       content += '\ndependencies {\n    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")\n}\n'
+              # Disable minify
+              content = content.replace('signingConfig =', 'isMinifyEnabled = false\n            isShrinkResources = false\n            signingConfig =')
           else:
               if 'coreLibraryDesugaringEnabled' not in content:
                   content = content.replace('compileOptions {', 'compileOptions {\n        coreLibraryDesugaringEnabled true')
@@ -75,11 +91,13 @@ jobs:
                       content = content.replace('dependencies {', 'dependencies {\n    coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:2.0.4"')
                   else:
                       content += '\ndependencies {\n    coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:2.0.4"\n}\n'
+              # Disable minify
+              content = content.replace('signingConfig ', 'minifyEnabled false\n            shrinkResources false\n            signingConfig ')
 
           with open(target, 'w') as f:
               f.write(content)
 
-          print(f"Successfully configured desugaring in {target}")
+          print(f"Configured compileSdk 34, minSdk 23, desugaring and disabled R8 in {target}")
           EOF
 
       - name: Get Flutter Packages
@@ -90,7 +108,7 @@ jobs:
       - name: Build Android Release APK
         run: |
           cd mobile
-          flutter build apk --release
+          flutter build apk --release --no-tree-shake-icons
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
@@ -112,7 +130,7 @@ jobs:
             
             - **Paciente Configurado:** Marcela
             - **Versión:** 1.0.0
-            - **Compatibilidad:** Android 8.0+
+            - **Compatibilidad:** Android 7.0+ (API 24+)
           files: mobile/build/app/outputs/flutter-apk/app-release.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
