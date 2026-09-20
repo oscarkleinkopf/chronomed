@@ -81,7 +81,7 @@ class _CaregiverHomeScreenState extends State<CaregiverHomeScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.between,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Row(
                         children: [
@@ -177,7 +177,7 @@ class _CaregiverHomeScreenState extends State<CaregiverHomeScreen> {
 
             // Tratamiento Activo
             Row(
-              mainAxisAlignment: MainAxisAlignment.between,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: const [
                 Text("Medicamentos Activos (Chile)", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF0F172A))),
                 Text("3 fármacos", style: TextStyle(color: Color(0xFF2563EB), fontWeight: FontWeight.bold, fontSize: 12)),
