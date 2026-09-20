@@ -58,6 +58,7 @@ jobs:
           python3 - << 'EOF'
           import os, re
 
+          # 1. Patch app/build.gradle or app/build.gradle.kts
           target = 'android/app/build.gradle'
           is_kts = False
           if os.path.exists('android/app/build.gradle.kts'):
@@ -67,9 +68,9 @@ jobs:
           with open(target, 'r') as f:
               content = f.read()
 
-          # Set compileSdk 34 and minSdk 23
-          content = re.sub(r'compileSdk\s*=.*', 'compileSdk = 34', content)
-          content = re.sub(r'compileSdkVersion\s+.*', 'compileSdkVersion 34', content)
+          # Set compileSdk 36 and minSdk 23
+          content = re.sub(r'compileSdk\s*=.*', 'compileSdk = 36', content)
+          content = re.sub(r'compileSdkVersion\s+.*', 'compileSdkVersion 36', content)
           content = re.sub(r'minSdk\s*=.*', 'minSdk = 23', content)
           content = re.sub(r'minSdkVersion\s+.*', 'minSdkVersion 23', content)
 
@@ -81,7 +82,6 @@ jobs:
                       content = content.replace('dependencies {', 'dependencies {\n    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")')
                   else:
                       content += '\ndependencies {\n    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")\n}\n'
-              # Disable minify
               content = content.replace('signingConfig =', 'isMinifyEnabled = false\n            isShrinkResources = false\n            signingConfig =')
           else:
               if 'coreLibraryDesugaringEnabled' not in content:
@@ -91,13 +91,28 @@ jobs:
                       content = content.replace('dependencies {', 'dependencies {\n    coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:2.0.4"')
                   else:
                       content += '\ndependencies {\n    coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:2.0.4"\n}\n'
-              # Disable minify
               content = content.replace('signingConfig ', 'minifyEnabled false\n            shrinkResources false\n            signingConfig ')
 
           with open(target, 'w') as f:
               f.write(content)
 
-          print(f"Configured compileSdk 34, minSdk 23, desugaring and disabled R8 in {target}")
+          # 2. Patch root build.gradle to enforce compileSdkVersion 36 on all subprojects
+          root_gradle = 'android/build.gradle'
+          if os.path.exists(root_gradle):
+              with open(root_gradle, 'a') as f:
+                  f.write('''
+          subprojects {
+              afterEvaluate { project ->
+                  if (project.hasProperty("android")) {
+                      project.android {
+                          compileSdkVersion 36
+                      }
+                  }
+              }
+          }
+          ''')
+
+          print(f"Configured compileSdk 36, minSdk 23, desugaring and disabled R8 in {target}")
           EOF
 
       - name: Get Flutter Packages
