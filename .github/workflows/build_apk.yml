@@ -32,22 +32,17 @@ jobs:
           channel: 'stable'
           cache: true
 
-      - name: Verify Flutter & Doctor
+      - name: Verify Flutter Environment
         run: flutter doctor -v
 
-      - name: Backup Custom AndroidManifest.xml
+      - name: Scaffold Android Project
         run: |
           mkdir -p /tmp/chronomed_backup
           cp mobile/android/app/src/main/AndroidManifest.xml /tmp/chronomed_backup/AndroidManifest.xml
-
-      - name: Scaffold Android Project (Flutter Create)
-        run: |
+          rm -rf mobile/android
           cd mobile
           flutter create --platforms=android --org com.chronomed .
-
-      - name: Restore Custom AndroidManifest.xml
-        run: |
-          cp /tmp/chronomed_backup/AndroidManifest.xml mobile/android/app/src/main/AndroidManifest.xml
+          cp /tmp/chronomed_backup/AndroidManifest.xml android/app/src/main/AndroidManifest.xml
 
       - name: Get Flutter Packages
         run: |
@@ -67,7 +62,7 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
-      - name: Create GitHub Release with APK
+      - name: Create or Update GitHub Release with APK
         if: github.ref == 'refs/heads/main'
         uses: softprops/action-gh-release@v2
         with:
@@ -75,7 +70,7 @@ jobs:
           name: "ChronoMed v1.0.0 (Android APK)"
           body: |
             ### 📱 ChronoMed - Instalador Nativo para Android
-            Descarga el archivo `app-release.apk` directamente en tu celular Android para instalar la aplicación con soporte de alarmas exactas fuera de línea, síntesis de voz y modo dual (Senior / Cuidador).
+            Descarga el archivo `app-release.apk` directamente en tu celular Android para instalar la aplicación nativa con soporte de alarmas exactas fuera de línea, síntesis de voz y modo dual (Senior / Cuidador).
             
             - **Paciente Configurado:** Marcela
             - **Versión:** 1.0.0
