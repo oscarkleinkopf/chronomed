@@ -101,53 +101,55 @@ jobs:
               f.write(content)
 
           # 2. Enforce compileSdk 36 and bypass AarMetadata across all projects in root build.gradle / build.gradle.kts
+          groovy_patch = """
+          allprojects {
+              tasks.configureEach { task ->
+                  if (task.name.toLowerCase().contains("aarmetadata")) {
+                      task.enabled = false
+                  }
+              }
+          }
+          subprojects {
+              afterEvaluate { project ->
+                  if (project.hasProperty("android")) {
+                      try {
+                          project.android {
+                              compileSdkVersion 36
+                          }
+                      } catch (Exception e) {
+                      }
+                  }
+              }
+          }
+          """
           if os.path.exists('android/build.gradle'):
               with open('android/build.gradle', 'a') as f:
-                  f.write('''
-allprojects {
-    tasks.configureEach { task ->
-        if (task.name.toLowerCase().contains("aarmetadata")) {
-            task.enabled = false
-        }
-    }
-}
-subprojects {
-    afterEvaluate { project ->
-        if (project.hasProperty("android")) {
-            try {
-                project.android {
-                    compileSdkVersion 36
-                }
-            } catch (Exception e) {
-            }
-        }
-    }
-}
-''')
+                  f.write(groovy_patch)
 
+          kts_patch = """
+          allprojects {
+              tasks.configureEach {
+                  if (name.contains("AarMetadata", ignoreCase = true)) {
+                      enabled = false
+                  }
+              }
+          }
+          subprojects {
+              afterEvaluate {
+                  val androidExt = project.extensions.findByName("android")
+                  if (androidExt != null) {
+                      try {
+                          val setCompileSdk = androidExt.javaClass.getMethod("setCompileSdkVersion", Int::class.javaPrimitiveType)
+                          setCompileSdk.invoke(androidExt, 36)
+                      } catch (e: Throwable) {
+                      }
+                  }
+              }
+          }
+          """
           if os.path.exists('android/build.gradle.kts'):
               with open('android/build.gradle.kts', 'a') as f:
-                  f.write('''
-allprojects {
-    tasks.configureEach {
-        if (name.contains("AarMetadata", ignoreCase = true)) {
-            enabled = false
-        }
-    }
-}
-subprojects {
-    afterEvaluate {
-        val androidExt = project.extensions.findByName("android")
-        if (androidExt != null) {
-            try {
-                val setCompileSdk = androidExt.javaClass.getMethod("setCompileSdkVersion", Int::class.javaPrimitiveType)
-                setCompileSdk.invoke(androidExt, 36)
-            } catch (e: Throwable) {
-            }
-        }
-    }
-}
-''')
+                  f.write(kts_patch)
 
           # 3. Add gradle properties
           if os.path.exists('android/gradle.properties'):
