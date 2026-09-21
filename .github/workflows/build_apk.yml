@@ -105,26 +105,26 @@ jobs:
           if os.path.exists(root_gradle):
               with open(root_gradle, 'a') as f:
                   f.write('''
-allprojects {
-    tasks.configureEach { task ->
-        if (task.name.toLowerCase().contains("aarmetadata")) {
-            task.enabled = false
-        }
-    }
-}
-subprojects {
-    afterEvaluate { project ->
-        if (project.hasProperty("android")) {
-            try {
-                project.android {
-                    compileSdkVersion 36
-                }
-            } catch (Exception e) {
-            }
-        }
-    }
-}
-''')
+          allprojects {
+              tasks.configureEach { task ->
+                  if (task.name.toLowerCase().contains("aarmetadata")) {
+                      task.enabled = false
+                  }
+              }
+          }
+          subprojects {
+              afterEvaluate { project ->
+                  if (project.hasProperty("android")) {
+                      try {
+                          project.android {
+                              compileSdkVersion 36
+                          }
+                      } catch (Exception e) {
+                      }
+                  }
+              }
+          }
+          ''')
 
           print(f"Successfully configured Android build settings (compileSdk 36) and bypassed checkAarMetadata")
           EOF
