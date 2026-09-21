@@ -1,4 +1,4 @@
-﻿export type MealRelation = 
+export type MealRelation = 
   | 'FASTING'
   | 'BEFORE_MEAL'
   | 'WITH_MEAL'
@@ -8,6 +8,8 @@
 
 export type TimeOfDaySlot = 'MORNING' | 'LUNCH' | 'AFTERNOON' | 'NIGHT';
 
+export type CircadianRegime = 'HOME' | 'HOSPITAL' | 'CUSTOM';
+
 export interface RoutineSchedule {
   wakeUp: string;
   breakfast: string;
@@ -15,6 +17,23 @@ export interface RoutineSchedule {
   dinner: string;
   sleep: string;
 }
+
+export const CIRCADIAN_PRESETS: Record<'HOME' | 'HOSPITAL', RoutineSchedule> = {
+  HOME: {
+    wakeUp: '07:30',
+    breakfast: '08:00',
+    lunch: '13:30',
+    dinner: '18:30',
+    sleep: '22:30',
+  },
+  HOSPITAL: {
+    wakeUp: '06:30',
+    breakfast: '07:00',
+    lunch: '12:00',
+    dinner: '17:30',
+    sleep: '20:30',
+  },
+};
 
 export interface MedicationScheduleConfig {
   frequencyHours: number;

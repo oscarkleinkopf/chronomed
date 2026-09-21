@@ -1,6 +1,7 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import '../../../core/theme/standard_theme.dart';
 import '../../senior_mode/screens/senior_single_action_screen.dart';
+import '../../schedule/models/circadian_routine.dart';
 import '../services/pdf_export_service.dart';
 
 class CaregiverHomeScreen extends StatefulWidget {
@@ -13,9 +14,14 @@ class CaregiverHomeScreen extends StatefulWidget {
 class _CaregiverHomeScreenState extends State<CaregiverHomeScreen> {
   final String _patientName = "Marcela";
   final String _caregiverPin = "1234";
+  CircadianRoutine _routine = CircadianRoutine.home;
 
   @override
   Widget build(BuildContext context) {
+    final nextLunchTime = _routine.formatTime(_routine.lunch);
+    final fastingTime = _routine.formatTime(_routine.fastingTime);
+    final isHospital = _routine.regimeType == CircadianRegimeType.hospital;
+
     return Scaffold(
       backgroundColor: StandardTheme.surfaceLight,
       appBar: AppBar(
@@ -50,6 +56,7 @@ class _CaregiverHomeScreenState extends State<CaregiverHomeScreen> {
                   builder: (context) => SeniorSingleActionScreen(
                     patientName: _patientName,
                     caregiverPin: _caregiverPin,
+                    routine: _routine,
                   ),
                 ),
               );
@@ -112,10 +119,14 @@ class _CaregiverHomeScreenState extends State<CaregiverHomeScreen> {
                   const SizedBox(height: 16),
                   const Text("Próxima toma programada:", style: TextStyle(color: Colors.white70, fontSize: 12)),
                   const SizedBox(height: 4),
-                  const Text("13:30 • Losartán Potásico (50 mg)", style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                  Text("$nextLunchTime • Losartán Potásico (50 mg)", style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
                 ],
               ),
             ),
+            const SizedBox(height: 20),
+
+            // Card de Gestión de Régimen y Horarios Circadianos (4 Comidas)
+            _buildCircadianRoutineCard(isHospital, fastingTime),
             const SizedBox(height: 20),
 
             // Acciones Rápidas
@@ -154,7 +165,24 @@ class _CaregiverHomeScreenState extends State<CaregiverHomeScreen> {
                     },
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      side: const BorderSide(color: Color(0xFFCBD5E1)),
+                    ),
+                    icon: const Icon(Icons.document_scanner_rounded, color: Color(0xFF0284C7)),
+                    label: const Text("Escanear OCR", style: TextStyle(color: Color(0xFF0F172A), fontWeight: FontWeight.bold, fontSize: 13)),
+                    onPressed: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text("Iniciando escáner OCR on-device...")),
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(width: 10),
                 Expanded(
                   child: OutlinedButton.icon(
                     style: OutlinedButton.styleFrom(
@@ -184,11 +212,219 @@ class _CaregiverHomeScreenState extends State<CaregiverHomeScreen> {
               ],
             ),
             const SizedBox(height: 12),
-            _buildMedCard("Eutirox (Levotiroxina)", "100 mcg", "07:30 • En ayunas", Colors.white, Colors.black, "28 un. restantes"),
-            _buildMedCard("Losartán Potásico", "50 mg", "13:30 • Con almuerzo", const Color(0xFF3B82F6), Colors.white, "14 un. restantes"),
-            _buildMedCard("Atorvastatina", "20 mg", "22:00 • Al acostarse", const Color(0xFFFACC15), Colors.black, "30 un. restantes"),
+            _buildMedCard("Eutirox (Levotiroxina)", "100 mcg", "$fastingTime • En ayunas (30 min antes)", Colors.white, Colors.black, "28 un. restantes"),
+            _buildMedCard("Losartán Potásico", "50 mg", "${_routine.formatTime(_routine.lunch)} • Con almuerzo", const Color(0xFF3B82F6), Colors.white, "14 un. restantes"),
+            _buildMedCard("Atorvastatina", "20 mg", "${_routine.formatTime(_routine.night)} • Al acostarse", const Color(0xFFFACC15), Colors.black, "30 un. restantes"),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildCircadianRoutineCard(bool isHospital, String fastingTime) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: isHospital ? const Color(0xFF2563EB) : const Color(0xFFE2E8F0), width: isHospital ? 2 : 1),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 10, offset: const Offset(0, 2)),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  const Icon(Icons.schedule_rounded, color: Color(0xFF2563EB), size: 20),
+                  const SizedBox(width: 8),
+                  const Text("Régimen de 4 Comidas", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Color(0xFF0F172A))),
+                ],
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: isHospital ? const Color(0xFFDBEAFE) : const Color(0xFFF1F5F9),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text(
+                  isHospital ? "🏥 Hospital / ELEAM" : "🏠 Domicilio",
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    color: isHospital ? const Color(0xFF1D4ED8) : const Color(0xFF475569),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          // Chips de selección de régimen
+          Row(
+            children: [
+              Expanded(
+                child: ChoiceChip(
+                  label: const Center(child: Text("🏠 Hogar", style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold))),
+                  selected: _routine.regimeType == CircadianRegimeType.home,
+                  onSelected: (selected) {
+                    if (selected) setState(() => _routine = CircadianRoutine.home);
+                  },
+                  selectedColor: const Color(0xFF2563EB),
+                  labelStyle: TextStyle(color: _routine.regimeType == CircadianRegimeType.home ? Colors.white : const Color(0xFF334155)),
+                ),
+              ),
+              const SizedBox(width: 6),
+              Expanded(
+                child: ChoiceChip(
+                  label: const Center(child: Text("🏥 Hospital", style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold))),
+                  selected: _routine.regimeType == CircadianRegimeType.hospital,
+                  onSelected: (selected) {
+                    if (selected) setState(() => _routine = CircadianRoutine.hospital);
+                  },
+                  selectedColor: const Color(0xFF2563EB),
+                  labelStyle: TextStyle(color: _routine.regimeType == CircadianRegimeType.hospital ? Colors.white : const Color(0xFF334155)),
+                ),
+              ),
+              const SizedBox(width: 6),
+              Expanded(
+                child: ChoiceChip(
+                  label: const Center(child: Text("⚙️ Ajustar", style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold))),
+                  selected: _routine.regimeType == CircadianRegimeType.custom,
+                  onSelected: (selected) => _showCustomRoutineDialog(),
+                  selectedColor: const Color(0xFF2563EB),
+                  labelStyle: TextStyle(color: _routine.regimeType == CircadianRegimeType.custom ? Colors.white : const Color(0xFF334155)),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          // Fila con los 4 horarios de comida
+          Container(
+            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF8FAFC),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _buildSlotItem("☀️", "Desayuno", _routine.formatTime(_routine.breakfast)),
+                _buildSlotItem("🍲", "Almuerzo", _routine.formatTime(_routine.lunch)),
+                _buildSlotItem("☕", "Once", _routine.formatTime(_routine.afternoon)),
+                _buildSlotItem("🌙", "Noche", _routine.formatTime(_routine.night)),
+              ],
+            ),
+          ),
+          if (isHospital) ...[
+            const SizedBox(height: 8),
+            Text(
+              "ℹ️ Régimen hospitalario: tomas adelantadas (Desayuno 07:00, Ayunas $fastingTime).",
+              style: const TextStyle(fontSize: 11, color: Color(0xFF2563EB), fontStyle: FontStyle.italic),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSlotItem(String emoji, String title, String time) {
+    return Column(
+      children: [
+        Text(emoji, style: const TextStyle(fontSize: 18)),
+        const SizedBox(height: 2),
+        Text(title, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF334155))),
+        Text(time, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w900, color: Color(0xFF2563EB))),
+      ],
+    );
+  }
+
+  void _showCustomRoutineDialog() async {
+    TimeOfDay breakfast = _routine.breakfast;
+    TimeOfDay lunch = _routine.lunch;
+    TimeOfDay afternoon = _routine.afternoon;
+    TimeOfDay night = _routine.night;
+
+    await showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setDialogState) {
+          return AlertDialog(
+            title: const Text("Horarios Personalizados"),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  ListTile(
+                    leading: const Text("☀️", style: TextStyle(fontSize: 24)),
+                    title: const Text("Desayuno"),
+                    trailing: TextButton(
+                      child: Text(_routine.formatTime(breakfast), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                      onPressed: () async {
+                        final picked = await showTimePicker(context: context, initialTime: breakfast);
+                        if (picked != null) setDialogState(() => breakfast = picked);
+                      },
+                    ),
+                  ),
+                  ListTile(
+                    leading: const Text("🍲", style: TextStyle(fontSize: 24)),
+                    title: const Text("Almuerzo"),
+                    trailing: TextButton(
+                      child: Text(_routine.formatTime(lunch), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                      onPressed: () async {
+                        final picked = await showTimePicker(context: context, initialTime: lunch);
+                        if (picked != null) setDialogState(() => lunch = picked);
+                      },
+                    ),
+                  ),
+                  ListTile(
+                    leading: const Text("☕", style: TextStyle(fontSize: 24)),
+                    title: const Text("Once"),
+                    trailing: TextButton(
+                      child: Text(_routine.formatTime(afternoon), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                      onPressed: () async {
+                        final picked = await showTimePicker(context: context, initialTime: afternoon);
+                        if (picked != null) setDialogState(() => afternoon = picked);
+                      },
+                    ),
+                  ),
+                  ListTile(
+                    leading: const Text("🌙", style: TextStyle(fontSize: 24)),
+                    title: const Text("Noche"),
+                    trailing: TextButton(
+                      child: Text(_routine.formatTime(night), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                      onPressed: () async {
+                        final picked = await showTimePicker(context: context, initialTime: night);
+                        if (picked != null) setDialogState(() => night = picked);
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(onPressed: () => Navigator.pop(ctx), child: const Text("CANCELAR")),
+              ElevatedButton(
+                onPressed: () {
+                  setState(() {
+                    _routine = _routine.copyWith(
+                      regimeType: CircadianRegimeType.custom,
+                      breakfast: breakfast,
+                      lunch: lunch,
+                      afternoon: afternoon,
+                      night: night,
+                    );
+                  });
+                  Navigator.pop(ctx);
+                },
+                child: const Text("GUARDAR"),
+              ),
+            ],
+          );
+        },
       ),
     );
   }

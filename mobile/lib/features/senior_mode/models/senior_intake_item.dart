@@ -1,4 +1,38 @@
-﻿enum SeniorTimeSlot { morning, lunch, afternoon, night }
+import '../../schedule/models/circadian_routine.dart';
+
+enum SeniorTimeSlot { 
+  morning, 
+  lunch, 
+  afternoon, 
+  night;
+
+  String get emoji {
+    switch (this) {
+      case SeniorTimeSlot.morning: return '☀️';
+      case SeniorTimeSlot.lunch: return '🍲';
+      case SeniorTimeSlot.afternoon: return '☕';
+      case SeniorTimeSlot.night: return '🌙';
+    }
+  }
+
+  String get label {
+    switch (this) {
+      case SeniorTimeSlot.morning: return 'DESAYUNO';
+      case SeniorTimeSlot.lunch: return 'ALMUERZO';
+      case SeniorTimeSlot.afternoon: return 'ONCE';
+      case SeniorTimeSlot.night: return 'NOCHE';
+    }
+  }
+
+  String getRoutineTime(CircadianRoutine routine) {
+    switch (this) {
+      case SeniorTimeSlot.morning: return routine.formatTime(routine.breakfast);
+      case SeniorTimeSlot.lunch: return routine.formatTime(routine.lunch);
+      case SeniorTimeSlot.afternoon: return routine.formatTime(routine.afternoon);
+      case SeniorTimeSlot.night: return routine.formatTime(routine.night);
+    }
+  }
+}
 
 class SeniorIntakeItem {
   final String id;

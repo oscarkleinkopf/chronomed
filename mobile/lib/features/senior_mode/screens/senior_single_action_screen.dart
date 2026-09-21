@@ -1,17 +1,20 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import '../../../core/services/tts_service.dart';
 import '../../../core/theme/senior_theme.dart';
 import '../models/senior_intake_item.dart';
+import '../../schedule/models/circadian_routine.dart';
 import '../widgets/overdose_guard_button.dart';
 
 class SeniorSingleActionScreen extends StatefulWidget {
   final String patientName;
   final String caregiverPin;
+  final CircadianRoutine routine;
 
   const SeniorSingleActionScreen({
     super.key,
     required this.patientName,
     required this.caregiverPin,
+    this.routine = CircadianRoutine.home,
   });
 
   @override
@@ -24,18 +27,22 @@ class _SeniorSingleActionScreenState extends State<SeniorSingleActionScreen> {
   @override
   void initState() {
     super.initState();
+    final lunchTime = widget.routine.formatTime(widget.routine.lunch);
+    final nextTime = widget.routine.formatTime(widget.routine.night);
+    final regimeLabel = widget.routine.regimeType == CircadianRegimeType.hospital ? 'en régimen hospitalario' : '';
+
     _currentIntake = SeniorIntakeItem(
       id: 'intake-123',
       medicationName: 'Losartán Potásico',
       dosage: '50 mg (1 pastilla)',
       timeSlot: SeniorTimeSlot.lunch,
-      targetTime: '13:30',
+      targetTime: lunchTime,
       colorHex: '#3B82F6',
       pillColorName: 'azul',
       shapeType: 'round',
-      voiceInstruction: 'Hola ${widget.patientName}. Es momento de tu almuerzo. Toma tu pastilla azul de Losartán con un vaso de agua.',
+      voiceInstruction: 'Hola ${widget.patientName}. Es momento de tu almuerzo ($lunchTime $regimeLabel). Toma tu pastilla azul de Losartán con un vaso de agua.',
       isTaken: false,
-      nextDoseTime: '20:30',
+      nextDoseTime: nextTime,
     );
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -99,9 +106,9 @@ class _SeniorSingleActionScreenState extends State<SeniorSingleActionScreen> {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Text('🍲', style: TextStyle(fontSize: 32)),
+                    Text(_currentIntake.timeSlot.emoji, style: const TextStyle(fontSize: 32)),
                     const SizedBox(width: 12),
-                    Text('ALMUERZO (${_currentIntake.targetTime})', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: SeniorTheme.accentYellow)),
+                    Text('${_currentIntake.timeSlot.label} (${_currentIntake.targetTime})', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: SeniorTheme.accentYellow)),
                   ],
                 ),
               ),

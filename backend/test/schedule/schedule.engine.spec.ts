@@ -1,4 +1,4 @@
-﻿import { ScheduleEngine } from '../../src/modules/schedule/services/schedule.engine';
+import { ScheduleEngine } from '../../src/modules/schedule/services/schedule.engine';
 
 describe('ScheduleEngine (Cálculo Circadiano)', () => {
   const engine = new ScheduleEngine();
@@ -36,5 +36,37 @@ describe('ScheduleEngine (Cálculo Circadiano)', () => {
     expect(doses.length).toBe(2);
     expect(doses[0].window.targetTime).toBe('2026-08-23T08:00:00.000Z');
     expect(doses[1].window.targetTime).toBe('2026-08-23T20:30:00.000Z');
+  });
+
+  it('debe adaptar horarios ante régimen hospitalario más temprano (Desayuno 07:00, Ayunas 06:30)', () => {
+    const hospitalRoutine = {
+      wakeUp: '06:30',
+      breakfast: '07:00',
+      lunch: '12:00',
+      dinner: '17:30',
+      sleep: '20:30',
+    };
+
+    const dosesFasting = engine.generateDailyDoses(
+      'med-eutirox',
+      { frequencyHours: 24, mealRelation: 'FASTING', startDate: '2026-08-23' },
+      hospitalRoutine,
+      '2026-08-23',
+      'Eutirox 100mcg',
+      { color: 'blanca', shape: 'round' }
+    );
+    expect(dosesFasting.length).toBe(1);
+    expect(dosesFasting[0].window.targetTime).toBe('2026-08-23T06:30:00.000Z');
+
+    const dosesSleep = engine.generateDailyDoses(
+      'med-atorvastatina',
+      { frequencyHours: 24, mealRelation: 'BEFORE_SLEEP', startDate: '2026-08-23' },
+      hospitalRoutine,
+      '2026-08-23',
+      'Atorvastatina 20mg',
+      { color: 'amarilla', shape: 'round' }
+    );
+    expect(dosesSleep.length).toBe(1);
+    expect(dosesSleep[0].window.targetTime).toBe('2026-08-23T20:30:00.000Z');
   });
 });
