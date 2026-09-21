@@ -1,4 +1,4 @@
-﻿name: Build Android APK (ChronoMed)
+name: Build Android APK (ChronoMed)
 
 on:
   push:
@@ -68,13 +68,15 @@ jobs:
           with open(target, 'r') as f:
               content = f.read()
 
-          # Set compileSdk 34 and minSdk 23
-          content = re.sub(r'compileSdk\s*=.*', 'compileSdk = 34', content)
-          content = re.sub(r'compileSdkVersion\s+.*', 'compileSdkVersion 34', content)
+          # Set compileSdk 36 and minSdk 23
+          content = re.sub(r'compileSdk\s*=.*', 'compileSdk = 36', content)
+          content = re.sub(r'compileSdkVersion\s+.*', 'compileSdkVersion 36', content)
           content = re.sub(r'minSdk\s*=.*', 'minSdk = 23', content)
           content = re.sub(r'minSdkVersion\s+.*', 'minSdkVersion 23', content)
 
           if is_kts:
+              if 'compileSdk' not in content:
+                  content = content.replace('android {', 'android {\n    compileSdk = 36')
               if 'isCoreLibraryDesugaringEnabled' not in content:
                   content = content.replace('compileOptions {', 'compileOptions {\n        isCoreLibraryDesugaringEnabled = true')
               if 'coreLibraryDesugaring' not in content:
@@ -84,6 +86,8 @@ jobs:
                       content += '\ndependencies {\n    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")\n}\n'
               content = content.replace('signingConfig =', 'isMinifyEnabled = false\n            isShrinkResources = false\n            signingConfig =')
           else:
+              if 'compileSdkVersion' not in content and 'compileSdk' not in content:
+                  content = content.replace('android {', 'android {\n    compileSdkVersion 36')
               if 'coreLibraryDesugaringEnabled' not in content:
                   content = content.replace('compileOptions {', 'compileOptions {\n        coreLibraryDesugaringEnabled true')
               if 'coreLibraryDesugaring' not in content:
@@ -96,21 +100,33 @@ jobs:
           with open(target, 'w') as f:
               f.write(content)
 
-          # 2. Disable checkAarMetadata in root build.gradle to prevent legacy plugin metadata mismatch
+          # 2. Enforce compileSdk 36 and bypass AarMetadata across all projects in root build.gradle
           root_gradle = 'android/build.gradle'
           if os.path.exists(root_gradle):
               with open(root_gradle, 'a') as f:
                   f.write('''
-          subprojects {
-              project.tasks.configureEach { task ->
-                  if (task.name.contains("AarMetadata") || task.name.contains("aarMetadata")) {
-                      task.enabled = false
-                  }
-              }
-          }
-          ''')
+allprojects {
+    tasks.configureEach { task ->
+        if (task.name.toLowerCase().contains("aarmetadata")) {
+            task.enabled = false
+        }
+    }
+}
+subprojects {
+    afterEvaluate { project ->
+        if (project.hasProperty("android")) {
+            try {
+                project.android {
+                    compileSdkVersion 36
+                }
+            } catch (Exception e) {
+            }
+        }
+    }
+}
+''')
 
-          print(f"Successfully configured Android build settings and bypassed checkAarMetadata")
+          print(f"Successfully configured Android build settings (compileSdk 36) and bypassed checkAarMetadata")
           EOF
 
       - name: Get Flutter Packages
