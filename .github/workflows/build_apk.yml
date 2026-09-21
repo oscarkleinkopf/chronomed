@@ -21,7 +21,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup Java 17
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: 'temurin'
           java-version: '17'
@@ -100,33 +100,61 @@ jobs:
           with open(target, 'w') as f:
               f.write(content)
 
-          # 2. Enforce compileSdk 36 and bypass AarMetadata across all projects in root build.gradle
-          root_gradle = 'android/build.gradle'
-          if os.path.exists(root_gradle):
-              with open(root_gradle, 'a') as f:
+          # 2. Enforce compileSdk 36 and bypass AarMetadata across all projects in root build.gradle / build.gradle.kts
+          if os.path.exists('android/build.gradle'):
+              with open('android/build.gradle', 'a') as f:
                   f.write('''
-          allprojects {
-              tasks.configureEach { task ->
-                  if (task.name.toLowerCase().contains("aarmetadata")) {
-                      task.enabled = false
-                  }
-              }
-          }
-          subprojects {
-              afterEvaluate { project ->
-                  if (project.hasProperty("android")) {
-                      try {
-                          project.android {
-                              compileSdkVersion 36
-                          }
-                      } catch (Exception e) {
-                      }
-                  }
-              }
-          }
-          ''')
+allprojects {
+    tasks.configureEach { task ->
+        if (task.name.toLowerCase().contains("aarmetadata")) {
+            task.enabled = false
+        }
+    }
+}
+subprojects {
+    afterEvaluate { project ->
+        if (project.hasProperty("android")) {
+            try {
+                project.android {
+                    compileSdkVersion 36
+                }
+            } catch (Exception e) {
+            }
+        }
+    }
+}
+''')
 
-          print(f"Successfully configured Android build settings (compileSdk 36) and bypassed checkAarMetadata")
+          if os.path.exists('android/build.gradle.kts'):
+              with open('android/build.gradle.kts', 'a') as f:
+                  f.write('''
+allprojects {
+    tasks.configureEach {
+        if (name.contains("AarMetadata", ignoreCase = true)) {
+            enabled = false
+        }
+    }
+}
+subprojects {
+    afterEvaluate {
+        val androidExt = project.extensions.findByName("android")
+        if (androidExt != null) {
+            try {
+                val setCompileSdk = androidExt.javaClass.getMethod("setCompileSdkVersion", Int::class.javaPrimitiveType)
+                setCompileSdk.invoke(androidExt, 36)
+            } catch (e: Throwable) {
+            }
+        }
+    }
+}
+''')
+
+          # 3. Add gradle properties
+          if os.path.exists('android/gradle.properties'):
+              with open('android/gradle.properties', 'a') as f:
+                  f.write('\nandroid.suppressUnsupportedCompileSdk=36\nandroid.useAndroidX=true\nandroid.enableJetifier=true\n')
+
+          print("Successfully configured Android build settings (compileSdk 36) and bypassed checkAarMetadata")
           EOF
 
       - name: Get Flutter Packages
