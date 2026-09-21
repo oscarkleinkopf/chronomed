@@ -100,39 +100,12 @@ jobs:
           with open(target, 'w') as f:
               f.write(content)
 
-          # 2. Bypass AarMetadata across all projects in root build.gradle / build.gradle.kts
-          groovy_patch = """
-          allprojects {
-              tasks.configureEach { task ->
-                  if (task.name.toLowerCase().contains("aarmetadata")) {
-                      task.enabled = false
-                  }
-              }
-          }
-          """
-          if os.path.exists('android/build.gradle'):
-              with open('android/build.gradle', 'a') as f:
-                  f.write(groovy_patch)
-
-          kts_patch = """
-          allprojects {
-              tasks.configureEach {
-                  if (name.contains("AarMetadata", ignoreCase = true)) {
-                      enabled = false
-                  }
-              }
-          }
-          """
-          if os.path.exists('android/build.gradle.kts'):
-              with open('android/build.gradle.kts', 'a') as f:
-                  f.write(kts_patch)
-
-          # 3. Add gradle properties
+          # 2. Add gradle properties
           if os.path.exists('android/gradle.properties'):
               with open('android/gradle.properties', 'a') as f:
                   f.write('\nandroid.suppressUnsupportedCompileSdk=36\nandroid.useAndroidX=true\nandroid.enableJetifier=true\n')
 
-          print("Successfully configured Android build settings (compileSdk 36) and bypassed AarMetadata")
+          print("Successfully configured Android build settings (compileSdk 36)")
           EOF
 
       - name: Get Flutter Packages
