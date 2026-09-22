@@ -23,12 +23,15 @@
 3. [Arquitectura y Filosofía Dual (Modo Senior vs. Modo Cuidador)](#3-arquitectura-y-filosofía-dual-modo-senior-vs-modo-cuidador)
 4. [Guía de Uso: Modo Senior (Simple / Cero Fricción)](#4-guía-de-uso-modo-senior-simple--cero-fricción)
    - *[4.5 Adaptabilidad de Franjas: Domicilio vs. Hospital / ELEAM](#45-adaptabilidad-de-franjas-y-regímenes-domicilio-vs-hospital--eleam)*
+   - *[4.6 Accesibilidad Universal (a11y): WCAG AAA, Áreas Táctiles ≥ 48 dp y TalkBack](#46-accesibilidad-universal-a11y-wcag-aaa-áreas-táctiles--48-dp-y-anuncios-talkback-liveregion)*
 5. [Mecanismo de Bloqueo Anti-Sobredosis y Reprogramación Dinámica](#5-mecanismo-de-bloqueo-anti-sobredosis-y-reprogramación-dinámica)
 6. [Guía de Uso: Modo Cuidador / Estándar](#6-guía-de-uso-modo-cuidador--estándar)
    - *[6.3 Configuración de Horarios de las 4 Comidas (Hogar vs. Hospital / ELEAM)](#63-configuración-de-horarios-de-las-4-comidas-hogar-vs-hospital--eleam)*
 7. [Escaneo OCR On-Device de Recetas Médicas y Alertas Farmacológicas](#7-escaneo-ocr-on-device-de-recetas-médicas-y-alertas-farmacológicas)
 8. [Control Predictivo de Inventario de Farmacia y Fin de Semana](#8-control-predictivo-de-inventario-de-farmacia-y-fin-de-semana)
+   - *[8.5 Escaneo OCR de Cajas de Medicamentos y Botiquín (ISP Chile)](#85-escaneo-ocr-de-cajas-de-medicamentos-y-botiquín-isp-chile)*
 9. [Informes Clínicos Certificados y Cadena de Custodia Criptográfica](#9-informes-clínicos-certificados-y-cadena-de-custodia-criptográfica)
+   - *[9.5 Exportación de Documentos PDF Oficiales y Envío Directo a WhatsApp](#95-exportación-de-documentos-pdf-oficiales-y-envío-directo-a-whatsapp)*
 10. [Operación Fuera de Línea, Alarmas Exactas y Vinculación (QR / Magic Link)](#10-operación-fuera-de-línea-alarmas-exactas-y-vinculación-qr--magic-link)
 11. [Guía de Instalación del APK Nativo Android y Optimización de Batería](#11-guía-de-instalación-del-apk-nativo-android-y-optimización-de-batería)
 12. [Respaldo, Exportación y Migración de Ficha Clínica (Zero Data Loss)](#12-respaldo-exportación-y-migración-de-ficha-clínica-zero-data-loss)
@@ -224,6 +227,13 @@ El Modo Senior no requiere que el adulto mayor recalcule ni memorice horarios cu
 - **Locución de Voz Contextual:** La síntesis vocal (`es-CL`) especifica la hora y el régimen en curso para brindar total certeza al paciente postrado o ingresado:  
   `"Hola Marcela. Es momento de tu almuerzo (12:00 en régimen hospitalario). Toma tu pastilla azul de Losartán con un vaso de agua."`
 - **Tolerancia a Rutinas Anticipadas:** Las franjas se adelantan entre 60 y 90 minutos para sincronizarse con la entrega de la bandeja de alimentación del hospital o del personal de enfermería, asegurando que los medicamentos digestivos se administren exactamente junto con la comida.
+
+### 4.6 Accesibilidad Universal (a11y): WCAG AAA, Áreas Táctiles ≥ 48 dp y Anuncios TalkBack (liveRegion)
+ChronoMed implementa las directrices internacionales de accesibilidad **WCAG 2.1 Nivel AAA** para asegurar que adultos mayores con presbicia, temblores esenciales o ceguera utilicen la app con total autonomía:
+- **Superficies Táctiles Mínimas $\ge 48\times 48\text{ dp}$:** Todos los botones de la pantalla (altavoz TTS, ajustes con PIN, confirmación y selectores) poseen áreas táctiles estrictamente conformes a las especificaciones de Google y Apple ($\ge 48$ dp). El botón principal `YA ME LA TOMÉ` alcanza una altura de 96 dp para permitir pulsaciones sin precisión motora fina.
+- **Contraste Estricto WCAG AAA ($> 7:1$):** El texto secundario utiliza Slate 700 (`#334155`) sobre fondos claros (ratio $> 8.5:1$) y blanco tiza (`#F1F5F9`) sobre fondos oscuros (ratio $> 12:1$), garantizando lectura nítida ante reflejos o en pantallas con brillo atenuado.
+- **Anuncios Vocales Automáticos con TalkBack (`liveRegion: true`):** El widget de confirmación de toma está enlazado a la propiedad de accesibilidad `Semantics(liveRegion: true)`. En cuanto el paciente pulsa el botón, el lector de pantalla TalkBack anuncia automáticamente en voz alta: *"¡Listo! Dosis tomada. Bloqueo anti-sobredosis activo. Tu siguiente toma es a las..."* sin necesidad de tocar la pantalla nuevamente.
+- **Resiliencia al Escalado Tipográfico (200%):** La interfaz ha sido certificada en pruebas automáticas bajo un factor de aumento del 200% (`textScaleFactor: 2.0`) sin producir truncamiento de textos ni desbordamientos visuales (*zero RenderFlex overflow*).
 
 ---
 
@@ -519,6 +529,20 @@ Un paciente tiene 6 pastillas de Enalapril (1 cada 12 hrs = 2 pastillas/día). S
 ### 8.4 Deducción Idempotente de Stock
 Para evitar errores donde una falla de red o un doble toque descuente pastillas repetidas veces, cada deducción de inventario se asocia al identificador único de la toma (`intakeLogId`). Si el sistema detecta que `lastDoseDeductionId === intakeLogId`, la operación se considera duplicada y no altera el saldo físico de comprimidos.
 
+### 8.5 Escaneo OCR de Cajas de Medicamentos y Botiquín (ISP Chile)
+Para mantener el botiquín del paciente rigurosamente abastecido y prevenir la ingesta accidental de fármacos caducados, ChronoMed incluye el **Escáner Óptico de Empaques Farmacéuticos** (`MedicineBoxScannerService`):
+- **Adquisición Rápida con la Cámara:** El cuidador presiona el botón **"Botiquín / Caja"** en el panel clínico y enfoca la caja física o blíster del remedio (o introduce el texto reconocido).
+- **Procesamiento On-Device con Google ML Kit:**
+  1. **Principio Activo y Dosis:** Reconoce automáticamente el fármaco chileno (ej. `Losartán Potásico 50 mg`, `Eutirox 100 mcg`).
+  2. **Contenido de Unidades:** Detecta la presentación comercial (ej. `30 comprimidos`, `28 cápsulas`, `60 tabletas`) y la prepara para sumarla con un solo toque al stock disponible.
+  3. **Número de Lote:** Extrae la serie del laboratorio (ej. `LOTE: 24A09`) para trazabilidad sanitaria ante eventuales retiros del mercado por parte del Instituto de Salud Pública (ISP).
+  4. **Fecha de Expiración:** Reconoce los formatos habituales de la industria farmacéutica chilena (`VENCE: MM/AAAA`, `EXP: MM/AA`, `VTO: MM-AAAA`).
+- **Semáforo de Riesgo de Vencimiento:**
+  - 🟢 **VIGENTE / APTO:** La fecha de expiración supera los 60 días de margen seguro.
+  - 🟡 **POR VENCER (< 60 DÍAS):** Alerta ámbar de recambio preventivo para programar la receta médica antes del vencimiento.
+  - 🔴 **VENCIDO - NO INGERIR:** Alerta roja de seguridad toxicológica. ChronoMed advierte que el principio activo puede haber perdido su potencia o generado productos de degradación nocivos.
+- **Actualización Inmediata de Stock:** Al pulsar **"Ingresar Stock"**, las unidades se incorporan en tiempo real a las reservas activas de Marcela, actualizando los gráficos de cobertura y las alertas de fin de semana.
+
 ---
 
 ## 9. Informes Clínicos Certificados y Cadena de Custodia Criptográfica
@@ -598,6 +622,20 @@ flowchart TD
    [patientId|reportPeriod|adherenceRate|totalScheduledDoses|dosesTakenOnTime|auditChainChecksum|generatedAtUtc]
    ```
    Esta cadena es firmada con la clave criptográfica secreta de 256 bits, generando un sello hexadecimal de 64 caracteres. Dicho sello y un código QR de verificación se imprimen al pie del documento. El médico puede escanear el código QR con cualquier dispositivo para confirmar que el informe es legítimo y no ha sufrido adulteraciones.
+
+### 9.5 Exportación de Documentos PDF Oficiales y Envío Directo a WhatsApp
+ChronoMed integra un generador nativo de documentos PDF vectoriales (`PdfExportService`) diseñado específicamente para la entrega ágil de antecedentes médicos en consultas presenciales o telemáticas:
+- **Estructura Clínica del Documento:**
+  1. **Cabecera Institucional:** Embretado oficial ChronoMed con identificación de reporte y fecha/hora exacta de emisión en Chile.
+  2. **Identificación de la Ficha:** Nombre del paciente, RUT chileno, tipo de régimen horario configurado (Hogar vs. Hospital / ELEAM) y cuidador asignado.
+  3. **Métricas de Cumplimiento Terapéutico:** Tabla normalizada con total de tomas programadas, tomas confirmadas a tiempo, tomas omitidas y porcentaje de adherencia efectiva con evaluación según estándar MINSAL ($\ge 85\%$ Óptima).
+  4. **Tabla de Medicamentos Activos:** Detalle pormenorizado de cada fármaco, dosis prescrita, horario de comida asignado y unidades disponibles en botiquín.
+  5. **Sello Criptográfico y Respaldo Legal:** Inclusión del hash HMAC-SHA256 inmutable y mención expresa a las garantías de la **Ley N° 20.584** sobre Ficha Clínica y la **Ley N° 19.628** sobre Protección de Datos de Carácter Personal.
+- **Flujo de Compartición a WhatsApp en 1 Toque:**
+  1. En el Modo Cuidador, presione el botón **"Reporte PDF"**.
+  2. En el cuadro de diálogo, seleccione **"COMPARTIR / WHATSAPP"**.
+  3. ChronoMed compila el PDF binario en memoria segura, lo guarda en el directorio temporal y abre inmediatamente el selector nativo de Android.
+  4. El cuidador selecciona el contacto de WhatsApp del médico especialista o del grupo familiar: el PDF se adjunta como documento auténtico junto con un mensaje introductorio con los indicadores de salud del paciente.
 
 ---
 

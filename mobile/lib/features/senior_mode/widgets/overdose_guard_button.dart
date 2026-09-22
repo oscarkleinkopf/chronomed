@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../../core/theme/senior_theme.dart';
 
@@ -17,40 +17,50 @@ class OverdoseGuardButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (isTaken) {
-      return Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(24),
-        decoration: BoxDecoration(
-          color: SeniorTheme.cardBackground,
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: SeniorTheme.successGreen, width: 3),
-        ),
-        child: Column(
-          children: [
-            const Icon(Icons.check_circle_rounded, color: SeniorTheme.successGreen, size: 64),
-            const SizedBox(height: 12),
-            const Text('¡Listo! Dosis Tomada', style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: SeniorTheme.successGreen)),
-            const SizedBox(height: 8),
-            Text('Tu siguiente toma es a las $nextDoseTime', style: const TextStyle(fontSize: 20, color: SeniorTheme.textPrimary)),
-          ],
+      return Semantics(
+        liveRegion: true,
+        label: '¡Listo! Dosis tomada. Bloqueo anti-sobredosis activo. Tu siguiente toma es a las $nextDoseTime.',
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: SeniorTheme.cardBackground,
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: SeniorTheme.successGreen, width: 3),
+          ),
+          child: Column(
+            children: [
+              const Icon(Icons.check_circle_rounded, color: SeniorTheme.successGreen, size: 64),
+              const SizedBox(height: 12),
+              const Text('¡Listo! Dosis Tomada', style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: SeniorTheme.successGreen)),
+              const SizedBox(height: 8),
+              Text('Tu siguiente toma es a las $nextDoseTime', style: const TextStyle(fontSize: 20, color: SeniorTheme.textPrimary)),
+            ],
+          ),
         ),
       );
     }
 
-    return SizedBox(
-      width: double.infinity,
-      height: 96,
-      child: ElevatedButton.icon(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: SeniorTheme.successGreen,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+    return Semantics(
+      button: true,
+      enabled: true,
+      label: 'Confirmar toma de medicamento: Ya me la tomé',
+      hint: 'Toca dos veces para registrar que tomaste tu dosis y activar el bloqueo anti-sobredosis',
+      child: SizedBox(
+        width: double.infinity,
+        height: 96,
+        child: ElevatedButton.icon(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: SeniorTheme.successGreen,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+          ),
+          onPressed: () {
+            HapticFeedback.heavyImpact();
+            onConfirm();
+          },
+          icon: const Icon(Icons.check_rounded, size: 48, color: Colors.black),
+          label: const Text('YA ME LA TOMÉ', style: TextStyle(fontSize: 26, fontWeight: FontWeight.w900, color: Colors.black)),
         ),
-        onPressed: () {
-          HapticFeedback.heavyImpact();
-          onConfirm();
-        },
-        icon: const Icon(Icons.check_rounded, size: 48, color: Colors.black),
-        label: const Text('YA ME LA TOMÉ', style: TextStyle(fontSize: 26, fontWeight: FontWeight.w900, color: Colors.black)),
       ),
     );
   }

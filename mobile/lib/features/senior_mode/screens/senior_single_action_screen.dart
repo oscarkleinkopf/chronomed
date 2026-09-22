@@ -75,16 +75,21 @@ class _SeniorSingleActionScreenState extends State<SeniorSingleActionScreen> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        title: Text('Hola, ${widget.patientName} 👋', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+        title: Text('Hola, ${widget.patientName} 👋', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: SeniorTheme.textPrimary)),
         actions: [
           IconButton(
+            constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
             iconSize: 40,
+            tooltip: 'Escuchar indicación médica por voz',
             icon: const Icon(Icons.volume_up_rounded, color: SeniorTheme.accentYellow),
             onPressed: () => TtsService().speak(_currentIntake.voiceInstruction),
           ),
+          const SizedBox(width: 4),
           IconButton(
+            constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
             iconSize: 32,
-            icon: const Icon(Icons.settings_outlined, color: Colors.white60),
+            tooltip: 'Acceso a modo cuidador con PIN',
+            icon: const Icon(Icons.settings_outlined, color: Color(0xFFF1F5F9)),
             onPressed: _showCaregiverPinDialog,
           ),
           const SizedBox(width: 8),
@@ -96,20 +101,23 @@ class _SeniorSingleActionScreenState extends State<SeniorSingleActionScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 18),
-                decoration: BoxDecoration(
-                  color: SeniorTheme.cardBackground,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: SeniorTheme.accentYellow, width: 2),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(_currentIntake.timeSlot.emoji, style: const TextStyle(fontSize: 32)),
-                    const SizedBox(width: 12),
-                    Text('${_currentIntake.timeSlot.label} (${_currentIntake.targetTime})', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: SeniorTheme.accentYellow)),
-                  ],
+              Semantics(
+                label: 'Momento de la toma: ${_currentIntake.timeSlot.label}, hora: ${_currentIntake.targetTime}',
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 18),
+                  decoration: BoxDecoration(
+                    color: SeniorTheme.cardBackground,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: SeniorTheme.accentYellow, width: 2),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(_currentIntake.timeSlot.emoji, style: const TextStyle(fontSize: 32)),
+                      const SizedBox(width: 12),
+                      Text('${_currentIntake.timeSlot.label} (${_currentIntake.targetTime})', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: SeniorTheme.accentYellow)),
+                    ],
+                  ),
                 ),
               ),
               const SizedBox(height: 20),
@@ -124,24 +132,27 @@ class _SeniorSingleActionScreenState extends State<SeniorSingleActionScreen> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Container(
-                        width: 110,
-                        height: 110,
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF3B82F6),
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(color: const Color(0xFF3B82F6).withOpacity(0.4), blurRadius: 20, spreadRadius: 4),
-                          ],
+                      Semantics(
+                        label: 'Pastilla color ${_currentIntake.pillColorName} de ${_currentIntake.medicationName}',
+                        child: Container(
+                          width: 110,
+                          height: 110,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF3B82F6),
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(color: const Color(0xFF3B82F6).withOpacity(0.4), blurRadius: 20, spreadRadius: 4),
+                            ],
+                          ),
+                          child: const Center(child: Icon(Icons.medication_rounded, size: 64, color: Colors.white)),
                         ),
-                        child: const Center(child: Icon(Icons.medication_rounded, size: 64, color: Colors.white)),
                       ),
                       const SizedBox(height: 24),
                       Text(_currentIntake.medicationName, style: const TextStyle(fontSize: 32, fontWeight: FontWeight.w900, color: SeniorTheme.textPrimary), textAlign: TextAlign.center),
                       const SizedBox(height: 8),
                       Text(_currentIntake.dosage, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: SeniorTheme.accentYellow)),
                       const SizedBox(height: 16),
-                      const Text('Tómala con un vaso de agua', style: TextStyle(fontSize: 20, color: Colors.white70), textAlign: TextAlign.center),
+                      const Text('Tómala con un vaso de agua', style: TextStyle(fontSize: 20, color: Color(0xFFF1F5F9)), textAlign: TextAlign.center),
                     ],
                   ),
                 ),

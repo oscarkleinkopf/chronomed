@@ -3,6 +3,8 @@ import '../../../core/theme/standard_theme.dart';
 import '../../senior_mode/screens/senior_single_action_screen.dart';
 import '../../schedule/models/circadian_routine.dart';
 import '../services/pdf_export_service.dart';
+import '../../ocr/models/medicine_box_scan_result.dart';
+import '../../ocr/widgets/medicine_box_scanner_dialog.dart';
 
 class CaregiverHomeScreen extends StatefulWidget {
   const CaregiverHomeScreen({super.key});
@@ -13,8 +15,12 @@ class CaregiverHomeScreen extends StatefulWidget {
 
 class _CaregiverHomeScreenState extends State<CaregiverHomeScreen> {
   final String _patientName = "Marcela";
+  final String _patientRut = "14.567.890-K";
   final String _caregiverPin = "1234";
   CircadianRoutine _routine = CircadianRoutine.home;
+  int _eutiroxStock = 28;
+  int _losartanStock = 14;
+  int _atorvastatinaStock = 30;
 
   @override
   Widget build(BuildContext context) {
@@ -137,47 +143,48 @@ class _CaregiverHomeScreenState extends State<CaregiverHomeScreen> {
                 Expanded(
                   child: OutlinedButton.icon(
                     style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      minimumSize: const Size(0, 48),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                       side: const BorderSide(color: Color(0xFFCBD5E1)),
                     ),
                     icon: const Icon(Icons.picture_as_pdf_rounded, color: Color(0xFF2563EB)),
                     label: const Text("Reporte PDF", style: TextStyle(color: Color(0xFF0F172A), fontWeight: FontWeight.bold, fontSize: 13)),
-                    onPressed: () async {
-                      final report = await PdfExportService.generateClinicalSummaryText(
-                        patientName: _patientName,
-                        adherencePercentage: 1.0,
-                        totalDoses: 3,
-                        onTimeDoses: 3,
-                      );
-                      if (context.mounted) {
-                        showDialog(
-                          context: context,
-                          builder: (ctx) => AlertDialog(
-                            title: const Text("Informe Médico Certificado"),
-                            content: SingleChildScrollView(child: Text(report, style: const TextStyle(fontFamily: 'monospace', fontSize: 11))),
-                            actions: [
-                              TextButton(onPressed: () => Navigator.pop(ctx), child: const Text("CERRAR")),
-                            ],
-                          ),
-                        );
-                      }
-                    },
+                    onPressed: _showPdfOptionsDialog,
                   ),
                 ),
                 const SizedBox(width: 10),
                 Expanded(
                   child: OutlinedButton.icon(
                     style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      minimumSize: const Size(0, 48),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      side: const BorderSide(color: Color(0xFFCBD5E1)),
+                    ),
+                    icon: const Icon(Icons.inventory_2_rounded, color: Color(0xFF059669)),
+                    label: const Text("Botiquín / Caja", style: TextStyle(color: Color(0xFF0F172A), fontWeight: FontWeight.bold, fontSize: 13)),
+                    onPressed: _openMedicineBoxScanner,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(
+                      minimumSize: const Size(0, 48),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                       side: const BorderSide(color: Color(0xFFCBD5E1)),
                     ),
                     icon: const Icon(Icons.document_scanner_rounded, color: Color(0xFF0284C7)),
-                    label: const Text("Escanear OCR", style: TextStyle(color: Color(0xFF0F172A), fontWeight: FontWeight.bold, fontSize: 13)),
+                    label: const Text("Escanear Receta", style: TextStyle(color: Color(0xFF0F172A), fontWeight: FontWeight.bold, fontSize: 13)),
                     onPressed: () {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text("Iniciando escáner OCR on-device...")),
+                        const SnackBar(content: Text("Iniciando escáner OCR on-device para recetas...")),
                       );
                     },
                   ),
@@ -186,11 +193,12 @@ class _CaregiverHomeScreenState extends State<CaregiverHomeScreen> {
                 Expanded(
                   child: OutlinedButton.icon(
                     style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      minimumSize: const Size(0, 48),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                       side: const BorderSide(color: Color(0xFFCBD5E1)),
                     ),
-                    icon: const Icon(Icons.qr_code_scanner_rounded, color: Color(0xFF22C55E)),
+                    icon: const Icon(Icons.qr_code_scanner_rounded, color: Color(0xFF7C3AED)),
                     label: const Text("Vincular QR", style: TextStyle(color: Color(0xFF0F172A), fontWeight: FontWeight.bold, fontSize: 13)),
                     onPressed: () {
                       ScaffoldMessenger.of(context).showSnackBar(
@@ -212,9 +220,9 @@ class _CaregiverHomeScreenState extends State<CaregiverHomeScreen> {
               ],
             ),
             const SizedBox(height: 12),
-            _buildMedCard("Eutirox (Levotiroxina)", "100 mcg", "$fastingTime • En ayunas (30 min antes)", Colors.white, Colors.black, "28 un. restantes"),
-            _buildMedCard("Losartán Potásico", "50 mg", "${_routine.formatTime(_routine.lunch)} • Con almuerzo", const Color(0xFF3B82F6), Colors.white, "14 un. restantes"),
-            _buildMedCard("Atorvastatina", "20 mg", "${_routine.formatTime(_routine.night)} • Al acostarse", const Color(0xFFFACC15), Colors.black, "30 un. restantes"),
+            _buildMedCard("Eutirox (Levotiroxina)", "100 mcg", "$fastingTime • En ayunas (30 min antes)", Colors.white, Colors.black, "$_eutiroxStock un. restantes"),
+            _buildMedCard("Losartán Potásico", "50 mg", "${_routine.formatTime(_routine.lunch)} • Con almuerzo", const Color(0xFF3B82F6), Colors.white, "$_losartanStock un. restantes"),
+            _buildMedCard("Atorvastatina", "20 mg", "${_routine.formatTime(_routine.night)} • Al acostarse", const Color(0xFFFACC15), Colors.black, "$_atorvastatinaStock un. restantes"),
           ],
         ),
       ),
@@ -429,6 +437,140 @@ class _CaregiverHomeScreenState extends State<CaregiverHomeScreen> {
     );
   }
 
+  void _showPdfOptionsDialog() async {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Row(
+          children: const [
+            Icon(Icons.picture_as_pdf_rounded, color: Color(0xFF2563EB), size: 24),
+            SizedBox(width: 8),
+            Text("Informe Médico PDF", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              "Documento clínico certificado bajo Ley N° 20.584 y Ley N° 19.628, con sello de integridad criptográfica HMAC-SHA256.",
+              style: TextStyle(fontSize: 12, color: Color(0xFF334155)),
+            ),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF1F5F9),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text("Paciente: $_patientName (RUT: $_patientRut)", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF0F172A))),
+                  const SizedBox(height: 4),
+                  const Text("Cumplimiento: 100% (Óptima)", style: TextStyle(fontSize: 12, color: Color(0xFF047857), fontWeight: FontWeight.w600)),
+                  Text("Régimen: ${_routine.regimeType == CircadianRegimeType.hospital ? 'Hospitalario / ELEAM' : 'Domicilio'}", style: const TextStyle(fontSize: 11, color: Color(0xFF334155))),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(ctx);
+              final report = await PdfExportService.generateClinicalSummaryText(
+                patientName: _patientName,
+                patientRut: _patientRut,
+                adherencePercentage: 1.0,
+                totalDoses: 3,
+                onTimeDoses: 3,
+              );
+              if (mounted) {
+                showDialog(
+                  context: context,
+                  builder: (previewCtx) => AlertDialog(
+                    title: const Text("Previsualización de Informe"),
+                    content: SingleChildScrollView(child: Text(report, style: const TextStyle(fontFamily: 'monospace', fontSize: 11))),
+                    actions: [
+                      TextButton(onPressed: () => Navigator.pop(previewCtx), child: const Text("CERRAR")),
+                    ],
+                  ),
+                );
+              }
+            },
+            child: const Text("VER TEXTO", style: TextStyle(color: Color(0xFF334155), fontWeight: FontWeight.bold)),
+          ),
+          ElevatedButton.icon(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF2563EB),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+            icon: const Icon(Icons.share_rounded, size: 18),
+            label: const Text("COMPARTIR / WHATSAPP", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+            onPressed: () async {
+              Navigator.pop(ctx);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text("Generando documento PDF certificado con firma HMAC...")),
+              );
+              try {
+                await PdfExportService.exportAndShareToWhatsApp(
+                  patientName: _patientName,
+                  patientRut: _patientRut,
+                  adherencePercentage: 1.0,
+                  totalDoses: 3,
+                  onTimeDoses: 3,
+                  routine: _routine,
+                );
+              } catch (e) {
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(backgroundColor: Colors.red, content: Text("Error al generar PDF: $e")),
+                  );
+                }
+              }
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _openMedicineBoxScanner() {
+    showDialog(
+      context: context,
+      builder: (ctx) => MedicineBoxScannerDialog(
+        onStockUpdated: _handleBoxStockUpdated,
+      ),
+    );
+  }
+
+  void _handleBoxStockUpdated(MedicineBoxScanResult result) {
+    final drug = result.detectedDrugName?.toLowerCase() ?? '';
+    final units = result.detectedUnits ?? 30;
+
+    setState(() {
+      if (drug.contains('losart')) {
+        _losartanStock += units;
+      } else if (drug.contains('eutirox') || drug.contains('levotiroxina')) {
+        _eutiroxStock += units;
+      } else if (drug.contains('atorvastatina')) {
+        _atorvastatinaStock += units;
+      }
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        backgroundColor: const Color(0xFF0F172A),
+        content: Text(
+          '📦 Botiquín actualizado: +$units un. de ${result.detectedDrugName ?? "fármaco"} (Lote: ${result.detectedLotNumber ?? "N/A"}, Vence: ${result.detectedExpirationDate ?? "N/A"})',
+          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+      ),
+    );
+  }
+
   Widget _buildMedCard(String name, String dose, String schedule, Color pillColor, Color textColor, String stock) {
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
@@ -459,11 +601,11 @@ class _CaregiverHomeScreenState extends State<CaregiverHomeScreen> {
               children: [
                 Text(name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFF0F172A))),
                 const SizedBox(height: 2),
-                Text("$dose • $schedule", style: const TextStyle(fontSize: 12, color: Color(0xFF64748B))),
+                Text("$dose • $schedule", style: const TextStyle(fontSize: 12, color: Color(0xFF334155))),
               ],
             ),
           ),
-          Text(stock, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFF059669))),
+          Text(stock, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFF047857))),
         ],
       ),
     );

@@ -113,6 +113,11 @@ jobs:
           cd mobile
           flutter pub get
 
+      - name: Run Flutter Tests
+        run: |
+          cd mobile
+          flutter test
+
       - name: Build Android Release APK
         run: |
           cd mobile
