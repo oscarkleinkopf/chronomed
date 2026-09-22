@@ -20,15 +20,31 @@ class MedicineBoxScannerService {
     return parseRawText(recognizedText.text, referenceDate: referenceDate);
   }
 
+  static String _removeDiacritics(String str) {
+    return str
+        .replaceAll('á', 'a')
+        .replaceAll('é', 'e')
+        .replaceAll('í', 'i')
+        .replaceAll('ó', 'o')
+        .replaceAll('ú', 'u')
+        .replaceAll('Á', 'A')
+        .replaceAll('É', 'E')
+        .replaceAll('Í', 'I')
+        .replaceAll('Ó', 'O')
+        .replaceAll('Ú', 'U');
+  }
+
   /// Parses raw OCR text to extract drug name, dosage, units, lot number, and expiration date
   MedicineBoxScanResult parseRawText(String text, {DateTime? referenceDate}) {
     final cleanText = text.replaceAll('\n', ' ');
     final today = referenceDate ?? DateTime.now();
 
-    // 1. Detect Drug Name
+    // 1. Detect Drug Name (supports accented and unaccented uppercase like LOSARTAN)
     String? drugName;
+    final normalizedCleanText = _removeDiacritics(cleanText);
     for (final drug in _knownDrugs) {
-      if (RegExp('\\b$drug', caseSensitive: false).hasMatch(cleanText)) {
+      final normalizedDrug = _removeDiacritics(drug);
+      if (RegExp('\\b$normalizedDrug', caseSensitive: false).hasMatch(normalizedCleanText)) {
         drugName = drug;
         break;
       }

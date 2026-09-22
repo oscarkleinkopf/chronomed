@@ -59,7 +59,10 @@ class OverdoseGuardButton extends StatelessWidget {
             onConfirm();
           },
           icon: const Icon(Icons.check_rounded, size: 48, color: Colors.black),
-          label: const Text('YA ME LA TOMÉ', style: TextStyle(fontSize: 26, fontWeight: FontWeight.w900, color: Colors.black)),
+          label: const FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text('YA ME LA TOMÉ', style: TextStyle(fontSize: 26, fontWeight: FontWeight.w900, color: Colors.black)),
+          ),
         ),
       ),
     );

@@ -110,13 +110,16 @@ class _SeniorSingleActionScreenState extends State<SeniorSingleActionScreen> {
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(color: SeniorTheme.accentYellow, width: 2),
                   ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(_currentIntake.timeSlot.emoji, style: const TextStyle(fontSize: 32)),
-                      const SizedBox(width: 12),
-                      Text('${_currentIntake.timeSlot.label} (${_currentIntake.targetTime})', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: SeniorTheme.accentYellow)),
-                    ],
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(_currentIntake.timeSlot.emoji, style: const TextStyle(fontSize: 32)),
+                        const SizedBox(width: 12),
+                        Text('${_currentIntake.timeSlot.label} (${_currentIntake.targetTime})', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: SeniorTheme.accentYellow)),
+                      ],
+                    ),
                   ),
                 ),
               ),
