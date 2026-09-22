@@ -1,4 +1,4 @@
-﻿import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 import 'notification_channels.dart';
@@ -31,6 +31,7 @@ class LocalNotificationService {
     if (androidPlugin != null) {
       await androidPlugin.createNotificationChannel(NotificationChannels.criticalMedicationChannel);
       await androidPlugin.createNotificationChannel(NotificationChannels.stockAlertChannel);
+      await androidPlugin.createNotificationChannel(NotificationChannels.omissionEscalationChannel);
       await androidPlugin.requestNotificationsPermission();
       await androidPlugin.requestExactAlarmsPermission();
     }

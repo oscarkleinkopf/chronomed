@@ -1,4 +1,4 @@
-﻿import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'dart:typed_data';
 
 class NotificationChannels {
@@ -18,5 +18,15 @@ class NotificationChannels {
     description: 'Recordatorios de reposición de medicamentos con 5 días de anticipación.',
     importance: Importance.defaultImportance,
     playSound: true,
+  );
+
+  static final AndroidNotificationChannel omissionEscalationChannel = AndroidNotificationChannel(
+    'chronomed_omission_escalation',
+    'Alertas de Dosis Omitida (Escalada Cuidador)',
+    description: 'Alertas de alta prioridad cuando el paciente no confirma su toma tras 45 minutos.',
+    importance: Importance.max,
+    playSound: true,
+    enableVibration: true,
+    vibrationPattern: Int64List.fromList([0, 800, 300, 800, 300, 1200]),
   );
 }

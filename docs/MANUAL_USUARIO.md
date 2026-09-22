@@ -25,6 +25,7 @@
    - *[4.5 Adaptabilidad de Franjas: Domicilio vs. Hospital / ELEAM](#45-adaptabilidad-de-franjas-y-regímenes-domicilio-vs-hospital--eleam)*
    - *[4.6 Accesibilidad Universal (a11y): WCAG AAA, Áreas Táctiles ≥ 48 dp y TalkBack](#46-accesibilidad-universal-a11y-wcag-aaa-áreas-táctiles--48-dp-y-anuncios-talkback-liveregion)*
 5. [Mecanismo de Bloqueo Anti-Sobredosis y Reprogramación Dinámica](#5-mecanismo-de-bloqueo-anti-sobredosis-y-reprogramación-dinámica)
+   - *[5.5 Protocolo de Escalada y Alerta de Dosis Omitida (45 min)](#55-protocolo-de-escalada-y-alerta-de-dosis-omitida-45-min)*
 6. [Guía de Uso: Modo Cuidador / Estándar](#6-guía-de-uso-modo-cuidador--estándar)
    - *[6.3 Configuración de Horarios de las 4 Comidas (Hogar vs. Hospital / ELEAM)](#63-configuración-de-horarios-de-las-4-comidas-hogar-vs-hospital--eleam)*
 7. [Escaneo OCR On-Device de Recetas Médicas y Alertas Farmacológicas](#7-escaneo-ocr-on-device-de-recetas-médicas-y-alertas-farmacológicas)
@@ -348,6 +349,19 @@ ChronoMed incorpora la **Regla del 75% de Intervalo Seguro**:
 - **Evaluación:** Si la diferencia entre la hora en que el paciente finalmente se toma la pastilla y la hora original de la siguiente dosis es inferior a $T_{\text{seguro}}$, el motor activa de inmediato la alerta `TOXICITY_RISK_AVOIDED`:
   - **Acción:** Pospone automáticamente la siguiente dosis sumando la frecuencia completa a la hora real de la toma ($T_{\text{siguiente}} = T_{\text{real}} + F$).
   - **Notificación al Cuidador:** *"Toma de Losartán registrada con 3 horas de retraso. Se ha pospuesto la siguiente toma para las 21:30 para evitar acumulación y toxicidad farmacológica."*
+
+### 5.5 Protocolo de Escalada y Alerta de Dosis Omitida (45 min)
+Para salvaguardar a pacientes crónicos que viven solos o se encuentran bajo supervisión remota, ChronoMed implementa un **motor activo de detección de omisiones** (`DoseOmissionService`):
+1. **Ventana de Gracia Circadiana (0 a 44 minutos):**
+   - Desde el momento en que suena la alarma médica, el paciente dispone de 45 minutos de margen para ingerir el fármaco sin que se considere omisión crítica.
+   - Durante este intervalo, la dosis permanece en estado `inGracePeriod` (espera flexible de adherencia).
+2. **Disparo de Escalada Automática ($\ge 45$ minutos):**
+   - Si transcurren 45 minutos y la dosis no ha sido confirmada en el Modo Senior, el sistema cambia el estado a `escalated` y activa de inmediato los canales de auxilio:
+     - **Notificación Prioritaria Android (`chronomed_omission_escalation`):** Alerta sonora y vibratoria de alta prioridad que notifica al cuidador el retraso específico.
+     - **Banner de Advertencia en el Modo Cuidador:** Se despliega en la parte superior del panel principal una tarjeta roja de alerta clínica (`#EF4444`) indicando el fármaco omitido, los minutos exactos de retraso y la hora original programada.
+3. **Acciones de Respuesta Rápida para el Cuidador:**
+   - **Avisar por WhatsApp:** Genera y comparte en un toque un mensaje médico estructurado bajo la Ley N° 20.584, con el nombre del paciente, su RUT, el fármaco omitido y la solicitud de verificación urgente.
+   - **Supervisar Toma:** Si el cuidador administra la dosis en persona o confirma telefónicamente que el paciente ya la tomó, puede presionar *"Supervisar Toma"* para registrar el evento en la ficha local, descontar la unidad del inventario y apagar la alerta de forma instantánea.
 
 ---
 
