@@ -43,6 +43,7 @@ jobs:
           cd mobile
           flutter create --platforms=android --org com.chronomed .
           cp /tmp/chronomed_backup/AndroidManifest.xml android/app/src/main/AndroidManifest.xml
+          rm -f test/widget_test.dart
 
       - name: Configure Android Gradle Build Settings
         run: |

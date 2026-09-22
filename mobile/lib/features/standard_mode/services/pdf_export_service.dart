@@ -259,7 +259,7 @@ class PdfExportService {
                   pw.SizedBox(height: 4),
                   pw.Text(
                     'Hash Inmutable: $hmacSignature',
-                    style: pw.TextStyle(fontSize: 8, fontFamily: pw.Font.courier().fontName, color: PdfColor.fromInt(0xFF0F172A)),
+                    style: pw.TextStyle(fontSize: 8, font: pw.Font.courier(), color: PdfColor.fromInt(0xFF0F172A)),
                   ),
                   pw.SizedBox(height: 6),
                   pw.Text(
