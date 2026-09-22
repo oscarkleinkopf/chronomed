@@ -2,7 +2,9 @@ import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart
 import '../models/medicine_box_scan_result.dart';
 
 class MedicineBoxScannerService {
-  final TextRecognizer _textRecognizer = TextRecognizer(script: TextRecognitionScript.latin);
+  TextRecognizer? _textRecognizer;
+  TextRecognizer get _recognizer =>
+      _textRecognizer ??= TextRecognizer(script: TextRecognitionScript.latin);
 
   static const List<String> _knownDrugs = [
     'Paracetamol', 'Ibuprofeno', 'Losartán', 'Enalapril', 'Metformina',
@@ -14,7 +16,7 @@ class MedicineBoxScannerService {
   /// Processes an image of a medicine box or blister pack using on-device ML Kit
   Future<MedicineBoxScanResult> processImage(String imagePath, {DateTime? referenceDate}) async {
     final inputImage = InputImage.fromFilePath(imagePath);
-    final RecognizedText recognizedText = await _textRecognizer.processImage(inputImage);
+    final RecognizedText recognizedText = await _recognizer.processImage(inputImage);
     return parseRawText(recognizedText.text, referenceDate: referenceDate);
   }
 
@@ -128,5 +130,7 @@ class MedicineBoxScannerService {
     );
   }
 
-  void dispose() => _textRecognizer.close();
+  void dispose() {
+    _textRecognizer?.close();
+  }
 }

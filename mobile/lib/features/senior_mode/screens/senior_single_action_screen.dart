@@ -124,36 +124,40 @@ class _SeniorSingleActionScreenState extends State<SeniorSingleActionScreen> {
               Expanded(
                 child: Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.all(24),
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                   decoration: BoxDecoration(
                     color: SeniorTheme.cardBackground,
                     borderRadius: BorderRadius.circular(28),
                   ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Semantics(
-                        label: 'Pastilla color ${_currentIntake.pillColorName} de ${_currentIntake.medicationName}',
-                        child: Container(
-                          width: 110,
-                          height: 110,
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF3B82F6),
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(color: const Color(0xFF3B82F6).withOpacity(0.4), blurRadius: 20, spreadRadius: 4),
-                            ],
+                  child: Center(
+                    child: SingleChildScrollView(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Semantics(
+                            label: 'Pastilla color ${_currentIntake.pillColorName} de ${_currentIntake.medicationName}',
+                            child: Container(
+                              width: 100,
+                              height: 100,
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF3B82F6),
+                                shape: BoxShape.circle,
+                                boxShadow: [
+                                  BoxShadow(color: const Color(0xFF3B82F6).withOpacity(0.4), blurRadius: 20, spreadRadius: 4),
+                                ],
+                              ),
+                              child: const Center(child: Icon(Icons.medication_rounded, size: 56, color: Colors.white)),
+                            ),
                           ),
-                          child: const Center(child: Icon(Icons.medication_rounded, size: 64, color: Colors.white)),
-                        ),
+                          const SizedBox(height: 18),
+                          Text(_currentIntake.medicationName, style: const TextStyle(fontSize: 30, fontWeight: FontWeight.w900, color: SeniorTheme.textPrimary), textAlign: TextAlign.center),
+                          const SizedBox(height: 6),
+                          Text(_currentIntake.dosage, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: SeniorTheme.accentYellow)),
+                          const SizedBox(height: 12),
+                          const Text('Tómala con un vaso de agua', style: TextStyle(fontSize: 18, color: Color(0xFFF1F5F9)), textAlign: TextAlign.center),
+                        ],
                       ),
-                      const SizedBox(height: 24),
-                      Text(_currentIntake.medicationName, style: const TextStyle(fontSize: 32, fontWeight: FontWeight.w900, color: SeniorTheme.textPrimary), textAlign: TextAlign.center),
-                      const SizedBox(height: 8),
-                      Text(_currentIntake.dosage, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: SeniorTheme.accentYellow)),
-                      const SizedBox(height: 16),
-                      const Text('Tómala con un vaso de agua', style: TextStyle(fontSize: 20, color: Color(0xFFF1F5F9)), textAlign: TextAlign.center),
-                    ],
+                    ),
                   ),
                 ),
               ),

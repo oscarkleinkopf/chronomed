@@ -3,6 +3,8 @@ import 'package:chronomed/features/ocr/models/medicine_box_scan_result.dart';
 import 'package:chronomed/features/ocr/services/medicine_box_scanner_service.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   group('MedicineBoxScannerService Test Suite', () {
     late MedicineBoxScannerService service;
     final fixedToday = DateTime(2026, 9, 22);
