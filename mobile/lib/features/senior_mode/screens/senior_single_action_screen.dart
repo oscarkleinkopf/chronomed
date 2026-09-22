@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../core/services/tts_service.dart';
 import '../../../core/theme/senior_theme.dart';
+import '../../../core/storage/local_storage_service.dart';
 import '../models/senior_intake_item.dart';
 import '../../schedule/models/circadian_routine.dart';
 import '../widgets/overdose_guard_button.dart';
@@ -30,6 +31,7 @@ class _SeniorSingleActionScreenState extends State<SeniorSingleActionScreen> {
     final lunchTime = widget.routine.formatTime(widget.routine.lunch);
     final nextTime = widget.routine.formatTime(widget.routine.night);
     final regimeLabel = widget.routine.regimeType == CircadianRegimeType.hospital ? 'en régimen hospitalario' : '';
+    final isAlreadyTaken = LocalStorageService.instance.isSlotTakenToday(SeniorTimeSlot.lunch);
 
     _currentIntake = SeniorIntakeItem(
       id: 'intake-123',
@@ -40,8 +42,10 @@ class _SeniorSingleActionScreenState extends State<SeniorSingleActionScreen> {
       colorHex: '#3B82F6',
       pillColorName: 'azul',
       shapeType: 'round',
-      voiceInstruction: 'Hola ${widget.patientName}. Es momento de tu almuerzo ($lunchTime $regimeLabel). Toma tu pastilla azul de Losartán con un vaso de agua.',
-      isTaken: false,
+      voiceInstruction: isAlreadyTaken
+          ? 'Hola ${widget.patientName}. Ya tomaste tu dosis de Losartán para el almuerzo. Bloqueo anti-sobredosis activo. Tu siguiente toma es a las $nextTime.'
+          : 'Hola ${widget.patientName}. Es momento de tu almuerzo ($lunchTime $regimeLabel). Toma tu pastilla azul de Losartán con un vaso de agua.',
+      isTaken: isAlreadyTaken,
       nextDoseTime: nextTime,
     );
 
@@ -66,6 +70,13 @@ class _SeniorSingleActionScreenState extends State<SeniorSingleActionScreen> {
         nextDoseTime: _currentIntake.nextDoseTime,
       );
     });
+
+    LocalStorageService.instance.recordIntake(
+      intakeId: _currentIntake.id,
+      medicationName: _currentIntake.medicationName,
+      timeSlot: _currentIntake.timeSlot,
+      timestamp: DateTime.now(),
+    );
   }
 
   @override

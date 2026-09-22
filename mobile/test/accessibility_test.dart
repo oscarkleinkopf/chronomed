@@ -2,9 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:chronomed/features/senior_mode/widgets/overdose_guard_button.dart';
 import 'package:chronomed/features/senior_mode/screens/senior_single_action_screen.dart';
+import 'package:chronomed/core/storage/local_storage_service.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+
+  setUp(() async {
+    await LocalStorageService.instance.init(inMemory: true);
+    await LocalStorageService.instance.resetAllData();
+  });
 
   group('ChronoMed Accessibility (a11y) & WCAG Compliance Suite', () {
     testWidgets('OverdoseGuardButton touch target exceeds 48dp minimum threshold (96dp)', (WidgetTester tester) async {

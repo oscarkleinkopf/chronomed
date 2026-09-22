@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../core/theme/standard_theme.dart';
 import '../../senior_mode/screens/senior_single_action_screen.dart';
 import '../../schedule/models/circadian_routine.dart';
+import '../../../core/storage/local_storage_service.dart';
 import '../services/pdf_export_service.dart';
 import '../../ocr/models/medicine_box_scan_result.dart';
 import '../../ocr/widgets/medicine_box_scanner_dialog.dart';
@@ -21,6 +22,22 @@ class _CaregiverHomeScreenState extends State<CaregiverHomeScreen> {
   int _eutiroxStock = 28;
   int _losartanStock = 14;
   int _atorvastatinaStock = 30;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPersistedData();
+  }
+
+  void _loadPersistedData() {
+    final storage = LocalStorageService.instance;
+    setState(() {
+      _eutiroxStock = storage.getStock('eutirox', fallback: 28);
+      _losartanStock = storage.getStock('losartan', fallback: 14);
+      _atorvastatinaStock = storage.getStock('atorvastatina', fallback: 30);
+      _routine = storage.getCircadianRoutine();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -65,7 +82,9 @@ class _CaregiverHomeScreenState extends State<CaregiverHomeScreen> {
                     routine: _routine,
                   ),
                 ),
-              );
+              ).then((_) {
+                _loadPersistedData();
+              });
             },
           ),
           const SizedBox(width: 12),
@@ -279,7 +298,10 @@ class _CaregiverHomeScreenState extends State<CaregiverHomeScreen> {
                   label: const Center(child: Text("🏠 Hogar", style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold))),
                   selected: _routine.regimeType == CircadianRegimeType.home,
                   onSelected: (selected) {
-                    if (selected) setState(() => _routine = CircadianRoutine.home);
+                    if (selected) {
+                      setState(() => _routine = CircadianRoutine.home);
+                      LocalStorageService.instance.saveCircadianRoutine(_routine);
+                    }
                   },
                   selectedColor: const Color(0xFF2563EB),
                   labelStyle: TextStyle(color: _routine.regimeType == CircadianRegimeType.home ? Colors.white : const Color(0xFF334155)),
@@ -291,7 +313,10 @@ class _CaregiverHomeScreenState extends State<CaregiverHomeScreen> {
                   label: const Center(child: Text("🏥 Hospital", style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold))),
                   selected: _routine.regimeType == CircadianRegimeType.hospital,
                   onSelected: (selected) {
-                    if (selected) setState(() => _routine = CircadianRoutine.hospital);
+                    if (selected) {
+                      setState(() => _routine = CircadianRoutine.hospital);
+                      LocalStorageService.instance.saveCircadianRoutine(_routine);
+                    }
                   },
                   selectedColor: const Color(0xFF2563EB),
                   labelStyle: TextStyle(color: _routine.regimeType == CircadianRegimeType.hospital ? Colors.white : const Color(0xFF334155)),
@@ -426,6 +451,7 @@ class _CaregiverHomeScreenState extends State<CaregiverHomeScreen> {
                       night: night,
                     );
                   });
+                  LocalStorageService.instance.saveCircadianRoutine(_routine);
                   Navigator.pop(ctx);
                 },
                 child: const Text("GUARDAR"),
@@ -553,10 +579,13 @@ class _CaregiverHomeScreenState extends State<CaregiverHomeScreen> {
     setState(() {
       if (drug.contains('losart')) {
         _losartanStock += units;
+        LocalStorageService.instance.setStock('losartan', _losartanStock);
       } else if (drug.contains('eutirox') || drug.contains('levotiroxina')) {
         _eutiroxStock += units;
+        LocalStorageService.instance.setStock('eutirox', _eutiroxStock);
       } else if (drug.contains('atorvastatina')) {
         _atorvastatinaStock += units;
+        LocalStorageService.instance.setStock('atorvastatina', _atorvastatinaStock);
       }
     });
 

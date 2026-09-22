@@ -35,6 +35,7 @@
 10. [Operación Fuera de Línea, Alarmas Exactas y Vinculación (QR / Magic Link)](#10-operación-fuera-de-línea-alarmas-exactas-y-vinculación-qr--magic-link)
 11. [Guía de Instalación del APK Nativo Android y Optimización de Batería](#11-guía-de-instalación-del-apk-nativo-android-y-optimización-de-batería)
 12. [Respaldo, Exportación y Migración de Ficha Clínica (Zero Data Loss)](#12-respaldo-exportación-y-migración-de-ficha-clínica-zero-data-loss)
+   - *[12.4 Motor de Persistencia Local On-Device (Zero Data Loss)](#124-motor-de-persistencia-local-on-device-zero-data-loss)*
 13. [Vademécum de Medicamentos de Uso Frecuente en Chile (Catálogo ISP)](#13-vademécum-de-medicamentos-de-uso-frecuente-en-chile-catálogo-isp)
 14. [Preguntas Frecuentes y Resolución de Problemas (FAQ / Troubleshooting)](#14-preguntas-frecuentes-y-resolución-de-problemas-faq--troubleshooting)
 
@@ -769,6 +770,17 @@ Al instalar ChronoMed en un nuevo teléfono móvil:
 2. **Opción A (Desde Archivo):** Presione *"Seleccionar Archivo JSON"*, localice el archivo descargado previamente y confirme.
 3. **Opción B (Pegar Texto de WhatsApp):** Si recibió el código por mensaje, cópielo, péguelo en la caja de texto *"Pegue el código de respaldo aquí"* y presione *"Restaurar desde Texto"*.
 4. ChronoMed verificará la integridad de la estructura de datos, regenerará las alarmas exactas en el nuevo dispositivo y mostrará una animación de éxito confirmando el restablecimiento íntegro de la ficha médica.
+
+### 12.4 Motor de Persistencia Local On-Device (Zero Data Loss)
+ChronoMed integra un subsistema de almacenamiento persistente (`LocalStorageService`) diseñado para asegurar tolerancia total ante cierres imprevistos o reinicios del teléfono:
+1. **Persistencia Atómica en Disco:**
+   - Cada variación de stock (por tomas del paciente o ingresos OCR de cajas de botiquín), cambio en el régimen horario (Hogar vs. Hospital) o registro de dosis se escribe de inmediato en `chronomed_state.json` en el directorio de documentos privado del dispositivo.
+   - El motor mantiene una copia sincronizada en memoria para garantizar animaciones fluidas a 60/120 fps y respuesta instantánea al interactuar con la pantalla táctil.
+2. **Bloqueo Anti-Sobredosis Resistente a Reinicios:**
+   - La confirmación de ingesta ("YA ME LA TOMÉ") se almacena junto al identificador de dosis y su fecha y hora en formato ISO 8601.
+   - Si el sistema operativo Android elimina la app de la memoria RAM o el dispositivo se reinicia, al reabrir ChronoMed el **Modo Senior** comprueba los registros del día actual y reanuda el estado de **Bloqueo Anti-Sobredosis Activo** en verde, impidiendo dobles tomas accidentales.
+3. **Descuento Automático de Inventario:**
+   - Al pulsar la toma en Modo Senior, el sistema descuenta de forma automática 1 unidad del inventario del fármaco asociado, sincronizando permanentemente el recuento con el botiquín físico.
 
 ---
 
