@@ -162,7 +162,7 @@ void main() {
       expect(activeAlert!.drugName, equals('Losartán Potásico'));
 
       // Caregiver supervises and administers dose
-      await service.markDoseAsAdministeredByCaregiver(activeAlert);
+      await service.markDoseAsAdministeredByCaregiver(activeAlert, timestamp: overdueTime);
 
       // Re-evaluate
       final clearedAlert = service.getActiveEscalatedAlert(now: overdueTime, routine: routine);

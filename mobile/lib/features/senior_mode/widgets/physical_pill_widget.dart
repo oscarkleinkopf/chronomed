@@ -290,7 +290,7 @@ class _PhotorealisticPillPainter extends CustomPainter {
       final borderPaint = Paint()
         ..color = darkColor
         ..style = PaintingStyle.stroke
-        ..width = 1.5;
+        ..strokeWidth = 1.5;
       canvas.drawRRect(bodyRRect, borderPaint);
     } else {
       canvas.drawCircle(center, radius, bodyPaint);
@@ -299,7 +299,7 @@ class _PhotorealisticPillPainter extends CustomPainter {
       final borderPaint = Paint()
         ..color = darkColor
         ..style = PaintingStyle.stroke
-        ..width = 1.5;
+        ..strokeWidth = 1.5;
       canvas.drawCircle(center, radius, borderPaint);
     }
 

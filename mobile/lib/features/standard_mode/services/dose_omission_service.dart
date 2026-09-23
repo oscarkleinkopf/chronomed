@@ -187,12 +187,12 @@ _Reporte generado conforme a la Ley N° 20.584 de Derechos y Deberes del Pacient
   }
 
   /// Registra la toma supervisada por el cuidador directamente, apagando la alerta
-  Future<void> markDoseAsAdministeredByCaregiver(DoseOmissionAlert alert) async {
+  Future<void> markDoseAsAdministeredByCaregiver(DoseOmissionAlert alert, {DateTime? timestamp}) async {
     await LocalStorageService.instance.recordIntake(
       intakeId: alert.intakeId,
       medicationName: alert.drugName,
       timeSlot: alert.timeSlot,
-      timestamp: DateTime.now(),
+      timestamp: timestamp ?? DateTime.now(),
     );
   }
 
