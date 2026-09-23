@@ -5,6 +5,7 @@ import '../../../core/storage/local_storage_service.dart';
 import '../models/senior_intake_item.dart';
 import '../../schedule/models/circadian_routine.dart';
 import '../widgets/overdose_guard_button.dart';
+import '../widgets/physical_pill_widget.dart';
 
 class SeniorSingleActionScreen extends StatefulWidget {
   final String patientName;
@@ -36,15 +37,18 @@ class _SeniorSingleActionScreenState extends State<SeniorSingleActionScreen> {
     _currentIntake = SeniorIntakeItem(
       id: 'intake-123',
       medicationName: 'Losartán Potásico',
-      dosage: '50 mg (1 pastilla)',
+      dosage: '50 mg (1 comprimido)',
       timeSlot: SeniorTimeSlot.lunch,
       targetTime: lunchTime,
       colorHex: '#3B82F6',
       pillColorName: 'azul',
       shapeType: 'round',
+      imprint: '50',
+      hasScoreLine: true,
+      physicalDescription: 'Comprimido circular azul con número 50 grabado y ranura central de partición',
       voiceInstruction: isAlreadyTaken
           ? 'Hola ${widget.patientName}. Ya tomaste tu dosis de Losartán para el almuerzo. Bloqueo anti-sobredosis activo. Tu siguiente toma es a las $nextTime.'
-          : 'Hola ${widget.patientName}. Es momento de tu almuerzo ($lunchTime $regimeLabel). Toma tu pastilla azul de Losartán con un vaso de agua.',
+          : 'Hola ${widget.patientName}. Es momento de tu almuerzo ($lunchTime $regimeLabel). Toma tu comprimido circular azul con número 50 grabado de Losartán con un vaso de agua. Si necesitas verla más grande, toca la pastilla.',
       isTaken: isAlreadyTaken,
       nextDoseTime: nextTime,
     );
@@ -65,6 +69,10 @@ class _SeniorSingleActionScreenState extends State<SeniorSingleActionScreen> {
         colorHex: _currentIntake.colorHex,
         pillColorName: _currentIntake.pillColorName,
         shapeType: _currentIntake.shapeType,
+        imprint: _currentIntake.imprint,
+        hasScoreLine: _currentIntake.hasScoreLine,
+        physicalDescription: _currentIntake.physicalDescription,
+        pillImagePath: _currentIntake.pillImagePath,
         voiceInstruction: _currentIntake.voiceInstruction,
         isTaken: true,
         nextDoseTime: _currentIntake.nextDoseTime,
@@ -148,19 +156,31 @@ class _SeniorSingleActionScreenState extends State<SeniorSingleActionScreen> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
+                          PhysicalPillWidget(
+                            size: 110,
+                            shapeType: _currentIntake.shapeType,
+                            pillColor: Color(int.parse(_currentIntake.colorHex.replaceFirst('#', '0xFF'))),
+                            imprint: _currentIntake.imprint,
+                            hasScoreLine: _currentIntake.hasScoreLine,
+                            imagePath: _currentIntake.pillImagePath,
+                            medicationName: _currentIntake.medicationName,
+                            dosage: _currentIntake.dosage,
+                            physicalDescription: _currentIntake.physicalDescription,
+                            enableMagnifier: true,
+                          ),
+                          const SizedBox(height: 8),
                           Semantics(
-                            label: 'Pastilla color ${_currentIntake.pillColorName} de ${_currentIntake.medicationName}',
-                            child: Container(
-                              width: 100,
-                              height: 100,
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF3B82F6),
-                                shape: BoxShape.circle,
-                                boxShadow: [
-                                  BoxShadow(color: const Color(0xFF3B82F6).withOpacity(0.4), blurRadius: 20, spreadRadius: 4),
-                                ],
-                              ),
-                              child: const Center(child: Icon(Icons.medication_rounded, size: 56, color: Colors.white)),
+                            excludeSemantics: true,
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: const [
+                                Icon(Icons.zoom_in_rounded, size: 20, color: SeniorTheme.textSecondary),
+                                SizedBox(width: 4),
+                                Text(
+                                  'Toca la pastilla para ampliar',
+                                  style: TextStyle(fontSize: 14, color: SeniorTheme.textSecondary, fontWeight: FontWeight.w600),
+                                ),
+                              ],
                             ),
                           ),
                           const SizedBox(height: 18),

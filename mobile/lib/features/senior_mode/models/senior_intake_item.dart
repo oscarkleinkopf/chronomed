@@ -46,6 +46,10 @@ class SeniorIntakeItem {
   final String voiceInstruction;
   final bool isTaken;
   final String? nextDoseTime;
+  final String physicalDescription;
+  final String imprint;
+  final bool hasScoreLine;
+  final String? pillImagePath;
 
   SeniorIntakeItem({
     required this.id,
@@ -59,5 +63,9 @@ class SeniorIntakeItem {
     required this.voiceInstruction,
     this.isTaken = false,
     this.nextDoseTime,
+    this.physicalDescription = '',
+    this.imprint = '',
+    this.hasScoreLine = false,
+    this.pillImagePath,
   });
 }

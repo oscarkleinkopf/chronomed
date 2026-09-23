@@ -34,7 +34,15 @@ void main() {
       expect(lunchAlert.scheduledTimeStr, equals('13:30'));
     });
 
-    test('Allows 45-minute grace period without triggering critical escalation alert', () {
+    test('Allows 45-minute grace period without triggering critical escalation alert', () async {
+      // Record morning fasting dose as taken on time
+      await storage.recordIntake(
+        intakeId: 'intake-morning-fasting',
+        medicationName: 'Eutirox (Levotiroxina)',
+        timeSlot: SeniorTimeSlot.morning,
+        timestamp: DateTime(2026, 9, 22, 7, 35),
+      );
+
       // 13:55: 25 minutes after scheduled lunch (13:30)
       final graceTime = DateTime(2026, 9, 22, 13, 55);
 
@@ -52,7 +60,15 @@ void main() {
       expect(escalated, isNull);
     });
 
-    test('Triggers critical escalation alert when delay exceeds 45 minutes', () {
+    test('Triggers critical escalation alert when delay exceeds 45 minutes', () async {
+      // Record morning fasting dose as taken on time so lunch is the overdue target
+      await storage.recordIntake(
+        intakeId: 'intake-morning-fasting',
+        medicationName: 'Eutirox (Levotiroxina)',
+        timeSlot: SeniorTimeSlot.morning,
+        timestamp: DateTime(2026, 9, 22, 7, 35),
+      );
+
       // 14:20: 50 minutes after scheduled lunch (13:30) without intake
       final overdueTime = DateTime(2026, 9, 22, 14, 20);
 
@@ -131,13 +147,22 @@ void main() {
     });
 
     test('Caregiver direct supervision marks dose as administered and clears active alert', () async {
+      // Record morning fasting dose as taken on time
+      await storage.recordIntake(
+        intakeId: 'intake-morning-fasting',
+        medicationName: 'Eutirox (Levotiroxina)',
+        timeSlot: SeniorTimeSlot.morning,
+        timestamp: DateTime(2026, 9, 22, 7, 35),
+      );
+
       final overdueTime = DateTime(2026, 9, 22, 14, 30); // 60 min overdue
 
       final activeAlert = service.getActiveEscalatedAlert(now: overdueTime, routine: routine);
       expect(activeAlert, isNotNull);
+      expect(activeAlert!.drugName, equals('Losartán Potásico'));
 
       // Caregiver supervises and administers dose
-      await service.markDoseAsAdministeredByCaregiver(activeAlert!);
+      await service.markDoseAsAdministeredByCaregiver(activeAlert);
 
       // Re-evaluate
       final clearedAlert = service.getActiveEscalatedAlert(now: overdueTime, routine: routine);

@@ -237,6 +237,19 @@ ChronoMed implementa las directrices internacionales de accesibilidad **WCAG 2.1
 - **Anuncios Vocales Automáticos con TalkBack (`liveRegion: true`):** El widget de confirmación de toma está enlazado a la propiedad de accesibilidad `Semantics(liveRegion: true)`. En cuanto el paciente pulsa el botón, el lector de pantalla TalkBack anuncia automáticamente en voz alta: *"¡Listo! Dosis tomada. Bloqueo anti-sobredosis activo. Tu siguiente toma es a las..."* sin necesidad de tocar la pantalla nuevamente.
 - **Resiliencia al Escalado Tipográfico (200%):** La interfaz ha sido certificada en pruebas automáticas bajo un factor de aumento del 200% (`textScaleFactor: 2.0`) sin producir truncamiento de textos ni desbordamientos visuales (*zero RenderFlex overflow*).
 
+### 4.7 Identificador Físico de Pastillas y Lupa Táctil de Alta Definición (`PhysicalPillWidget`)
+Para eliminar por completo las confusiones visuales entre comprimidos de nombres parecidos o empaques similares, ChronoMed incorpora un **motor de representación fotorrealista de pastillas físicas** y una **lupa táctil de alta definición**:
+- **Renderizado Fotorrealista de Comprimidos (`_PhotorealisticPillPainter`):**
+  - **Morfología Real:** Representa con precisión matemática comprimidos circulares (`round`), circulares pequeños (`small_round`) y oblongos/alargados (`oblong`).
+  - **Sombreado 3D y Relieve:** Aplica degradados radiales y bicromías que simulan la curvatura y textura real del comprimido bajo luz natural.
+  - **Ranura de Partición Central (*Score Line*):** Dibuja la línea de incisión exacta en aquellos medicamentos divisibles o ranurados (como Losartán 50 mg o Eutirox 100 mcg).
+  - **Grabado Posológico en Relieve (*Imprint*):** Estampa en relieve los números o códigos identificadores del fármaco (ej. `"50"`, `"100"` o `"20"`).
+- **Lupa Táctil de Alta Definición (Modal Zoom de 220 dp):**
+  - **Activación Intuitiva:** El adulto mayor o cuidador simplemente toca la pastilla en pantalla para abrir de inmediato la ventana de aumento gigante.
+  - **Ficha Descriptiva Ampliada:** Muestra el fármaco en tamaño superlativo con fondo Slate de alto contraste (`#0F172A`), detallando sus características físicas (color, forma, ranura y código).
+  - **Locución Explicativa por Voz (TTS):** Incluye un botón de gran tamaño (`ESCUCHAR DESCRIPCIÓN`) que relata en audio pausado las características de la pastilla para pacientes con presbicia o cataratas severas: *"Esta es una pastilla circular azul con el número 50 grabado y ranura central"*.
+  - **Integración en Modo Cuidador:** Los cuidadores también disponen de la lupa táctil en cada tarjeta del listado de medicamentos activos (`_buildMedCard`), facilitando el ordenamiento y preparación del pastillero semanal.
+
 ---
 
 ## 5. Mecanismo de Bloqueo Anti-Sobredosis y Reprogramación Dinámica

@@ -9,6 +9,7 @@ import '../models/dose_omission_model.dart';
 import '../services/dose_omission_service.dart';
 import '../../ocr/models/medicine_box_scan_result.dart';
 import '../../ocr/widgets/medicine_box_scanner_dialog.dart';
+import '../../senior_mode/widgets/physical_pill_widget.dart';
 
 class CaregiverHomeScreen extends StatefulWidget {
   const CaregiverHomeScreen({super.key});
@@ -255,9 +256,39 @@ class _CaregiverHomeScreenState extends State<CaregiverHomeScreen> {
               ],
             ),
             const SizedBox(height: 12),
-            _buildMedCard("Eutirox (Levotiroxina)", "100 mcg", "$fastingTime • En ayunas (30 min antes)", Colors.white, Colors.black, "$_eutiroxStock un. restantes"),
-            _buildMedCard("Losartán Potásico", "50 mg", "${_routine.formatTime(_routine.lunch)} • Con almuerzo", const Color(0xFF3B82F6), Colors.white, "$_losartanStock un. restantes"),
-            _buildMedCard("Atorvastatina", "20 mg", "${_routine.formatTime(_routine.night)} • Al acostarse", const Color(0xFFFACC15), Colors.black, "$_atorvastatinaStock un. restantes"),
+            _buildMedCard(
+              name: "Eutirox (Levotiroxina)",
+              dose: "100 mcg",
+              schedule: "$fastingTime • En ayunas (30 min antes)",
+              pillColor: Colors.white,
+              shapeType: "small_round",
+              imprint: "100",
+              hasScoreLine: true,
+              physicalDescription: "Comprimido blanco circular pequeño grabado '100' con ranura de partición",
+              stock: "$_eutiroxStock un. restantes",
+            ),
+            _buildMedCard(
+              name: "Losartán Potásico",
+              dose: "50 mg",
+              schedule: "${_routine.formatTime(_routine.lunch)} • Con almuerzo",
+              pillColor: const Color(0xFF3B82F6),
+              shapeType: "round",
+              imprint: "50",
+              hasScoreLine: true,
+              physicalDescription: "Comprimido circular azul grabado '50' con ranura central",
+              stock: "$_losartanStock un. restantes",
+            ),
+            _buildMedCard(
+              name: "Atorvastatina",
+              dose: "20 mg",
+              schedule: "${_routine.formatTime(_routine.night)} • Al acostarse",
+              pillColor: const Color(0xFFFACC15),
+              shapeType: "oblong",
+              imprint: "20",
+              hasScoreLine: false,
+              physicalDescription: "Comprimido oblongo amarillo grabado '20'",
+              stock: "$_atorvastatinaStock un. restantes",
+            ),
           ],
         ),
       ),
@@ -616,7 +647,17 @@ class _CaregiverHomeScreenState extends State<CaregiverHomeScreen> {
     );
   }
 
-  Widget _buildMedCard(String name, String dose, String schedule, Color pillColor, Color textColor, String stock) {
+  Widget _buildMedCard({
+    required String name,
+    required String dose,
+    required String schedule,
+    required Color pillColor,
+    required String shapeType,
+    required String imprint,
+    required bool hasScoreLine,
+    required String physicalDescription,
+    required String stock,
+  }) {
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(14),
@@ -627,17 +668,16 @@ class _CaregiverHomeScreenState extends State<CaregiverHomeScreen> {
       ),
       child: Row(
         children: [
-          Container(
-            width: 32,
-            height: 32,
-            decoration: BoxDecoration(
-              color: pillColor,
-              shape: BoxShape.circle,
-              border: Border.all(color: Colors.black12, width: 1.5),
-            ),
-            child: Center(
-              child: Icon(Icons.circle, size: 12, color: textColor.withOpacity(0.5)),
-            ),
+          PhysicalPillWidget(
+            size: 38,
+            shapeType: shapeType,
+            pillColor: pillColor,
+            imprint: imprint,
+            hasScoreLine: hasScoreLine,
+            medicationName: name,
+            dosage: dose,
+            physicalDescription: physicalDescription,
+            enableMagnifier: true,
           ),
           const SizedBox(width: 12),
           Expanded(
