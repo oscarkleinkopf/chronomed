@@ -171,14 +171,16 @@ class _SeniorSingleActionScreenState extends State<SeniorSingleActionScreen> {
                           const SizedBox(height: 8),
                           Semantics(
                             excludeSemantics: true,
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
+                            child: Wrap(
+                              alignment: WrapAlignment.center,
+                              crossAxisAlignment: WrapCrossAlignment.center,
                               children: const [
                                 Icon(Icons.zoom_in_rounded, size: 20, color: SeniorTheme.textSecondary),
                                 SizedBox(width: 4),
                                 Text(
                                   'Toca la pastilla para ampliar',
                                   style: TextStyle(fontSize: 14, color: SeniorTheme.textSecondary, fontWeight: FontWeight.w600),
+                                  textAlign: TextAlign.center,
                                 ),
                               ],
                             ),
