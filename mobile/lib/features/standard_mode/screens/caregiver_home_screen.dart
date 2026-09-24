@@ -1,15 +1,20 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../../core/theme/standard_theme.dart';
 import '../../senior_mode/screens/senior_single_action_screen.dart';
+import '../../senior_mode/models/senior_intake_item.dart';
 import '../../schedule/models/circadian_routine.dart';
 import 'package:share_plus/share_plus.dart';
 import '../../../core/storage/local_storage_service.dart';
+import '../../../core/sync/local_p2p_sync_service.dart';
 import '../services/pdf_export_service.dart';
 import '../models/dose_omission_model.dart';
 import '../services/dose_omission_service.dart';
 import '../../ocr/models/medicine_box_scan_result.dart';
 import '../../ocr/widgets/medicine_box_scanner_dialog.dart';
 import '../../senior_mode/widgets/physical_pill_widget.dart';
+import '../widgets/familiar_voice_recorder_dialog.dart';
+import '../widgets/p2p_sync_dialog.dart';
 
 class CaregiverHomeScreen extends StatefulWidget {
   const CaregiverHomeScreen({super.key});
@@ -26,11 +31,46 @@ class _CaregiverHomeScreenState extends State<CaregiverHomeScreen> {
   int _eutiroxStock = 28;
   int _losartanStock = 14;
   int _atorvastatinaStock = 30;
+  StreamSubscription? _p2pSubscription;
 
   @override
   void initState() {
     super.initState();
     _loadPersistedData();
+    _startP2pReceiver();
+  }
+
+  void _startP2pReceiver() {
+    LocalP2pSyncService.instance.startReceiverServer();
+    _p2pSubscription = LocalP2pSyncService.instance.intakeStream.listen((payload) {
+      _loadPersistedData();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            backgroundColor: const Color(0xFF047857),
+            behavior: SnackBarBehavior.floating,
+            content: Row(
+              children: [
+                const Icon(Icons.wifi_tethering_rounded, color: Colors.white, size: 20),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    '📡 Dosis sincronizada por Wi-Fi Local: ${payload.medicationName} (${payload.timeSlot.label})',
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _p2pSubscription?.cancel();
+    super.dispose();
   }
 
   void _loadPersistedData() {
@@ -241,6 +281,38 @@ class _CaregiverHomeScreenState extends State<CaregiverHomeScreen> {
                         const SnackBar(content: Text("Escáner de vinculación listo")),
                       );
                     },
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(
+                      minimumSize: const Size(0, 48),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      side: const BorderSide(color: Color(0xFFCBD5E1)),
+                    ),
+                    icon: const Icon(Icons.record_voice_over_rounded, color: Color(0xFFDC2626)),
+                    label: const Text("Voz Familiar", style: TextStyle(color: Color(0xFF0F172A), fontWeight: FontWeight.bold, fontSize: 13)),
+                    onPressed: _openFamiliarVoiceRecorder,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(
+                      minimumSize: const Size(0, 48),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      side: const BorderSide(color: Color(0xFFCBD5E1)),
+                    ),
+                    icon: const Icon(Icons.wifi_tethering_rounded, color: Color(0xFF4338CA)),
+                    label: const Text("P2P Wi-Fi Local", style: TextStyle(color: Color(0xFF0F172A), fontWeight: FontWeight.bold, fontSize: 13)),
+                    onPressed: _openP2pSyncConfig,
                   ),
                 ),
               ],
@@ -606,6 +678,29 @@ class _CaregiverHomeScreenState extends State<CaregiverHomeScreen> {
             },
           ),
         ],
+      ),
+    );
+  }
+
+  void _openFamiliarVoiceRecorder() {
+    showDialog(
+      context: context,
+      builder: (ctx) => FamiliarVoiceRecorderDialog(
+        initialSlot: SeniorTimeSlot.lunch,
+        onVoiceUpdated: () {
+          setState(() {});
+        },
+      ),
+    );
+  }
+
+  void _openP2pSyncConfig() {
+    showDialog(
+      context: context,
+      builder: (ctx) => P2pSyncDialog(
+        onConfigSaved: () {
+          setState(() {});
+        },
       ),
     );
   }

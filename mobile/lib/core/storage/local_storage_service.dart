@@ -25,14 +25,21 @@ class LocalStorageService {
 
   CircadianRoutine _routine = CircadianRoutine.home;
   List<Map<String, dynamic>> _intakes = [];
+  Map<String, Map<String, dynamic>> _voiceNotes = {};
   String _caregiverPin = '1234';
   String _patientName = 'Marcela';
   String _patientRut = '14.567.890-K';
+  String? _caregiverHost;
+  int _p2pPort = 8844;
+  String _p2pSecret = 'chronomed_p2p_local_secret_2026';
 
   bool get isInitialized => _initialized;
   String get caregiverPin => _caregiverPin;
   String get patientName => _patientName;
   String get patientRut => _patientRut;
+  String? get caregiverHost => _caregiverHost;
+  int get p2pPort => _p2pPort;
+  String get p2pSecret => _p2pSecret;
   List<Map<String, dynamic>> get allIntakes => List.unmodifiable(_intakes);
 
   /// Inicializa el servicio de almacenamiento local.
@@ -92,6 +99,14 @@ class LocalStorageService {
             .toList();
       }
 
+      if (data['voiceNotes'] != null && data['voiceNotes'] is Map) {
+        _voiceNotes = Map<String, Map<String, dynamic>>.from(
+          (data['voiceNotes'] as Map).map(
+            (k, v) => MapEntry(k.toString(), Map<String, dynamic>.from(v as Map)),
+          ),
+        );
+      }
+
       if (data['caregiverPin'] != null) {
         _caregiverPin = data['caregiverPin'].toString();
       }
@@ -102,6 +117,18 @@ class LocalStorageService {
 
       if (data['patientRut'] != null) {
         _patientRut = data['patientRut'].toString();
+      }
+
+      if (data['caregiverHost'] != null) {
+        _caregiverHost = data['caregiverHost'].toString();
+      }
+
+      if (data['p2pPort'] != null) {
+        _p2pPort = int.tryParse(data['p2pPort'].toString()) ?? 8844;
+      }
+
+      if (data['p2pSecret'] != null) {
+        _p2pSecret = data['p2pSecret'].toString();
       }
     } catch (e) {
       debugPrint('ChronoMed LocalStorage: Error al decodificar JSON guardado: $e');
@@ -121,6 +148,10 @@ class LocalStorageService {
         'stocks': _stocks,
         'routine': _routine.toJson(),
         'intakes': _intakes,
+        'voiceNotes': _voiceNotes,
+        'caregiverHost': _caregiverHost,
+        'p2pPort': _p2pPort,
+        'p2pSecret': _p2pSecret,
       };
 
       final jsonString = jsonEncode(jsonMap);
@@ -234,6 +265,52 @@ class LocalStorageService {
     return DateTime.tryParse(latestStr);
   }
 
+  // --- GESTIÓN DE NOTAS DE VOZ FAMILIARES ---
+
+  Map<String, dynamic>? getVoiceNote(SeniorTimeSlot slot) {
+    return _voiceNotes[slot.name];
+  }
+
+  bool hasVoiceNote(SeniorTimeSlot slot) {
+    return _voiceNotes.containsKey(slot.name);
+  }
+
+  Future<void> saveVoiceNote({
+    required SeniorTimeSlot slot,
+    required String author,
+    required String audioPath,
+    String? messageText,
+    int? durationSeconds,
+  }) async {
+    _voiceNotes[slot.name] = {
+      'slot': slot.name,
+      'author': author,
+      'audioPath': audioPath,
+      'messageText': messageText ?? '',
+      'durationSeconds': durationSeconds ?? 4,
+      'recordedAt': DateTime.now().toIso8601String(),
+    };
+    await _persistToDisk();
+  }
+
+  Future<void> deleteVoiceNote(SeniorTimeSlot slot) async {
+    _voiceNotes.remove(slot.name);
+    await _persistToDisk();
+  }
+
+  // --- CONFIGURACIÓN P2P RED LOCAL ---
+
+  Future<void> setP2pConfig({
+    String? caregiverHost,
+    int? p2pPort,
+    String? p2pSecret,
+  }) async {
+    if (caregiverHost != null) _caregiverHost = caregiverHost.trim();
+    if (p2pPort != null) _p2pPort = p2pPort;
+    if (p2pSecret != null) _p2pSecret = p2pSecret.trim();
+    await _persistToDisk();
+  }
+
   // --- RESPALDO, EXPORTACIÓN Y MIGRACIÓN (ZERO DATA LOSS) ---
 
   String exportBackupJson() {
@@ -246,6 +323,10 @@ class LocalStorageService {
       'stocks': _stocks,
       'routine': _routine.toJson(),
       'intakes': _intakes,
+      'voiceNotes': _voiceNotes,
+      'caregiverHost': _caregiverHost,
+      'p2pPort': _p2pPort,
+      'p2pSecret': _p2pSecret,
     };
     return jsonEncode(backup);
   }
@@ -264,9 +345,13 @@ class LocalStorageService {
     };
     _routine = CircadianRoutine.home;
     _intakes = [];
+    _voiceNotes = {};
     _caregiverPin = '1234';
     _patientName = 'Marcela';
     _patientRut = '14.567.890-K';
+    _caregiverHost = null;
+    _p2pPort = 8844;
+    _p2pSecret = 'chronomed_p2p_local_secret_2026';
 
     await _persistToDisk();
   }

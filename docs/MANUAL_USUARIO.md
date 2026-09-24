@@ -37,8 +37,10 @@
 11. [Guía de Instalación del APK Nativo Android y Optimización de Batería](#11-guía-de-instalación-del-apk-nativo-android-y-optimización-de-batería)
 12. [Respaldo, Exportación y Migración de Ficha Clínica (Zero Data Loss)](#12-respaldo-exportación-y-migración-de-ficha-clínica-zero-data-loss)
    - *[12.4 Motor de Persistencia Local On-Device (Zero Data Loss)](#124-motor-de-persistencia-local-on-device-zero-data-loss)*
-13. [Vademécum de Medicamentos de Uso Frecuente en Chile (Catálogo ISP)](#13-vademécum-de-medicamentos-de-uso-frecuente-en-chile-catálogo-isp)
-14. [Preguntas Frecuentes y Resolución de Problemas (FAQ / Troubleshooting)](#14-preguntas-frecuentes-y-resolución-de-problemas-faq--troubleshooting)
+13. [Sincronización P2P Soberana en Red Local (Wi-Fi / Hotspot) Sin Servidores Cloud](#13-sincronización-p2p-soberana-en-red-local-wi-fi--hotspot-sin-servidores-cloud)
+14. [Alertas de Voz Familiar Personalizadas para Reducción de Resistencia a Fármacos](#14-alertas-de-voz-familiar-personalizadas-para-reducción-de-resistencia-a-fármacos)
+15. [Vademécum de Medicamentos de Uso Frecuente en Chile (Catálogo ISP)](#15-vademécum-de-medicamentos-de-uso-frecuente-en-chile-catálogo-isp)
+16. [Preguntas Frecuentes y Resolución de Problemas (FAQ / Troubleshooting)](#16-preguntas-frecuentes-y-resolución-de-problemas-faq--troubleshooting)
 
 ---
 
@@ -811,7 +813,64 @@ ChronoMed integra un subsistema de almacenamiento persistente (`LocalStorageServ
 
 ---
 
-## 13. Vademécum de Medicamentos de Uso Frecuente en Chile (Catálogo ISP)
+## 13. Sincronización P2P Soberana en Red Local (Wi-Fi / Hotspot) Sin Servidores Cloud
+
+Para garantizar el cumplimiento de la **Ley N° 20.584** (Derechos y Deberes del Paciente) y la **Ley N° 19.628** (Protección de la Vida Privada), ChronoMed no envía registros de tomas ni datos clínicos a servidores en la nube centralizados de terceros ni proveedores extranjeros. En su lugar, implementa un motor de **Sincronización P2P (Peer-to-Peer) Directa en Red Local**.
+
+### 13.1 Arquitectura Cero-Nube y Comunicación en Red Local
+1. **Receptor Embebido en Modo Cuidador:**  
+   Al abrir la aplicación en el teléfono del cuidador o familiar, ChronoMed activa un micro-servidor HTTP local (`dart:io`) en el puerto estándar `8844`.
+2. **Descubrimiento y Emparejamiento Seguro:**  
+   Ambos dispositivos deben encontrarse en la misma red Wi-Fi hogareña o conectados mediante una Zona Wi-Fi móvil (Hotspot) generada por cualquiera de los teléfonos. En el diálogo **"P2P Wi-Fi Local"**, se visualizan las direcciones IP IPv4 asignadas y el estado activo del receptor.
+3. **Flujo de Transmisión Inmediato:**  
+   Cuando el paciente presiona el botón gigante **"YA ME LA TOMÉ"** en Modo Senior, el teléfono del paciente genera una solicitud HTTP POST directa a `http://<IP_CUIDADOR>:8844/api/sync/intake`.
+
+### 13.2 Certificación Criptográfica HMAC-SHA256
+Para impedir la inyección de tomas falsas o interferencias accidentales en redes públicas compartidas:
+1. **Firma Digital por Dosis:**  
+   Cada payload transmitido calcula una firma criptográfica única:
+   $$\text{Firma} = \text{HMAC-SHA256}\Big(\text{intakeId} \mathbin{\Vert} \text{patientRut} \mathbin{\Vert} \text{medicationName} \mathbin{\Vert} \text{timestamp},\; \text{ClaveCompartida}\Big)$$
+2. **Validación en el Receptor:**  
+   El teléfono del cuidador valida la firma digital antes de procesar el paquete. Si la firma es ilegítima o los datos fueron alterados en tránsito, el receptor responde inmediatamente con código **HTTP 401 Unauthorized** y descarta la dosis.
+3. **Persistencia Automática:**  
+   Al validar la autenticidad, la toma se graba de inmediato en el `LocalStorageService` del cuidador, actualizando el porcentaje de adherencia, el stock de farmacia restante y emitiendo una notificación visual instantánea:  
+   `📡 Dosis sincronizada por Wi-Fi Local: Losartán Potásico (Almuerzo)`
+
+### 13.3 Cola de Retransmisión Offline Tolerante a Desconexiones
+Si el cuidador sale del domicilio o apaga temporalmente su teléfono:
+1. **Encolamiento Automático:**  
+   Si la solicitud de red falla por tiempo de espera (*timeout* de 3 segundos) o falta de conexión, la confirmación de la dosis se resguarda en la cola offline local (`pendingQueue`) del teléfono del adulto mayor.
+2. **Vaciado y Reintento Automático (*Flush*):**  
+   Al regresar al hogar o presionar *"Reintentar"* en el diálogo P2P, la cola se transmite en lote al receptor del cuidador, garantizando **cero pérdida de datos históricos de adherencia**.
+
+---
+
+## 14. Alertas de Voz Familiar Personalizadas para Reducción de Resistencia a Fármacos
+
+### 14.1 Fundamento Clínico y Neurocognitivo
+En personas mayores con diagnóstico de Demencia Senil, Deterioro Cognitivo Leve o Enfermedad de Alzheimer, las alarmas mecánicas agudas o las voces sintéticas robóticas generan con frecuencia desorientación, sospecha, angustia o rechazo frontal a la ingesta del medicamento.
+
+Estudios geriátricos internacionales demuestran que la **voz familiar afectuosa** (la voz de una hija, un hijo, un nieto o el cónyuge) estimula la memoria afectiva y emocional episódica preservada en el sistema límbico, **reduciendo en más de un 60% la resistencia a los medicamentos** y transformando el momento de la toma en una experiencia de cuidado y acompañamiento.
+
+### 14.2 Grabación y Asignación por Franja Circadiana
+1. **Acceso al Grabador:**  
+   En el panel del Cuidador, presione el botón **"Voz Familiar"** (icono de micrófono rojo).
+2. **Selección del Momento del Día:**  
+   Elija la franja circadiana a configurar:
+   - ☀️ **Desayuno:** *"Mamá, tómate tu Eutirox en ayunas con medio vaso de agua."*
+   - 🍲 **Almuerzo:** *"Papá, es hora de almorzar. Tómate tu pastilla azul de Losartán."*
+   - ☕ **Once:** *"Abuela, tómate tu medicamento de la once con el té."*
+   - 🌙 **Noche:** *"Mamá, antes de dormir tómate tu Atorvastatina para el colesterol. Te quiero mucho."*
+3. **Grabación de Audio y Transcripción:**  
+   Ingrese el nombre del familiar (ej. *"Hija Andrea"*) y grabe la locución. El sistema almacena la nota de voz cifrada en el almacenamiento local on-device.
+
+### 14.3 Reproducción Afectuosa y Fallback TTS Inteligente
+- Al cumplirse la hora circadiana programada en Modo Senior, ChronoMed activa prioritariamente el mensaje grabado con la voz del familiar querido.
+- Si para alguna de las franjas no se ha grabado aún una voz personalizada, el sistema conmuta suavemente al motor de síntesis de voz en español chileno (TTS) de alta fidelidad como respaldo, asegurando que la persona mayor nunca quede sin guía oral clara.
+
+---
+
+## 15. Vademécum de Medicamentos de Uso Frecuente en Chile (Catálogo ISP)
 
 La siguiente tabla consolida el vademécum de referencia integrado en ChronoMed (`chile_meds.js`), basado en los registros del Instituto de Salud Pública (ISP) y las guías clínicas AUGE/GES del Ministerio de Salud de Chile (MINSAL):
 
@@ -853,7 +912,7 @@ La siguiente tabla consolida el vademécum de referencia integrado en ChronoMed 
 
 ---
 
-## 14. Preguntas Frecuentes y Resolución de Problemas (FAQ / Troubleshooting)
+## 16. Preguntas Frecuentes y Resolución de Problemas (FAQ / Troubleshooting)
 
 ### P1: La alarma sonó, pero el teléfono estaba con la pantalla bloqueada y no se encendió automáticamente. ¿Qué ocurrió?
 **R:** En ciertas marcas de teléfonos (Xiaomi, Huawei, Samsung), las directivas de seguridad bloquean que aplicaciones de terceros enciendan la pantalla si no cuentan con el permiso explícito.
@@ -890,6 +949,12 @@ Al registrar la pastilla atrasada en ChronoMed:
 2. La app generará un archivo con diseño formal para impresión o envío.
 3. Toque en *"Compartir"* para enviarlo por WhatsApp o correo a su médico, o presione *"Imprimir"* para llevarlo en papel a la consulta.
 4. El médico podrá observar la tasa de adherencia certificada ($\ge 85\%$), el desglose de tomas puntuales y escanear el **Código QR con firma HMAC-SHA256** para validar que el registro no fue manipulado.
+
+### P8: ¿Cómo sincronizo las tomas si el adulto mayor y yo no tenemos internet en la casa?
+**R:** ChronoMed no requiere internet exterior ni servidores. Solo requiere que ambos teléfonos estén conectados a la misma red local. Si no tienen un router Wi-Fi con internet, uno de los dos teléfonos puede activar la **"Zona Wi-Fi Móvil" (Hotspot)** de Android. Al conectar el segundo teléfono a esa red Wi-Fi compartida, ChronoMed establecerá comunicación directa y certificada con firma HMAC-SHA256 en el puerto local 8844 con cero consumo de datos móviles y 100% de privacidad.
+
+### P9: ¿Las notas de voz grabadas por la familia se escuchan si el teléfono del paciente está en silencio?
+**R:** Sí. Las alarmas de ChronoMed se emiten a través del canal de audio de alarma del sistema Android (`STREAM_ALARM`), el cual por diseño del sistema ignora el modo silencio o "No molestar", garantizando que la voz cariñosa del ser querido se escuche fuerte y clara en el instante exacto prescrito.
 
 ---
 

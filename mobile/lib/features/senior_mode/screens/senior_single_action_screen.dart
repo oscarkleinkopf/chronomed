@@ -6,6 +6,8 @@ import '../models/senior_intake_item.dart';
 import '../../schedule/models/circadian_routine.dart';
 import '../widgets/overdose_guard_button.dart';
 import '../widgets/physical_pill_widget.dart';
+import '../../../core/services/voice_reminder_service.dart';
+import '../../../core/sync/local_p2p_sync_service.dart';
 
 class SeniorSingleActionScreen extends StatefulWidget {
   final String patientName;
@@ -54,7 +56,10 @@ class _SeniorSingleActionScreenState extends State<SeniorSingleActionScreen> {
     );
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      TtsService().speak(_currentIntake.voiceInstruction);
+      VoiceReminderService.instance.playVoiceReminder(
+        slot: _currentIntake.timeSlot,
+        fallbackTtsText: _currentIntake.voiceInstruction,
+      );
     });
   }
 
@@ -79,12 +84,32 @@ class _SeniorSingleActionScreenState extends State<SeniorSingleActionScreen> {
       );
     });
 
+    final timestamp = DateTime.now();
     LocalStorageService.instance.recordIntake(
       intakeId: _currentIntake.id,
       medicationName: _currentIntake.medicationName,
       timeSlot: _currentIntake.timeSlot,
-      timestamp: DateTime.now(),
+      timestamp: timestamp,
     );
+
+    // Sincronización soberana P2P en red local al cuidador (si está configurado host)
+    final caregiverHost = LocalStorageService.instance.caregiverHost;
+    if (caregiverHost != null && caregiverHost.isNotEmpty) {
+      LocalP2pSyncService.instance.setSharedSecret(LocalStorageService.instance.p2pSecret);
+      final payload = LocalP2pSyncService.instance.createSignedPayload(
+        intakeId: _currentIntake.id,
+        patientRut: LocalStorageService.instance.patientRut,
+        medicationName: _currentIntake.medicationName,
+        dosage: _currentIntake.dosage,
+        timeSlot: _currentIntake.timeSlot,
+        timestamp: timestamp,
+      );
+      LocalP2pSyncService.instance.sendIntakeToCaregiver(
+        payload: payload,
+        caregiverHost: caregiverHost,
+        port: LocalStorageService.instance.p2pPort,
+      );
+    }
   }
 
   @override
