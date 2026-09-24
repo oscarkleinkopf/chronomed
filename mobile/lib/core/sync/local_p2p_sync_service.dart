@@ -159,13 +159,14 @@ class LocalP2pSyncService {
     required String caregiverHost,
     int port = defaultPort,
     Duration timeout = const Duration(seconds: 3),
+    HttpClient? client,
   }) async {
-    final client = HttpClient();
-    client.connectionTimeout = timeout;
+    final effectiveClient = client ?? HttpClient();
+    effectiveClient.connectionTimeout = timeout;
 
     try {
       final uri = Uri.parse('http://$caregiverHost:$port/api/sync/intake');
-      final request = await client.postUrl(uri).timeout(timeout);
+      final request = await effectiveClient.postUrl(uri).timeout(timeout);
 
       request.headers.contentType = ContentType.json;
       request.write(jsonEncode(payload.toJson()));
@@ -174,18 +175,18 @@ class LocalP2pSyncService {
 
       if (response.statusCode == HttpStatus.ok) {
         debugPrint('ChronoMed P2P Sync: Toma sincronizada exitosamente con cuidador en $caregiverHost:$port');
-        client.close();
+        if (client == null) effectiveClient.close();
         return true;
       } else {
         debugPrint('ChronoMed P2P Sync: El cuidador respondió con error HTTP ${response.statusCode}');
         _enqueueOffline(payload);
-        client.close();
+        if (client == null) effectiveClient.close();
         return false;
       }
     } catch (e) {
       debugPrint('ChronoMed P2P Sync: Cuidador no alcanzable en $caregiverHost:$port ($e). Encolando toma offline.');
       _enqueueOffline(payload);
-      client.close();
+      if (client == null) effectiveClient.close();
       return false;
     }
   }
@@ -200,6 +201,7 @@ class LocalP2pSyncService {
   Future<int> flushPendingQueue({
     required String caregiverHost,
     int port = defaultPort,
+    HttpClient? client,
   }) async {
     if (_offlineSyncQueue.isEmpty) return 0;
 
@@ -211,6 +213,7 @@ class LocalP2pSyncService {
         payload: item,
         caregiverHost: caregiverHost,
         port: port,
+        client: client,
       );
       if (success) {
         _offlineSyncQueue.removeWhere((i) => i.intakeId == item.intakeId);

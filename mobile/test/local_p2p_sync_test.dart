@@ -6,8 +6,10 @@ import 'package:chronomed/core/sync/local_p2p_sync_service.dart';
 import 'package:chronomed/core/services/voice_reminder_service.dart';
 import 'package:chronomed/features/senior_mode/models/senior_intake_item.dart';
 
+class _RealHttpOverrides extends HttpOverrides {}
+
 void main() {
-  TestWidgetsFlutterBinding.ensureInitialized();
+  HttpOverrides.global = _RealHttpOverrides();
 
   group('ChronoMed Sovereign P2P Sync & Voice Reminders Test Suite', () {
     late LocalStorageService storage;
@@ -16,6 +18,7 @@ void main() {
     const testSecret = 'test_secret_hmac_key_2026';
 
     setUp(() async {
+      HttpOverrides.global = _RealHttpOverrides();
       storage = LocalStorageService.instance;
       await storage.init(inMemory: true);
       await storage.resetAllData();
@@ -29,6 +32,10 @@ void main() {
 
     tearDown(() async {
       await p2pService.stopReceiverServer();
+    });
+
+    tearDownAll(() {
+      HttpOverrides.global = null;
     });
 
     test('HMAC-SHA256 generates consistent signatures and detects tampering', () {
