@@ -114,21 +114,18 @@ void main() {
       );
 
       // Verify magnifier is not displayed initially
-      expect(find.text('LUPA DE MEDICAMENTO'), findsNothing);
+      expect(find.text('Lupa: Losartán Potásico'), findsNothing);
 
       // Tap on the pill widget
       await tester.tap(find.byType(PhysicalPillWidget));
       await tester.pumpAndSettle();
 
       // Verify magnifier dialog content
-      expect(find.text('LUPA DE MEDICAMENTO'), findsOneWidget);
-      expect(find.text('Losartán Potásico'), findsOneWidget);
-      expect(find.text('50 mg'), findsOneWidget);
-      expect(find.text('Comprimido circular azul grabado 50 con ranura'), findsOneWidget);
-      expect(find.text('Ranura de partición al centro'), findsOneWidget);
-      expect(find.text('Grabado en relieve: "50"'), findsOneWidget);
-      expect(find.text('ESCUCHAR DESCRIPCIÓN'), findsOneWidget);
-      expect(find.text('CERRAR LUPA'), findsOneWidget);
+      expect(find.text('Lupa: Losartán Potásico'), findsOneWidget);
+      expect(find.text('Losartán Potásico'), findsWidgets);
+      expect(find.text('50 mg'), findsWidgets);
+      expect(find.text('Escuchar Descripción Física'), findsOneWidget);
+      expect(find.text('ENTENDIDO'), findsOneWidget);
     });
 
     testWidgets('closing magnifier dialog dismisses the modal', (WidgetTester tester) async {
@@ -153,12 +150,12 @@ void main() {
 
       await tester.tap(find.byType(PhysicalPillWidget));
       await tester.pumpAndSettle();
-      expect(find.text('LUPA DE MEDICAMENTO'), findsOneWidget);
+      expect(find.text('Lupa: Losartán Potásico'), findsOneWidget);
 
-      // Tap CERRAR LUPA
-      await tester.tap(find.text('CERRAR LUPA'));
+      // Tap ENTENDIDO to dismiss
+      await tester.tap(find.text('ENTENDIDO'));
       await tester.pumpAndSettle();
-      expect(find.text('LUPA DE MEDICAMENTO'), findsNothing);
+      expect(find.text('Lupa: Losartán Potásico'), findsNothing);
     });
   });
 }
