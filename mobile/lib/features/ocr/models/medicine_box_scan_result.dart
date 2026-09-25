@@ -14,6 +14,8 @@ class MedicineBoxScanResult {
   final int? detectedUnits;
   final String? detectedLotNumber;
   final String? detectedExpirationDate;
+  final String? detectedIspRegister;
+  final bool isBioequivalent;
   final DateTime? expirationDateTime;
   final int? daysRemaining;
   final BoxExpirationStatus expirationStatus;
@@ -26,6 +28,8 @@ class MedicineBoxScanResult {
     this.detectedUnits,
     this.detectedLotNumber,
     this.detectedExpirationDate,
+    this.detectedIspRegister,
+    this.isBioequivalent = false,
     this.expirationDateTime,
     this.daysRemaining,
     this.expirationStatus = BoxExpirationStatus.unknown,

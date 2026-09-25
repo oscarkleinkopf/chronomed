@@ -567,6 +567,8 @@ Para mantener el botiquín del paciente rigurosamente abastecido y prevenir la i
   2. **Contenido de Unidades:** Detecta la presentación comercial (ej. `30 comprimidos`, `28 cápsulas`, `60 tabletas`) y la prepara para sumarla con un solo toque al stock disponible.
   3. **Número de Lote:** Extrae la serie del laboratorio (ej. `LOTE: 24A09`) para trazabilidad sanitaria ante eventuales retiros del mercado por parte del Instituto de Salud Pública (ISP).
   4. **Fecha de Expiración:** Reconoce los formatos habituales de la industria farmacéutica chilena (`VENCE: MM/AAAA`, `EXP: MM/AA`, `VTO: MM-AAAA`).
+  5. **Registro Sanitario ISP:** Identifica la codificación oficial chilena otorgada por el ISP (ej. `Reg. I.S.P. N° F-18452/19`, `F-12345/22`).
+  6. **Sello de Bioequivalencia (ISP):** Detecta la certificación de bioequivalencia y destaca visualmente la insignia `⭐ BIOEQUIVALENTE (ISP)`.
 - **Semáforo de Riesgo de Vencimiento:**
   - 🟢 **VIGENTE / APTO:** La fecha de expiración supera los 60 días de margen seguro.
   - 🟡 **POR VENCER (< 60 DÍAS):** Alerta ámbar de recambio preventivo para programar la receta médica antes del vencimiento.

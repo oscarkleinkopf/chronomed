@@ -125,12 +125,39 @@ class MedicineBoxScannerService {
       }
     }
 
+    // 6. Detect Chilean ISP Sanitary Registration (e.g. Reg. I.S.P. N° F-18452/19, Reg. ISP F-12345, F-2015/18)
+    String? ispRegister;
+    final ispMatch = RegExp(
+      r'(?:REG\.?\s*I\.?S\.?P\.?\s*(?:N[°ºo\.]*)?|REGISTRO\s*ISP[:\s]*)\s*([A-Z]{1,2}-?\d{3,6}(?:[/\-]\d{2,4})?)',
+      caseSensitive: false,
+    ).firstMatch(cleanText);
+
+    if (ispMatch != null) {
+      ispRegister = ispMatch.group(1)?.toUpperCase();
+    } else {
+      final directCodeMatch = RegExp(
+        r'\b([FREN]-\d{3,6}[/\-]\d{2,4})\b',
+        caseSensitive: false,
+      ).firstMatch(cleanText);
+      if (directCodeMatch != null) {
+        ispRegister = directCodeMatch.group(1)?.toUpperCase();
+      }
+    }
+
+    // 7. Detect Bioequivalence Certification Mark (Chilean ISP Bioequivalente)
+    final isBioequivalent = RegExp(
+      r'\b(?:BIOEQUIVALENTE|BIOEQUIVALENCIA|BIOEQUIVALENTES|DEMOSTRADA\s+BIOEQUIVALENCIA)\b',
+      caseSensitive: false,
+    ).hasMatch(normalizedCleanText);
+
     double confidence = 0.0;
-    if (drugName != null) confidence += 0.25;
-    if (dosage != null) confidence += 0.25;
-    if (units != null) confidence += 0.20;
+    if (drugName != null) confidence += 0.20;
+    if (dosage != null) confidence += 0.20;
+    if (units != null) confidence += 0.15;
     if (lotNumber != null) confidence += 0.15;
     if (expirationDateTime != null) confidence += 0.15;
+    if (ispRegister != null) confidence += 0.10;
+    if (isBioequivalent) confidence += 0.05;
 
     return MedicineBoxScanResult(
       rawText: text,
@@ -139,6 +166,8 @@ class MedicineBoxScannerService {
       detectedUnits: units,
       detectedLotNumber: lotNumber,
       detectedExpirationDate: expDateStr,
+      detectedIspRegister: ispRegister,
+      isBioequivalent: isBioequivalent,
       expirationDateTime: expirationDateTime,
       daysRemaining: daysRemaining,
       expirationStatus: status,

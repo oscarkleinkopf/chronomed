@@ -100,6 +100,68 @@ void main() {
       expect(result.detectedExpirationDate, isNull);
       expect(result.expirationStatus, equals(BoxExpirationStatus.unknown));
       expect(result.isAlertActive, isFalse);
+      expect(result.detectedIspRegister, isNull);
+      expect(result.isBioequivalent, isFalse);
+    });
+
+    test('Detects Chilean ISP Sanitary Registration and Bioequivalence certification mark', () {
+      const ocrText = '''
+        LABORATORIO CHILE - TEVA
+        LOSARTAN POTASICO 50 mg
+        30 comprimidos recubiertos
+        BIOEQUIVALENTE
+        Reg. I.S.P. N° F-18452/19
+        LOTE: 24A09
+        VENCE: 12/2028
+      ''';
+
+      final result = service.parseRawText(ocrText, referenceDate: fixedToday);
+
+      expect(result.detectedDrugName, equals('Losartán'));
+      expect(result.detectedDosage, equals('50 mg'));
+      expect(result.detectedUnits, equals(30));
+      expect(result.detectedLotNumber, equals('24A09'));
+      expect(result.detectedExpirationDate, equals('12/2028'));
+      expect(result.detectedIspRegister, equals('F-18452/19'));
+      expect(result.isBioequivalent, isTrue);
+      expect(result.confidenceScore, closeTo(1.0, 0.001));
+    });
+
+    test('Detects alternative Chilean ISP registration formats and bioequivalence variants', () {
+      const ocrText = '''
+        GENFAR
+        ATORVASTATINA 20 mg
+        30 tabletas
+        DEMOSTRADA BIOEQUIVALENCIA
+        REGISTRO ISP: F-12345/22
+        LOT: 99B12
+        EXP: 08/2027
+      ''';
+
+      final result = service.parseRawText(ocrText, referenceDate: fixedToday);
+
+      expect(result.detectedDrugName, equals('Atorvastatina'));
+      expect(result.detectedDosage, equals('20 mg'));
+      expect(result.detectedIspRegister, equals('F-12345/22'));
+      expect(result.isBioequivalent, isTrue);
+    });
+
+    test('Detects direct code ISP register and handles absence of bioequivalence mark', () {
+      const ocrText = '''
+        MERCK
+        EUTIROX 100 mcg
+        50 comprimidos
+        F-2015/18
+        LOTE: K881
+        VTO: 05/2027
+      ''';
+
+      final result = service.parseRawText(ocrText, referenceDate: fixedToday);
+
+      expect(result.detectedDrugName, equals('Eutirox'));
+      expect(result.detectedDosage, equals('100 mcg'));
+      expect(result.detectedIspRegister, equals('F-2015/18'));
+      expect(result.isBioequivalent, isFalse);
     });
   });
 }
