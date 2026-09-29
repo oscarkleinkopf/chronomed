@@ -766,6 +766,16 @@ Para vincular el celular del cuidador con el teléfono del adulto mayor sin nece
    `chronomed://pair?token=<payload>.<firma>`  
    Al presionar el enlace en el teléfono del adulto mayor, la app se abre automáticamente, verifica la firma, guarda la ficha cifrada en el almacenamiento local y activa el Modo Senior.
 
+### 10.6 Widget 4×1 de Pantalla de Inicio en Android (`NextDoseWidgetProvider`)
+Para minimizar la fricción cognitiva y ofrecer un recordatorio pasivo y visible sin necesidad de abrir la aplicación:
+- **Visualización Glanceable Inmediata:** Un widget compacto de $4\times 1$ celdas muestra permanentemente:
+  - Nombre del paciente asignado (ej. *Marcela*).
+  - Próximo medicamento programado en negrita (ej. *Losartán 50mg*).
+  - Horario exacto de la toma (ej. *Próxima: 13:30* o *Todas al día / Completado ✓*).
+  - Contador de adherencia del día (ej. *2/4 tomas*).
+- **Sincronización Bidireccional Flutter-Nativo (`HomeScreenWidgetService`):** Mediante un canal de plataforma (`MethodChannel('com.chronomed.app/widget')`), cada vez que el paciente o cuidador confirma una toma, modifica el inventario o altera el régimen circadiano, los datos se escriben inmediatamente en las `SharedPreferences` nativas de Android y se despacha la actualización a todas las instancias activas del widget en el escritorio.
+- **Eficiencia Energética Superior:** No ejecuta hilos en bucle en segundo plano; se actualiza pasivamente ante eventos de medicación o mediante el ciclo nativo de actualización periódica del sistema operativo Android.
+
 ---
 
 ## 11. Guía de Instalación del APK Nativo Android y Optimización de Batería

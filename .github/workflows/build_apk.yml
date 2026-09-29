@@ -38,11 +38,11 @@ jobs:
       - name: Scaffold Android Project
         run: |
           mkdir -p /tmp/chronomed_backup
-          cp mobile/android/app/src/main/AndroidManifest.xml /tmp/chronomed_backup/AndroidManifest.xml
+          cp -r mobile/android/app/src/main/* /tmp/chronomed_backup/
           rm -rf mobile/android
           cd mobile
           flutter create --platforms=android --org com.chronomed .
-          cp /tmp/chronomed_backup/AndroidManifest.xml android/app/src/main/AndroidManifest.xml
+          cp -r /tmp/chronomed_backup/* android/app/src/main/
           rm -f test/widget_test.dart
 
       - name: Configure Android Gradle Build Settings

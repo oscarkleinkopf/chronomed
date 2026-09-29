@@ -17,6 +17,10 @@ class LocalStorageService {
   bool _initialized = false;
   bool _inMemory = false;
   File? _storageFile;
+  final List<VoidCallback> _listeners = [];
+
+  void addListener(VoidCallback listener) => _listeners.add(listener);
+  void removeListener(VoidCallback listener) => _listeners.remove(listener);
 
   // Cached in-memory state
   Map<String, int> _stocks = {
@@ -196,7 +200,16 @@ class LocalStorageService {
     }
   }
 
+  void _notifyListeners() {
+    for (final l in List<VoidCallback>.from(_listeners)) {
+      try {
+        l();
+      } catch (_) {}
+    }
+  }
+
   Future<void> _persistToDisk() async {
+    _notifyListeners();
     if (_inMemory || _storageFile == null) return;
 
     try {
