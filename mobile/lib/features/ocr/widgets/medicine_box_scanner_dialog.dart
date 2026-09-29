@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../models/medicine_box_scan_result.dart';
 import '../services/medicine_box_scanner_service.dart';
 
@@ -50,6 +51,14 @@ VENCE: 12/2028''';
       _scanResult = result;
       _isProcessing = false;
     });
+
+    // Doble pulso háptico al detectar medicamento exitosamente
+    if (result.detectedMedicineName != null) {
+      HapticFeedback.lightImpact();
+      Future.delayed(const Duration(milliseconds: 120), () {
+        HapticFeedback.lightImpact();
+      });
+    }
   }
 
   @override

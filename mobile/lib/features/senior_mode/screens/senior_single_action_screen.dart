@@ -110,6 +110,30 @@ class _SeniorSingleActionScreenState extends State<SeniorSingleActionScreen> {
         port: LocalStorageService.instance.p2pPort,
       );
     }
+
+    // Refuerzo positivo y celebratorio (accesibilidad cognitiva)
+    TtsService().speak('¡Muy bien ${widget.patientName}! Tu toma de ${_currentIntake.medicationName} ha quedado registrada con éxito.');
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: const Color(0xFF16A34A),
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 4),
+          content: Row(
+            children: const [
+              Text('🎉', style: TextStyle(fontSize: 24)),
+              SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  '¡Excelente! Toma registrada con éxito.',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
   }
 
   @override

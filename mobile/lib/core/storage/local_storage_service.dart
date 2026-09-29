@@ -4,6 +4,8 @@ import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 import '../../features/schedule/models/circadian_routine.dart';
 import '../../features/senior_mode/models/senior_intake_item.dart';
+import '../../features/medicine_cabinet/models/medicine_cabinet_item.dart';
+import '../../features/ocr/models/medicine_box_scan_result.dart';
 
 class LocalStorageService {
   static final LocalStorageService instance = LocalStorageService._internal();
@@ -22,6 +24,59 @@ class LocalStorageService {
     'losartan': 14,
     'atorvastatina': 30,
   };
+
+  List<MedicineCabinetItem> _cabinetItems = _defaultCabinetItems();
+
+  static List<MedicineCabinetItem> _defaultCabinetItems() => [
+    MedicineCabinetItem(
+      id: 'default-eutirox',
+      name: 'Eutirox (Levotiroxina)',
+      dosage: '100 mcg',
+      stockUnits: 28,
+      lotNumber: 'CH-24E01',
+      expirationDate: '10/2028',
+      ispRegister: 'F-18451/20',
+      isBioequivalent: true,
+      expirationStatus: BoxExpirationStatus.valid,
+      shapeType: 'small_round',
+      pillColorValue: 0xFFFFFFFF,
+      imprint: '100',
+      hasScoreLine: true,
+      physicalDescription: "Comprimido blanco circular pequeño grabado '100' con ranura de partición",
+    ),
+    MedicineCabinetItem(
+      id: 'default-losartan',
+      name: 'Losartán Potásico',
+      dosage: '50 mg',
+      stockUnits: 14,
+      lotNumber: 'CH-24L09',
+      expirationDate: '12/2028',
+      ispRegister: 'F-14920/19',
+      isBioequivalent: true,
+      expirationStatus: BoxExpirationStatus.valid,
+      shapeType: 'round',
+      pillColorValue: 0xFF3B82F6,
+      imprint: '50',
+      hasScoreLine: true,
+      physicalDescription: "Comprimido circular azul grabado '50' con ranura central",
+    ),
+    MedicineCabinetItem(
+      id: 'default-atorvastatina',
+      name: 'Atorvastatina',
+      dosage: '20 mg',
+      stockUnits: 30,
+      lotNumber: 'CH-23A11',
+      expirationDate: '08/2027',
+      ispRegister: 'F-16203/21',
+      isBioequivalent: true,
+      expirationStatus: BoxExpirationStatus.valid,
+      shapeType: 'oblong',
+      pillColorValue: 0xFFFACC15,
+      imprint: '20',
+      hasScoreLine: false,
+      physicalDescription: "Comprimido oblongo amarillo grabado '20'",
+    ),
+  ];
 
   CircadianRoutine _routine = CircadianRoutine.home;
   List<Map<String, dynamic>> _intakes = [];
@@ -123,6 +178,12 @@ class LocalStorageService {
         _caregiverHost = data['caregiverHost'].toString();
       }
 
+      if (data['cabinetItems'] != null && data['cabinetItems'] is List) {
+        _cabinetItems = (data['cabinetItems'] as List)
+            .map((e) => MedicineCabinetItem.fromJson(Map<String, dynamic>.from(e as Map)))
+            .toList();
+      }
+
       if (data['p2pPort'] != null) {
         _p2pPort = int.tryParse(data['p2pPort'].toString()) ?? 8844;
       }
@@ -146,6 +207,7 @@ class LocalStorageService {
         'patientRut': _patientRut,
         'caregiverPin': _caregiverPin,
         'stocks': _stocks,
+        'cabinetItems': _cabinetItems.map((e) => e.toJson()).toList(),
         'routine': _routine.toJson(),
         'intakes': _intakes,
         'voiceNotes': _voiceNotes,
@@ -161,6 +223,51 @@ class LocalStorageService {
     }
   }
 
+  // --- GESTIÓN DE BOTIQUÍN / INVENTARIO ---
+
+  List<MedicineCabinetItem> getCabinetItems() {
+    return List.unmodifiable(_cabinetItems);
+  }
+
+  MedicineCabinetItem? getCabinetItem(String id) {
+    try {
+      return _cabinetItems.firstWhere((e) => e.id == id);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<void> saveCabinetItem(MedicineCabinetItem item) async {
+    final index = _cabinetItems.indexWhere((e) => e.id == item.id);
+    if (index >= 0) {
+      _cabinetItems[index] = item;
+    } else {
+      _cabinetItems.add(item);
+    }
+
+    final key = _normalizeKey(item.name);
+    _stocks[key] = item.stockUnits;
+
+    await _persistToDisk();
+  }
+
+  Future<void> deleteCabinetItem(String id) async {
+    _cabinetItems.removeWhere((e) => e.id == id);
+    await _persistToDisk();
+  }
+
+  Future<void> updateCabinetStock(String id, int units) async {
+    final safeUnits = units < 0 ? 0 : units;
+    final index = _cabinetItems.indexWhere((e) => e.id == id);
+    if (index >= 0) {
+      final current = _cabinetItems[index];
+      _cabinetItems[index] = current.copyWith(stockUnits: safeUnits);
+      final key = _normalizeKey(current.name);
+      _stocks[key] = safeUnits;
+    }
+    await _persistToDisk();
+  }
+
   // --- GESTIÓN DE STOCK ---
 
   int getStock(String drugKey, {int fallback = 0}) {
@@ -170,21 +277,45 @@ class LocalStorageService {
 
   Future<void> setStock(String drugKey, int units) async {
     final key = _normalizeKey(drugKey);
-    _stocks[key] = units < 0 ? 0 : units;
+    final safeUnits = units < 0 ? 0 : units;
+    _stocks[key] = safeUnits;
+
+    for (int i = 0; i < _cabinetItems.length; i++) {
+      if (_normalizeKey(_cabinetItems[i].name) == key) {
+        _cabinetItems[i] = _cabinetItems[i].copyWith(stockUnits: safeUnits);
+      }
+    }
+
     await _persistToDisk();
   }
 
   Future<void> incrementStock(String drugKey, int units) async {
     final key = _normalizeKey(drugKey);
     final current = _stocks[key] ?? 0;
-    _stocks[key] = current + units;
+    final newUnits = current + units;
+    _stocks[key] = newUnits;
+
+    for (int i = 0; i < _cabinetItems.length; i++) {
+      if (_normalizeKey(_cabinetItems[i].name) == key) {
+        _cabinetItems[i] = _cabinetItems[i].copyWith(stockUnits: newUnits);
+      }
+    }
+
     await _persistToDisk();
   }
 
   Future<void> decrementStock(String drugKey, {int units = 1}) async {
     final key = _normalizeKey(drugKey);
     final current = _stocks[key] ?? 0;
-    _stocks[key] = (current - units) < 0 ? 0 : current - units;
+    final newUnits = (current - units) < 0 ? 0 : current - units;
+    _stocks[key] = newUnits;
+
+    for (int i = 0; i < _cabinetItems.length; i++) {
+      if (_normalizeKey(_cabinetItems[i].name) == key) {
+        _cabinetItems[i] = _cabinetItems[i].copyWith(stockUnits: newUnits);
+      }
+    }
+
     await _persistToDisk();
   }
 
@@ -300,6 +431,15 @@ class LocalStorageService {
 
   // --- CONFIGURACIÓN P2P RED LOCAL ---
 
+  Future<void> savePatientData({
+    required String name,
+    required String rut,
+  }) async {
+    _patientName = name.trim();
+    _patientRut = rut.trim();
+    await _persistToDisk();
+  }
+
   Future<void> setP2pConfig({
     String? caregiverHost,
     int? p2pPort,
@@ -321,6 +461,7 @@ class LocalStorageService {
       'patientRut': _patientRut,
       'caregiverPin': _caregiverPin,
       'stocks': _stocks,
+      'cabinetItems': _cabinetItems.map((e) => e.toJson()).toList(),
       'routine': _routine.toJson(),
       'intakes': _intakes,
       'voiceNotes': _voiceNotes,
@@ -343,6 +484,7 @@ class LocalStorageService {
       'losartan': 14,
       'atorvastatina': 30,
     };
+    _cabinetItems = _defaultCabinetItems();
     _routine = CircadianRoutine.home;
     _intakes = [];
     _voiceNotes = {};

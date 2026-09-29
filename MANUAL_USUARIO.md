@@ -252,6 +252,12 @@ Para eliminar por completo las confusiones visuales entre comprimidos de nombres
   - **Locución Explicativa por Voz (TTS):** Incluye un botón de gran tamaño (`ESCUCHAR DESCRIPCIÓN`) que relata en audio pausado las características de la pastilla para pacientes con presbicia o cataratas severas: *"Esta es una pastilla circular azul con el número 50 grabado y ranura central"*.
   - **Integración en Modo Cuidador:** Los cuidadores también disponen de la lupa táctil en cada tarjeta del listado de medicamentos activos (`_buildMedCard`), facilitando el ordenamiento y preparación del pastillero semanal.
 
+### 4.8 Refuerzo Positivo Celebratorio y Estímulo Cognitivo
+Para consolidar la adherencia terapéutica y brindar estimulación cognitiva afectuosa, ChronoMed incorpora un protocolo de refuerzo positivo inmediato cada vez que el paciente confirma una toma:
+- **Locución de Felicitación por Voz (`TtsService`):** Tras registrar la dosis, el sistema anuncia verbalmente: *"¡Muy bien Marcela! Tu toma de Losartán Potásico ha quedado registrada con éxito."*
+- **Retroalimentación Háptica Graduada:** Emite una vibración háptica contundente (`heavyImpact`) seguida de confirmación física, ayudando a fijar el recuerdo de la ingesta en pacientes con deterioro cognitivo leve.
+- **Banner Celebratorio Flotante:** Despliega una insignia verde esmeralda con el icono `🎉` y mensaje confirmatorio de éxito visible durante 4 segundos.
+
 ---
 
 ## 5. Mecanismo de Bloqueo Anti-Sobredosis y Reprogramación Dinámica
@@ -431,6 +437,17 @@ En la práctica clínica geriátrica y hospitalaria chilena, los horarios de ing
    - **Reprogramación de Alarmas:** Todas las alarmas de Android (`exactAllowWhileIdle`) se actualizan en milisegundos sin necesidad de borrar ni reingresar los medicamentos.
    - **Vínculo QR:** Al compartir la ficha mediante código QR o Magic Link, la rutina circadiana completa viaja cifrada al teléfono del paciente.
 
+### 6.4 Timeline Semanal de Adherencia Visual (Lunes a Domingo)
+Para reemplazar los porcentajes abstractos por un diagnóstico visual instantáneo, el Modo Cuidador integra el componente `AdherenceTimelineWidget`:
+- **Grilla de 7 Días (Lu, Ma, Mi, Ju, Vi, Sa, Do):** Visualiza la semana en curso día por día con números de calendario y franjas horarias.
+- **Codificación Semafórica de Cumplimiento:**
+  - 🟢 **Círculo Verde (`0xFF22C55E`):** Todas las tomas del día completadas (4/4 franjas).
+  - 🟡 **Círculo Amarillo (`0xFFFACC15`):** Cumplimiento parcial con tomas pendientes (ej. 2/4 o 3/4).
+  - 🔴 **Círculo Rojo (`0xFFEF4444`):** Día pasado sin registro de tomas (omisión total).
+  - ⬜ **Círculo Gris Claro (`0xFFF1F5F9`):** Días futuros aún no transcurridos.
+- **Indicador Destacado del Día Actual:** El día de hoy se resalta con borde azul eléctrico (`#2563EB`) y sombreado luminoso.
+- **Métricas de Cumplimiento Semanal:** Calcula automáticamente el porcentaje de adherencia sobre los días transcurridos y muestra la fracción de dosis tomadas.
+
 ---
 
 ## 7. Escaneo OCR On-Device de Recetas Médicas y Alertas Farmacológicas
@@ -521,6 +538,13 @@ Al intentar agregar un nuevo medicamento (sea por OCR o manual), el motor de seg
 | **🥛 RESTRICCIÓN ALIMENTARIA**<br/>`FOOD_RESTRICTION (NO_DAIRY)` | **Levotiroxina (Eutirox) + Lácteos / Calcio** | Los iones de calcio ($Ca^{2+}$) presentes en la leche, queso o suplementos forman un quelato insoluble con la levotiroxina en la luz gástrica, impidiendo su absorción. | Hipotiroidismo refractario, fatiga crónica, aumento de peso por dosis ineficaz. | **Regla de Separación:** Ingerir la levotiroxina en estricto ayuno únicamente con agua pura y esperar al menos **60 minutos** antes de desayunar leche o yogur. |
 | **🍷 RESTRICCIÓN ALIMENTARIA**<br/>`FOOD_RESTRICTION (NO_ALCOHOL)` | **Metformina + Alcohol** | El alcohol inhibe la gluconeogénesis hepática y bloquea la utilización celular del lactato por el hígado. | **Acidosis láctica grave** (mortalidad $>50\%$), debilidad extrema, hipotermia y colapso circulatorio. | **Regla de Abstinencia:** Prohibir el consumo de bebidas alcohólicas durante el tratamiento con metformina. |
 
+### 7.6 Historial de Escaneos OCR y Trazabilidad Farmacológica (`OcrScanHistoryScreen`)
+ChronoMed mantiene un registro cronológico exhaustivo de todas las capturas ópticas realizadas por el cuidador:
+- **Trazabilidad Dual:** Registra tanto escaneos de cajas comerciales (`medicineBox`) como recetas médicas manuscritas o impresas (`prescription`).
+- **Filtros por Estado e Interacción:** Permite segregar rápidamente escaneos con interacciones clínicas detectadas (`⚠️ Con Interacciones`) para auditoría médica.
+- **Acceso al Texto OCR Crudo:** Cada registro incluye una sección desplegable con el texto exacto interpretado por Google ML Kit para verificar errores tipográficos.
+- **Trazabilidad de Acciones:** Etiqueta si la receta o caja fue incorporada al tratamiento o descartada por el cuidador.
+
 ---
 
 ## 8. Control Predictivo de Inventario de Farmacia y Fin de Semana
@@ -574,6 +598,21 @@ Para mantener el botiquín del paciente rigurosamente abastecido y prevenir la i
   - 🟡 **POR VENCER (< 60 DÍAS):** Alerta ámbar de recambio preventivo para programar la receta médica antes del vencimiento.
   - 🔴 **VENCIDO - NO INGERIR:** Alerta roja de seguridad toxicológica. ChronoMed advierte que el principio activo puede haber perdido su potencia o generado productos de degradación nocivos.
 - **Actualización Inmediata de Stock:** Al pulsar **"Ingresar Stock"**, las unidades se incorporan en tiempo real a las reservas activas de Marcela, actualizando los gráficos de cobertura y las alertas de fin de semana.
+
+### 8.6 Pantalla y Gestión Integral del Botiquín (`MedicineCabinetScreen`)
+El acceso **"Botiquín / Caja"** despliega la consola completa de inventario farmacéutico:
+- **Resumen Estadístico en Tiempo Real:** Tarjetas métricas superiores con el total de fármacos en stock, cantidad de bioequivalentes certificados, alertas de vencimiento y fármacos con stock crítico ($\le 5$ unidades).
+- **Inspección Visual y Lupa Digital:** Cada tarjeta de fármaco integra el componente `PhysicalPillWidget` con renderizado fotorrealista (forma, color, grabado y ranura de partición) y apertura interactiva de lupa gigante con soporte TTS.
+- **Trazabilidad Regulatoria ISP:** Visualización destacada de la insignia dorada `⭐ BIOEQUIVALENTE (ISP)` y el código de registro sanitario (ej. `Reg. ISP: F-14920/19`).
+- **Ajuste Rápido y Edición:** Botones `[+]` y `[-]` para calibrar existencias al instante, menú contextual para modificar datos o eliminar fármacos del botiquín.
+- **Buscador y Filtros Dinámicos:** Búsqueda en vivo por nombre, registro o lote, y filtrado por chips (`Bioequivalentes`, `Por Vencer`, `Bajo Stock`).
+- **Doble Modalidad de Ingreso:** Botón directo para escanear cajas con cámara OCR o diálogo accesible para registro manual.
+
+### 8.7 Lista de Compras para Farmacia y Modo Reposición (`PharmacyListDialog`)
+Para facilitar la compra o retiro de medicamentos en farmacias comunitarias o de consultorios CESFAM, ChronoMed incluye el generador automático de lista de reposición:
+- **Filtro Automático de Necesidad:** Identifica de inmediato fármacos con stock crítico ($\le 5$ unidades) o con fecha de vencimiento próxima (< 60 días).
+- **Detalle Clínico y Regulatorio:** Incluye dosis, saldo restante, código de registro sanitario ISP y condición de bioequivalencia certificada.
+- **Exportación con Un Toque a WhatsApp:** Formatea un mensaje legible y estructurado con el nombre del paciente, RUT y lista de faltantes para enviar al familiar encargado de las compras.
 
 ---
 
@@ -708,7 +747,12 @@ Para habilitar este comportamiento de alta fidelidad, la aplicación incorpora l
 ```
 *Garantía tras Reinicio:* El permiso `RECEIVE_BOOT_COMPLETED` permite que si el teléfono se apaga por batería agotada o se reinicia tras una actualización de Android, ChronoMed restablezca automáticamente todas las alarmas programadas sin necesidad de que el paciente abra la app manualmente.
 
-### 10.4 Vinculación Instantánea por Código QR y Magic Link
+### 10.4 Snooze Inteligente por Reconexión de Red Residencial (`NetworkReconnectionSnoozeService`)
+Inspirado en la filosofía de autonomía geriátrica y baja fricción (MedTimer):
+- **Detección Automática de Retorno al Hogar:** Si el adulto mayor no se encontraba en el domicilio a la hora programada de la dosis (ej. consulta médica, trámite o paseo), al reincorporarse a la red Wi-Fi residencial el sistema detecta la transición de red y evalúa tomas omitidas del día.
+- **Reactivación Cariñosa No Invasiva:** En lugar de una alarma estridente fuera de contexto, ChronoMed activa un recordatorio suave de bienvenida (*"Hola Marcela, bienvenida a casa. Recuerda tomar tu Losartán pendiente de las 13:30"*), reproduciendo la nota de voz del familiar si está disponible.
+
+### 10.5 Vinculación Instantánea por Código QR y Magic Link
 Para vincular el celular del cuidador con el teléfono del adulto mayor sin necesidad de escribir correos electrónicos ni contraseñas complejas:
 1. **Generación del Token Criptográfico:**  
    El cuidador toca en "Vincular QR". La aplicación genera un token compuesto:
@@ -844,6 +888,13 @@ Si el cuidador sale del domicilio o apaga temporalmente su teléfono:
    Si la solicitud de red falla por tiempo de espera (*timeout* de 3 segundos) o falta de conexión, la confirmación de la dosis se resguarda en la cola offline local (`pendingQueue`) del teléfono del adulto mayor.
 2. **Vaciado y Reintento Automático (*Flush*):**  
    Al regresar al hogar o presionar *"Reintentar"* en el diálogo P2P, la cola se transmite en lote al receptor del cuidador, garantizando **cero pérdida de datos históricos de adherencia**.
+
+### 13.4 Transporte Híbrido P2P: Difusión de Proximidad por Bluetooth BLE (`BleP2pSyncTransport`)
+Para entornos donde no existe router Wi-Fi ni señal de red móvil (zonas rurales, traslados en ambulancia o visitas hospitalarias):
+1. **Balizas BLE Criptográficas:**  
+   Si la conexión HTTP local por Wi-Fi no responde, la toma confirmada se encola simultáneamente en el canal de difusión BLE (`BleP2pSyncTransport`).
+2. **Paquetes Compactos de Fabricante:**  
+   Codifica la dosis en un formato Base64Url de alta densidad con firma truncada HMAC-SHA256 (`CMED:1:ID:RUT:MED:DOSIS:SLOT:EPOCH:HMAC16`), garantizando autenticidad total en menos de 128 bytes sin requerir emparejamiento manual complejo.
 
 ---
 

@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import '../storage/local_storage_service.dart';
 import '../../features/senior_mode/models/senior_intake_item.dart';
 import 'p2p_sync_model.dart';
+import 'ble_p2p_sync_transport.dart';
 
 class LocalP2pSyncService {
   static final LocalP2pSyncService instance = LocalP2pSyncService._internal();
@@ -195,6 +196,8 @@ class LocalP2pSyncService {
     if (!_offlineSyncQueue.any((item) => item.intakeId == payload.intakeId)) {
       _offlineSyncQueue.add(payload);
     }
+    // Encolar simultáneamente en el canal BLE para transporte beacon de proximidad
+    BleP2pSyncTransport.instance.queueForBleBroadcast(payload);
   }
 
   /// Reintenta vaciar la cola de tomas pendientes cuando el cuidador vuelve a estar en línea
@@ -217,6 +220,7 @@ class LocalP2pSyncService {
       );
       if (success) {
         _offlineSyncQueue.removeWhere((i) => i.intakeId == item.intakeId);
+        BleP2pSyncTransport.instance.removeFromBroadcastQueue(item.intakeId);
         syncedCount++;
       }
     }

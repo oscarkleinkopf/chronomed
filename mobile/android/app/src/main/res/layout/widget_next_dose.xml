@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="horizontal"
+    android:background="@drawable/widget_background"
+    android:padding="12dp"
+    android:gravity="center_vertical">
+
+    <!-- Ícono de medicamento -->
+    <ImageView
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:src="@android:drawable/ic_menu_agenda"
+        android:contentDescription="Ícono de medicamento"
+        android:layout_marginEnd="12dp" />
+
+    <!-- Columna central: nombre del fármaco y horario -->
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/widget_patient_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Paciente"
+            android:textSize="11sp"
+            android:textColor="#64748B"
+            android:maxLines="1"
+            android:ellipsize="end" />
+
+        <TextView
+            android:id="@+id/widget_medicine_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Losartán 50mg"
+            android:textSize="15sp"
+            android:textColor="#0F172A"
+            android:textStyle="bold"
+            android:maxLines="1"
+            android:ellipsize="end" />
+
+        <TextView
+            android:id="@+id/widget_next_time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Próxima: 08:00"
+            android:textSize="13sp"
+            android:textColor="#2563EB"
+            android:maxLines="1" />
+
+    </LinearLayout>
+
+    <!-- Columna derecha: adherencia del día -->
+    <TextView
+        android:id="@+id/widget_adherence"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="3/4 dosis"
+        android:textSize="12sp"
+        android:textColor="#22C55E"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:layout_marginStart="8dp" />
+
+</LinearLayout>
