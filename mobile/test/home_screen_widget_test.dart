@@ -94,7 +94,7 @@ void main() {
       await storage.recordIntake(
         intakeId: 'intake-3',
         medicationName: 'Multivitamínico',
-        timeSlot: SeniorTimeSlot.afternoonSnack,
+        timeSlot: SeniorTimeSlot.afternoon,
         timestamp: DateTime(2026, 9, 29, 17, 0),
       );
       await storage.recordIntake(

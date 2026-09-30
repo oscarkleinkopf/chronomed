@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:chronomed/core/notifications/network_reconnection_snooze_service.dart';
 import 'package:chronomed/core/storage/local_storage_service.dart';
@@ -12,6 +13,10 @@ void main() {
     late NetworkReconnectionSnoozeService snoozeService;
 
     setUp(() async {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
+        const MethodChannel('dexterous.com/flutter/local_notifications'),
+        (MethodCall methodCall) async => true,
+      );
       storage = LocalStorageService.instance;
       await storage.init(inMemory: true);
       await storage.resetAllData();

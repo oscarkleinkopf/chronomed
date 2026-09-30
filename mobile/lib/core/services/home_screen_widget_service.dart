@@ -59,9 +59,9 @@ class HomeScreenWidgetService {
     final routine = LocalStorageService.instance.getCircadianRoutine();
 
     final slots = [
-      {'slot': SeniorTimeSlot.breakfast, 'time': routine.breakfast, 'defaultDrug': 'Levotiroxina 100mcg'},
+      {'slot': SeniorTimeSlot.morning, 'time': routine.breakfast, 'defaultDrug': 'Levotiroxina 100mcg'},
       {'slot': SeniorTimeSlot.lunch, 'time': routine.lunch, 'defaultDrug': 'Losartán 50mg'},
-      {'slot': SeniorTimeSlot.afternoonSnack, 'time': routine.afternoonSnack, 'defaultDrug': 'Multivitamínico'},
+      {'slot': SeniorTimeSlot.afternoon, 'time': routine.afternoonSnack, 'defaultDrug': 'Multivitamínico'},
       {'slot': SeniorTimeSlot.night, 'time': routine.night, 'defaultDrug': 'Atorvastatina 20mg'},
     ];
 

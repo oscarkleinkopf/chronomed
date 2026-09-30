@@ -34,6 +34,10 @@ void main() {
       expect(find.text('PIN de Cuidador actual'), findsOneWidget);
       expect(find.text('Cambiar PIN'), findsOneWidget);
 
+      // Scroll down to view lower sections
+      await tester.drag(find.byType(ListView), const Offset(0, -400));
+      await tester.pumpAndSettle();
+
       // Section 3: Datos
       expect(find.text('Datos'), findsOneWidget);
       expect(find.text('Restablecer todos los datos'), findsOneWidget);

@@ -459,7 +459,6 @@ class _AddEditMedicineDialogState extends State<AddEditMedicineDialog> {
             ],
           ),
         ),
-      ),
-    );
+      );
   }
 }
