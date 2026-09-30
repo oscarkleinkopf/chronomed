@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../services/onboarding_service.dart';
+import '../storage/local_storage_service.dart';
 import '../../features/onboarding/screens/onboarding_screen.dart';
 import '../../features/standard_mode/screens/caregiver_home_screen.dart';
 import '../../features/senior_mode/screens/senior_single_action_screen.dart';
 import '../../features/medicine_cabinet/screens/medicine_cabinet_screen.dart';
 import '../../features/ocr/screens/ocr_scan_history_screen.dart';
+import '../../features/settings/screens/settings_screen.dart';
 
 class AppRouter {
   static final GoRouter router = GoRouter(
@@ -34,7 +36,13 @@ class AppRouter {
       GoRoute(
         path: '/senior',
         name: 'senior',
-        builder: (context, state) => const SeniorSingleActionScreen(),
+        builder: (context, state) {
+          final storage = LocalStorageService.instance;
+          return SeniorSingleActionScreen(
+            patientName: storage.patientName,
+            caregiverPin: storage.caregiverPin,
+          );
+        },
       ),
       GoRoute(
         path: '/medicine-cabinet',
@@ -45,6 +53,11 @@ class AppRouter {
         path: '/ocr-history',
         name: 'ocr-history',
         builder: (context, state) => const OcrScanHistoryScreen(),
+      ),
+      GoRoute(
+        path: '/settings',
+        name: 'settings',
+        builder: (context, state) => const SettingsScreen(),
       ),
     ],
   );

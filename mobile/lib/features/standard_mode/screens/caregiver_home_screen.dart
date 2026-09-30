@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../../core/theme/standard_theme.dart';
 import '../../senior_mode/screens/senior_single_action_screen.dart';
 import '../../schedule/models/circadian_routine.dart';
 import '../../../core/storage/local_storage_service.dart';
 import '../../medicine_cabinet/screens/medicine_cabinet_screen.dart';
+import '../../medicine_cabinet/models/medicine_cabinet_item.dart';
 import '../widgets/familiar_voice_recorder_dialog.dart';
 import '../widgets/adherence_timeline_widget.dart';
 import '../../senior_mode/models/senior_intake_item.dart';
@@ -26,9 +28,9 @@ class CaregiverHomeScreen extends StatefulWidget {
 }
 
 class _CaregiverHomeScreenState extends State<CaregiverHomeScreen> {
-  final String _patientName = "Marcela";
-  final String _patientRut = "14.567.890-K";
-  final String _caregiverPin = "1234";
+  String get _patientName => LocalStorageService.instance.patientName;
+  String get _patientRut => LocalStorageService.instance.patientRut;
+  String get _caregiverPin => LocalStorageService.instance.caregiverPin;
 
   late CaregiverP2PController _p2pController;
   late CaregiverPdfController _pdfController;
@@ -113,7 +115,12 @@ class _CaregiverHomeScreenState extends State<CaregiverHomeScreen> {
               ).then((_) => _loadData());
             },
           ),
-          const SizedBox(width: 12),
+          IconButton(
+            icon: const Icon(Icons.settings_rounded, color: Color(0xFF64748B)),
+            tooltip: 'Configuración',
+            onPressed: () => context.push('/settings'),
+          ),
+          const SizedBox(width: 8),
         ],
       ),
       body: SingleChildScrollView(
@@ -130,7 +137,7 @@ class _CaregiverHomeScreenState extends State<CaregiverHomeScreen> {
               const SizedBox(height: 16),
             ],
 
-            _buildPatientBanner(activeOmissionAlert != null, nextLunchTime),
+            _buildPatientBanner(activeOmissionAlert != null, _computeNextDoseLabel(routine)),
             const SizedBox(height: 16),
 
             const AdherenceTimelineWidget(),
@@ -150,54 +157,14 @@ class _CaregiverHomeScreenState extends State<CaregiverHomeScreen> {
             _buildActionButtonsGrid(routine),
             const SizedBox(height: 24),
 
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: const [
-                Text("Medicamentos Activos (Chile)", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF0F172A))),
-                Text("3 fármacos", style: TextStyle(color: Color(0xFF2563EB), fontWeight: FontWeight.bold, fontSize: 12)),
-              ],
-            ),
-            const SizedBox(height: 12),
-            ActiveMedicationCard(
-              name: "Eutirox (Levotiroxina)",
-              dose: "100 mcg",
-              schedule: "$fastingTime • En ayunas (30 min antes)",
-              pillColor: Colors.white,
-              shapeType: "small_round",
-              imprint: "100",
-              hasScoreLine: true,
-              physicalDescription: "Comprimido blanco circular pequeño grabado '100' con ranura de partición",
-              stock: "${_ocrController.eutiroxStock} un. restantes",
-            ),
-            ActiveMedicationCard(
-              name: "Losartán Potásico",
-              dose: "50 mg",
-              schedule: "${routine.formatTime(routine.lunch)} • Con almuerzo",
-              pillColor: const Color(0xFF3B82F6),
-              shapeType: "round",
-              imprint: "50",
-              hasScoreLine: true,
-              physicalDescription: "Comprimido circular azul grabado '50' con ranura central",
-              stock: "${_ocrController.losartanStock} un. restantes",
-            ),
-            ActiveMedicationCard(
-              name: "Atorvastatina",
-              dose: "20 mg",
-              schedule: "${routine.formatTime(routine.night)} • Al acostarse",
-              pillColor: const Color(0xFFFACC15),
-              shapeType: "oblong",
-              imprint: "20",
-              hasScoreLine: false,
-              physicalDescription: "Comprimido oblongo amarillo grabado '20'",
-              stock: "${_ocrController.atorvastatinaStock} un. restantes",
-            ),
+            ..._buildMedicationSection(routine),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildPatientBanner(bool hasAlert, String nextLunchTime) {
+  Widget _buildPatientBanner(bool hasAlert, String nextDoseLabel) {
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
@@ -253,7 +220,7 @@ class _CaregiverHomeScreenState extends State<CaregiverHomeScreen> {
           const SizedBox(height: 16),
           const Text("Próxima toma programada:", style: TextStyle(color: Colors.white70, fontSize: 12)),
           const SizedBox(height: 4),
-          Text("$nextLunchTime • Losartán Potásico (50 mg)", style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+          Text(nextDoseLabel, style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
         ],
       ),
     );
@@ -384,5 +351,103 @@ class _CaregiverHomeScreenState extends State<CaregiverHomeScreen> {
       label: Text(label, style: const TextStyle(color: Color(0xFF0F172A), fontWeight: FontWeight.bold, fontSize: 13)),
       onPressed: onPressed,
     );
+  }
+
+  /// Calcula la etiqueta "Próxima toma" basándose en la hora actual y la rutina circadiana.
+  String _computeNextDoseLabel(CircadianRoutine routine) {
+    final now = DateTime.now();
+    final currentMinutes = now.hour * 60 + now.minute;
+    final cabinetItems = LocalStorageService.instance.getCabinetItems();
+
+    if (cabinetItems.isEmpty) {
+      return 'Sin medicamentos registrados';
+    }
+
+    // Mapeo de franjas horarias
+    final slots = [
+      {'time': routine.fastingTime, 'label': 'En ayunas'},
+      {'time': routine.breakfast, 'label': 'Desayuno'},
+      {'time': routine.lunch, 'label': 'Almuerzo'},
+      {'time': routine.snack, 'label': 'Once'},
+      {'time': routine.night, 'label': 'Noche'},
+    ];
+
+    // Encontrar la próxima franja horaria
+    String nextTimeStr = '';
+    for (final slot in slots) {
+      final time = slot['time'] as TimeOfDay;
+      final slotMinutes = time.hour * 60 + time.minute;
+      if (slotMinutes > currentMinutes) {
+        nextTimeStr = '${routine.formatTime(time)} • ${slot['label']}';
+        break;
+      }
+    }
+
+    if (nextTimeStr.isEmpty) {
+      nextTimeStr = 'Mañana ${routine.formatTime(routine.fastingTime)} • En ayunas';
+    }
+
+    final firstMed = cabinetItems.first;
+    return '$nextTimeStr — ${firstMed.name} (${firstMed.dosage})';
+  }
+
+  /// Genera la sección de medicamentos activos dinámicamente desde el botiquín.
+  List<Widget> _buildMedicationSection(CircadianRoutine routine) {
+    final cabinetItems = LocalStorageService.instance.getCabinetItems();
+    final count = cabinetItems.length;
+
+    return [
+      Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          const Text(
+            "Medicamentos Activos (Chile)",
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+          ),
+          Text(
+            "$count ${count == 1 ? 'fármaco' : 'fármacos'}",
+            style: const TextStyle(color: Color(0xFF2563EB), fontWeight: FontWeight.bold, fontSize: 12),
+          ),
+        ],
+      ),
+      const SizedBox(height: 12),
+      if (cabinetItems.isEmpty)
+        Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: const Color(0xFFE2E8F0)),
+          ),
+          child: Column(
+            children: [
+              const Icon(Icons.medication_rounded, size: 48, color: Color(0xFFCBD5E1)),
+              const SizedBox(height: 8),
+              const Text(
+                'Sin medicamentos registrados',
+                style: TextStyle(color: Color(0xFF64748B), fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 4),
+              const Text(
+                'Escanea una caja o agrega uno manualmente desde el Botiquín.',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Color(0xFF94A3B8), fontSize: 12),
+              ),
+            ],
+          ),
+        )
+      else
+        ...cabinetItems.map((item) => ActiveMedicationCard(
+          name: item.name,
+          dose: item.dosage,
+          schedule: '${item.stockUnits} un. restantes',
+          pillColor: Color(item.pillColorValue),
+          shapeType: item.shapeType,
+          imprint: item.imprint,
+          hasScoreLine: item.hasScoreLine,
+          physicalDescription: item.physicalDescription,
+          stock: '${item.stockUnits} un. restantes',
+        )),
+    ];
   }
 }

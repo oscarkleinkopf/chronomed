@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../core/storage/local_storage_service.dart';
 import '../../../core/services/onboarding_service.dart';
+import '../../../core/utils/rut_validator.dart';
 import 'package:go_router/go_router.dart';
 
 class OnboardingScreen extends StatefulWidget {
@@ -339,6 +340,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 controller: _rutController,
                 decoration: InputDecoration(
                   hintText: 'Ej: 14.567.890-K',
+                  helperText: 'Se valida con dígito verificador',
                   filled: true,
                   fillColor: Colors.white,
                   border: OutlineInputBorder(
@@ -350,10 +352,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
                   ),
                 ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) return 'Ingresa el RUT';
-                  return null;
+                onEditingComplete: () {
+                  // Auto-formatear el RUT al perder foco
+                  final raw = _rutController.text;
+                  if (raw.isNotEmpty && RutValidator.isValid(raw)) {
+                    _rutController.text = RutValidator.format(raw);
+                  }
                 },
+                validator: RutValidator.validate,
               ),
               const SizedBox(height: 24),
               

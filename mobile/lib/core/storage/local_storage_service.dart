@@ -453,6 +453,11 @@ class LocalStorageService {
     await _persistToDisk();
   }
 
+  Future<void> updateCaregiverPin(String newPin) async {
+    _caregiverPin = newPin.trim();
+    await _persistToDisk();
+  }
+
   Future<void> setP2pConfig({
     String? caregiverHost,
     int? p2pPort,
