@@ -41,9 +41,15 @@
         <span class="text-2xl">⏰</span>
         <span class="font-black text-xl tracking-tight text-white">Chrono<span class="text-blue-500">Med</span></span>
       </div>
-      <div class="flex items-center space-x-1 bg-slate-800 p-1 rounded-xl border border-slate-700">
-        <button id="btnModeSenior" onclick="switchMode('senior')" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all bg-yellow-400 text-black shadow">Modo Senior</button>
-        <button id="btnModeCaregiver" onclick="switchMode('caregiver')" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all text-slate-300 hover:text-white">Cuidador</button>
+      <div class="flex items-center space-x-2">
+        <button onclick="openManualModal()" class="px-2.5 py-1.5 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-500 text-white shadow transition flex items-center space-x-1.5" title="Ver Manual de Usuario">
+          <i data-lucide="book-open" class="w-3.5 h-3.5"></i>
+          <span>Manual</span>
+        </button>
+        <div class="flex items-center space-x-1 bg-slate-800 p-1 rounded-xl border border-slate-700">
+          <button id="btnModeSenior" onclick="switchMode('senior')" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all bg-yellow-400 text-black shadow">Modo Senior</button>
+          <button id="btnModeCaregiver" onclick="switchMode('caregiver')" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all text-slate-300 hover:text-white">Cuidador</button>
+        </div>
       </div>
     </div>
   </header>
@@ -181,14 +187,19 @@
       </div>
     </div>
 
-    <!-- Mini Footer Senior con Enlace a Términos Legales y Urgencias -->
+    <!-- Mini Footer Senior con Enlace a Términos Legales, Manual y Urgencias -->
     <div class="flex items-center justify-between text-[11px] text-slate-400 px-2 py-1">
       <a href="tel:131" class="text-red-400 hover:text-red-300 font-bold flex items-center space-x-1">
         <span>🚨 Urgencias (SAMU 131)</span>
       </a>
-      <a href="javascript:void(0)" onclick="openLegalModal()" class="text-slate-400 hover:text-white underline">
-        Descargo Legal
-      </a>
+      <div class="space-x-3">
+        <a href="javascript:void(0)" onclick="openManualModal()" class="text-yellow-400 hover:text-yellow-300 font-bold">
+          📖 Manual de Uso
+        </a>
+        <a href="javascript:void(0)" onclick="openLegalModal()" class="text-slate-400 hover:text-white underline">
+          Descargo Legal
+        </a>
+      </div>
     </div>
   </main>
   <!-- 3. VISTA: MODO CUIDADOR (Dashboard de Marcela) -->
@@ -244,6 +255,16 @@
           <p class="text-[10px] text-slate-400">Zero-Setup</p>
         </div>
       </button>
+      <a href="ChronoMed_Manual_de_Usuario_v1.0.0.pdf" download class="senior-card p-3 rounded-2xl border text-left flex items-center space-x-2.5 hover:border-yellow-500 transition col-span-2">
+        <div class="p-2 rounded-xl bg-yellow-500/20 text-yellow-400"><i data-lucide="book-open" class="w-5 h-5"></i></div>
+        <div class="flex-1">
+          <h4 class="font-bold text-xs text-white">Manual de Usuario Maestro (PDF)</h4>
+          <p class="text-[10px] text-yellow-300">Descargar guía clínica completa en alta calidad gráfica</p>
+        </div>
+        <i data-lucide="download" class="w-4 h-4 text-slate-400"></i>
+      </a>
+    </div>
+
     <!-- Tarjeta de Régimen Circadiano (4 Comidas: Hogar vs Hospital) -->
     <div class="senior-card p-4 rounded-3xl border border-slate-700/80 bg-slate-900/60 shadow-lg">
       <div class="flex items-center justify-between mb-2">
@@ -312,6 +333,133 @@
       </button>
     </div>
   </main>
+
+  <!-- MODAL: MANUAL DE USUARIO OFICIAL -->
+  <div id="modalManual" class="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3">
+    <div class="senior-card max-w-md w-full p-5 rounded-3xl border text-left max-h-[92vh] flex flex-col">
+      <div class="flex items-center justify-between mb-3 border-b border-slate-800 pb-2.5">
+        <div class="flex items-center space-x-2 text-yellow-400">
+          <i data-lucide="book-open" class="w-5 h-5"></i>
+          <h3 class="text-base font-black text-white">Manual de Usuario ChronoMed</h3>
+        </div>
+        <button onclick="closeModal('modalManual')" class="text-slate-400 hover:text-white text-lg p-1">✕</button>
+      </div>
+
+      <!-- Quick Action Buttons for PDF and HTML -->
+      <div class="grid grid-cols-2 gap-2 mb-3">
+        <a href="ChronoMed_Manual_de_Usuario_v1.0.0.pdf" download class="py-2 px-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition flex items-center justify-center space-x-1.5 shadow">
+          <i data-lucide="download" class="w-4 h-4"></i>
+          <span>Descargar PDF</span>
+        </a>
+        <a href="manual_imprimible.html" target="_blank" class="py-2 px-3 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-1.5">
+          <i data-lucide="external-link" class="w-4 h-4"></i>
+          <span>Ver en Web (HTML)</span>
+        </a>
+      </div>
+
+      <!-- Search Box inside Modal -->
+      <div class="mb-3">
+        <input type="text" id="inputManualSearch" oninput="filterManualModal()" placeholder="Buscar en el manual (ej. RUT, bloqueo, OCR)..." class="w-full bg-slate-900 border border-slate-700 text-white rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-blue-500">
+      </div>
+
+      <!-- Scrollable Chapters List -->
+      <div id="manualChaptersContainer" class="flex-1 overflow-y-auto space-y-2.5 pr-1 text-xs text-slate-300 scrollbar-thin">
+        
+        <details class="bg-slate-900/90 border border-slate-800 p-2.5 rounded-xl group manual-chap" open>
+          <summary class="font-bold text-white cursor-pointer flex items-center justify-between">
+            <span class="flex items-center space-x-1.5 text-red-400"><span>⚖️</span> <span>1. Marco Sanitario y SAMU 131</span></span>
+            <span class="text-slate-500 group-open:rotate-180 transition">▼</span>
+          </summary>
+          <div class="mt-2 text-[11px] text-slate-300 space-y-1.5 border-t border-slate-800/80 pt-2">
+            <p><strong>Leyes N° 20.584 y 19.628:</strong> ChronoMed asiste en la organización horaria pero no diagnostica ni receta. Los datos están protegidos con cifrado militar AES-256-GCM y Blind Indexing.</p>
+            <p class="text-red-400 font-semibold">🚨 Canal SAMU 131: En caso de intoxicación o sobredosis accidental, llame gratis al 131 o a CITUC UC (+56 2 2635 3800).</p>
+          </div>
+        </details>
+
+        <details class="bg-slate-900/90 border border-slate-800 p-2.5 rounded-xl group manual-chap">
+          <summary class="font-bold text-white cursor-pointer flex items-center justify-between">
+            <span class="flex items-center space-x-1.5 text-yellow-400"><span>👴</span> <span>2. Modo Senior (Cero Fricción)</span></span>
+            <span class="text-slate-500 group-open:rotate-180 transition">▼</span>
+          </summary>
+          <div class="mt-2 text-[11px] text-slate-300 space-y-1.5 border-t border-slate-800/80 pt-2">
+            <p><strong>Pantalla Única:</strong> El adulto mayor solo ve la pastilla que le corresponde con su color y forma real, asistido por síntesis de voz chilena (TTS).</p>
+            <p><strong>Botón 96 dp:</strong> Cumple norma WCAG AAA con áreas táctiles gigantes para evitar toques erróneos.</p>
+          </div>
+        </details>
+
+        <details class="bg-slate-900/90 border border-slate-800 p-2.5 rounded-xl group manual-chap">
+          <summary class="font-bold text-white cursor-pointer flex items-center justify-between">
+            <span class="flex items-center space-x-1.5 text-emerald-400"><span>🛡️</span> <span>3. Bloqueo Anti-Sobredosis</span></span>
+            <span class="text-slate-500 group-open:rotate-180 transition">▼</span>
+          </summary>
+          <div class="mt-2 text-[11px] text-slate-300 space-y-1.5 border-t border-slate-800/80 pt-2">
+            <p>Al pulsar "YA ME LA TOMÉ", el botón se bloquea de inmediato evitando duplicaciones por confusión cognitiva o desmemoria.</p>
+            <p><strong>Alerta 45 min:</strong> Si pasan 45 min sin confirmación, se alerta al cuidador por WhatsApp y notificación prioritaria.</p>
+          </div>
+        </details>
+
+        <details class="bg-slate-900/90 border border-slate-800 p-2.5 rounded-xl group manual-chap">
+          <summary class="font-bold text-white cursor-pointer flex items-center justify-between">
+            <span class="flex items-center space-x-1.5 text-blue-400"><span>⏰</span> <span>4. Régimen Circadiano (4 Comidas)</span></span>
+            <span class="text-slate-500 group-open:rotate-180 transition">▼</span>
+          </summary>
+          <div class="mt-2 text-[11px] text-slate-300 space-y-1.5 border-t border-slate-800/80 pt-2">
+            <p><strong>Presintonías:</strong> Alterna entre 🏠 Hogar (08:00, 13:30, 18:30, 22:30) y 🏥 Hospital / ELEAM (07:00, 12:00, 17:30, 20:30).</p>
+            <p><strong>Ayunas Automático:</strong> Levotiroxina (Eutirox) se adelanta automáticamente a las 06:30 hrs en régimen hospitalario.</p>
+          </div>
+        </details>
+
+        <details class="bg-slate-900/90 border border-slate-800 p-2.5 rounded-xl group manual-chap">
+          <summary class="font-bold text-white cursor-pointer flex items-center justify-between">
+            <span class="flex items-center space-x-1.5 text-purple-400"><span>⚙️</span> <span>5. Ajustes y RUT Módulo 11</span></span>
+            <span class="text-slate-500 group-open:rotate-180 transition">▼</span>
+          </summary>
+          <div class="mt-2 text-[11px] text-slate-300 space-y-1.5 border-t border-slate-800/80 pt-2">
+            <p><strong>RutValidator:</strong> Validación oficial chilena por algoritmo Módulo 11 con ponderadores 2 a 7 y formateo automático.</p>
+            <p><strong>PIN Cuidador (4 Dígitos):</strong> Protege el acceso y la configuración clínica impidiendo manipulaciones accidentales.</p>
+          </div>
+        </details>
+
+        <details class="bg-slate-900/90 border border-slate-800 p-2.5 rounded-xl group manual-chap">
+          <summary class="font-bold text-white cursor-pointer flex items-center justify-between">
+            <span class="flex items-center space-x-1.5 text-teal-400"><span>📷</span> <span>6. Escáner OCR e Interacciones</span></span>
+            <span class="text-slate-500 group-open:rotate-180 transition">▼</span>
+          </summary>
+          <div class="mt-2 text-[11px] text-slate-300 space-y-1.5 border-t border-slate-800/80 pt-2">
+            <p><strong>Google ML Kit On-Device:</strong> Extrae datos de recetas y empaques sin enviar fotos a la nube.</p>
+            <p><strong>Seguridad ISP:</strong> Bloquea combinaciones críticas (ej. Ibuprofeno + Acenocumarol, Atorvastatina + Claritromicina).</p>
+          </div>
+        </details>
+
+        <details class="bg-slate-900/90 border border-slate-800 p-2.5 rounded-xl group manual-chap">
+          <summary class="font-bold text-white cursor-pointer flex items-center justify-between">
+            <span class="flex items-center space-x-1.5 text-orange-400"><span>💊</span> <span>7. Botiquín y Predictor de Fin de Semana</span></span>
+            <span class="text-slate-500 group-open:rotate-180 transition">▼</span>
+          </summary>
+          <div class="mt-2 text-[11px] text-slate-300 space-y-1.5 border-t border-slate-800/80 pt-2">
+            <p><strong>Alerta Jueves:</strong> Si una caja se acaba en fin de semana, avisa el jueves previo para retirar en CESFAM o farmacia.</p>
+            <p><strong>Botón Deshacer:</strong> Si eliminas un fármaco por error, dispones de 4 segundos en el aviso para deshacer la acción.</p>
+          </div>
+        </details>
+
+        <details class="bg-slate-900/90 border border-slate-800 p-2.5 rounded-xl group manual-chap">
+          <summary class="font-bold text-white cursor-pointer flex items-center justify-between">
+            <span class="flex items-center space-x-1.5 text-cyan-400"><span>📄</span> <span>8. Informes Médicos Certificados</span></span>
+            <span class="text-slate-500 group-open:rotate-180 transition">▼</span>
+          </summary>
+          <div class="mt-2 text-[11px] text-slate-300 space-y-1.5 border-t border-slate-800/80 pt-2">
+            <p>Genera reportes PDF vectorizados con firma criptográfica HMAC-SHA256 bajo la Ley N° 20.584, listos para enviar a WhatsApp.</p>
+          </div>
+        </details>
+
+      </div>
+
+      <div class="border-t border-slate-800 pt-3 mt-3 flex justify-between items-center text-[10px] text-slate-400">
+        <span>ChronoMed v1.0.0 • Santiago de Chile</span>
+        <button onclick="closeModal('modalManual')" class="px-4 py-1.5 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-lg transition text-xs">Cerrar</button>
+      </div>
+    </div>
+  </div>
 
   <!-- MODAL: MARCO LEGAL, PRIVACIDAD Y DESCARGO DE RESPONSABILIDAD -->
   <div id="modalLegal" class="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3">
@@ -948,6 +1096,26 @@
     // --- LEGAL & CONSENTIMIENTO ---
     function openLegalModal() {
       document.getElementById('modalLegal').classList.remove('hidden');
+    }
+
+    // --- MANUAL DE USUARIO ---
+    function openManualModal() {
+      document.getElementById('modalManual').classList.remove('hidden');
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function filterManualModal() {
+      const q = (document.getElementById('inputManualSearch').value || '').trim().toLowerCase();
+      const chaps = document.querySelectorAll('.manual-chap');
+      chaps.forEach(chap => {
+        const text = chap.innerText.toLowerCase();
+        if (!q || text.includes(q)) {
+          chap.style.display = '';
+          if (q) chap.setAttribute('open', '');
+        } else {
+          chap.style.display = 'none';
+        }
+      });
     }
 
     function setCircadianPreset(type) {
