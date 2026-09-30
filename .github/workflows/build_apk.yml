@@ -42,6 +42,7 @@ jobs:
           rm -rf mobile/android
           cd mobile
           flutter create --platforms=android --org com.chronomed .
+          rm -rf android/app/src/main/kotlin/com/chronomed/*
           cp -r /tmp/chronomed_backup/* android/app/src/main/
           rm -f test/widget_test.dart
 

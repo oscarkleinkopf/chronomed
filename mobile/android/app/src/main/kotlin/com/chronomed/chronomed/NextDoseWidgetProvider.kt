@@ -1,10 +1,11 @@
-package com.chronomed.app
+package com.chronomed.chronomed
 
 import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
 import android.content.Context
 import android.content.SharedPreferences
 import android.widget.RemoteViews
+import com.chronomed.chronomed.R
 
 /**
  * Widget 4×1 de pantalla de inicio para ChronoMed.

@@ -1,4 +1,4 @@
-package com.chronomed.app
+package com.chronomed.chronomed
 
 import android.appwidget.AppWidgetManager
 import android.content.ComponentName
