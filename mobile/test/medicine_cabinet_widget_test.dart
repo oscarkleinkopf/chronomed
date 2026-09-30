@@ -126,5 +126,48 @@ void main() {
       expect(tester.takeException(), isNull);
       expect(find.text('Botiquín & Inventario'), findsOneWidget);
     });
+
+    testWidgets('Medicine deletion requires explicit confirmation and supports undo action', (WidgetTester tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: MedicineCabinetScreen(),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      // Open menu on first card (Eutirox)
+      final moreButtons = find.byIcon(Icons.more_vert_rounded);
+      expect(moreButtons, findsWidgets);
+      await tester.tap(moreButtons.first);
+      await tester.pumpAndSettle();
+
+      // Tap Eliminar del botiquín
+      expect(find.text('Eliminar del botiquín'), findsOneWidget);
+      await tester.tap(find.text('Eliminar del botiquín'));
+      await tester.pumpAndSettle();
+
+      // Confirm dialog appears
+      expect(find.text('¿Eliminar fármaco?'), findsOneWidget);
+      expect(find.text('CANCELAR'), findsOneWidget);
+      expect(find.text('ELIMINAR'), findsOneWidget);
+
+      // Cancel deletion
+      await tester.tap(find.text('CANCELAR'));
+      await tester.pumpAndSettle();
+      expect(find.text('Eutirox (Levotiroxina)'), findsOneWidget);
+
+      // Open menu again and confirm deletion
+      await tester.tap(moreButtons.first);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Eliminar del botiquín'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('ELIMINAR'));
+      await tester.pumpAndSettle();
+
+      // SnackBar with undo action is displayed
+      expect(find.text('Se eliminó "Eutirox (Levotiroxina)" del botiquín'), findsOneWidget);
+      expect(find.text('DESHACER'), findsOneWidget);
+    });
   });
 }

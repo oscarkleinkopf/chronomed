@@ -201,6 +201,14 @@ class _MedicineCabinetScreenState extends State<MedicineCabinetScreen> {
         SnackBar(
           backgroundColor: const Color(0xFF334155),
           content: Text('Se eliminó "${item.name}" del botiquín'),
+          action: SnackBarAction(
+            label: 'DESHACER',
+            textColor: const Color(0xFF60A5FA),
+            onPressed: () async {
+              await _storage.saveCabinetItem(item);
+              _loadCabinetData();
+            },
+          ),
         ),
       );
     }

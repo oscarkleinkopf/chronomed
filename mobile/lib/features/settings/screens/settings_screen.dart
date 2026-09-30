@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../../core/storage/local_storage_service.dart';
+import '../../../core/utils/rut_validator.dart';
 
 /// Pantalla de configuración general de ChronoMed.
 /// Permite gestionar los datos del paciente, PIN de acceso del cuidador,
@@ -439,6 +440,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           TextFormField(
                             controller: _rutController,
                             keyboardType: TextInputType.text,
+                            onEditingComplete: () {
+                              final raw = _rutController.text;
+                              if (raw.isNotEmpty && RutValidator.isValid(raw)) {
+                                _rutController.text = RutValidator.format(raw);
+                              }
+                            },
                             decoration: InputDecoration(
                               labelText: 'RUT',
                               hintText: 'Ej: 12.345.678-9',
@@ -456,12 +463,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                 borderSide: const BorderSide(color: primaryColor, width: 2),
                               ),
                             ),
-                            validator: (value) {
-                              if (value == null || value.trim().isEmpty) {
-                                return 'Por favor ingresa el RUT del paciente';
-                              }
-                              return null;
-                            },
+                            validator: RutValidator.validate,
                           ),
                           const SizedBox(height: 16),
                           ElevatedButton.icon(
