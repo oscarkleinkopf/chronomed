@@ -90,6 +90,10 @@ class CircadianRoutine {
     return TimeOfDay(hour: totalMinutes ~/ 60, minute: totalMinutes % 60);
   }
 
+  /// Alias de compatibilidad para la franja de once / media tarde
+  TimeOfDay get snack => afternoon;
+  TimeOfDay get afternoonSnack => afternoon;
+
   Map<String, dynamic> toJson() {
     return {
       'regimeType': regimeType.name,

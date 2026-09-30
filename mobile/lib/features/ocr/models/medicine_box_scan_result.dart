@@ -37,6 +37,7 @@ class MedicineBoxScanResult {
   });
 
   String? get detectedMedicineName => detectedDrugName;
+  String get rawExtractedText => rawText;
 
   String get statusLabel {
     switch (expirationStatus) {

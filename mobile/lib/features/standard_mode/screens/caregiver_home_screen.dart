@@ -368,7 +368,7 @@ class _CaregiverHomeScreenState extends State<CaregiverHomeScreen> {
       {'time': routine.fastingTime, 'label': 'En ayunas'},
       {'time': routine.breakfast, 'label': 'Desayuno'},
       {'time': routine.lunch, 'label': 'Almuerzo'},
-      {'time': routine.snack, 'label': 'Once'},
+      {'time': routine.afternoon, 'label': 'Once'},
       {'time': routine.night, 'label': 'Noche'},
     ];
 

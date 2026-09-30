@@ -7,6 +7,7 @@ class StandardTheme {
   static const Color surfaceDark = Color(0xFF0F172A);
   static const Color cardDark = Color(0xFF1E293B);
   static const Color textLight = Color(0xFFF8FAFC);
+  static const Color textDark = Color(0xFF0F172A);
 
   static ThemeData get lightTheme {
     return ThemeData(

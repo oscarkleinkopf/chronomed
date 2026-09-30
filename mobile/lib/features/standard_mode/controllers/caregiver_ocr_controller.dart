@@ -111,7 +111,7 @@ class CaregiverOcrController extends ChangeNotifier {
         id: 'scan-box-${DateTime.now().millisecondsSinceEpoch}',
         scanType: OcrScanType.medicineBox,
         scannedAt: DateTime.now(),
-        extractedText: result.rawExtractedText,
+        extractedText: result.rawText,
         medicineName: result.detectedDrugName,
         dosage: result.detectedDosage,
         ispRegister: result.detectedIspRegister,
