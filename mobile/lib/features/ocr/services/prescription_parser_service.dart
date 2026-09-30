@@ -1,4 +1,4 @@
-﻿import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
+import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import '../models/prescription_scan_result.dart';
 
 class PrescriptionParserService {
@@ -7,7 +7,8 @@ class PrescriptionParserService {
   static const List<String> _knownDrugs = [
     'Paracetamol', 'Ibuprofeno', 'Losartán', 'Enalapril', 'Metformina',
     'Atorvastatina', 'Levotiroxina', 'Eutirox', 'Aspirina', 'Omeprazol',
-    'Amoxicilina', 'Clotrimazol', 'Prednisona', 'Sertralina', 'Amlodipino'
+    'Amoxicilina', 'Clotrimazol', 'Prednisona', 'Sertralina', 'Amlodipino',
+    'Claritromicina', 'Acenocumarol', 'Espironolactona', 'Fluconazol', 'Ciprofloxacino'
   ];
 
   Future<PrescriptionScanResult> processImage(String imagePath) async {

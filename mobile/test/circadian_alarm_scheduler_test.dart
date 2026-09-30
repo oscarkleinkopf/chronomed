@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:chronomed/core/notifications/alarm_scheduler.dart';
 import 'package:chronomed/core/notifications/local_notification_service.dart';
@@ -14,6 +15,10 @@ void main() {
     late AlarmScheduler scheduler;
 
     setUp(() async {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
+        const MethodChannel('dexterous.com/flutter/local_notifications'),
+        (MethodCall methodCall) async => true,
+      );
       storage = LocalStorageService.instance;
       await storage.init(inMemory: true);
       await storage.resetAllData();

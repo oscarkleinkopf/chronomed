@@ -3,6 +3,8 @@ import 'package:chronomed/features/ocr/services/drug_interaction_service.dart';
 import 'package:chronomed/features/ocr/services/prescription_parser_service.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   group('ChronoMed Drug Interaction & Prescription OCR Test Suite', () {
     late DrugInteractionService interactionService;
     late PrescriptionParserService parserService;

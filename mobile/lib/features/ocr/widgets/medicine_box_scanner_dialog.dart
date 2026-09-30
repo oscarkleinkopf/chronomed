@@ -53,7 +53,7 @@ VENCE: 12/2028''';
     });
 
     // Doble pulso háptico al detectar medicamento exitosamente
-    if (result.detectedMedicineName != null) {
+    if (result.detectedDrugName != null || result.detectedMedicineName != null) {
       HapticFeedback.lightImpact();
       Future.delayed(const Duration(milliseconds: 120), () {
         HapticFeedback.lightImpact();

@@ -59,7 +59,7 @@ class RutValidator {
 
   /// Mensaje de error para validación de formulario, o null si es válido.
   static String? validate(String? value) {
-    if (value == null || value.isEmpty) return 'Ingresa el RUT';
+    if (value == null || value.trim().isEmpty) return 'Ingresa el RUT';
     if (!isValid(value)) return 'RUT inválido (ej: 14.567.890-K)';
     return null;
   }

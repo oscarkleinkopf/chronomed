@@ -48,7 +48,7 @@ void main() {
       await storage.recordIntake(
         intakeId: 'intake-1',
         medicationName: 'Levotiroxina',
-        timeSlot: SeniorTimeSlot.breakfast,
+        timeSlot: SeniorTimeSlot.morning,
         timestamp: testDate,
       );
 
@@ -76,7 +76,7 @@ void main() {
       await storage.recordIntake(
         intakeId: 'intake-1',
         medicationName: 'Levotiroxina',
-        timeSlot: SeniorTimeSlot.breakfast,
+        timeSlot: SeniorTimeSlot.morning,
         timestamp: testDate,
       );
 

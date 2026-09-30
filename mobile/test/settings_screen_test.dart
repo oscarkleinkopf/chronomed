@@ -31,7 +31,7 @@ void main() {
 
       // Section 2: Modo Senior
       expect(find.text('Modo Senior'), findsOneWidget);
-      expect(find.text('PIN de Cuidador'), findsOneWidget);
+      expect(find.text('PIN de Cuidador actual'), findsOneWidget);
       expect(find.text('Cambiar PIN'), findsOneWidget);
 
       // Section 3: Datos
@@ -91,10 +91,10 @@ void main() {
       // Find text fields inside the dialog
       final pinInputs = find.byType(TextFormField);
       // Last two TextFormFields are the ones in dialog
-      expect(pinInputs, findsNWidgets(4));
+      expect(pinInputs, findsNWidgets(5));
 
-      await tester.enterText(pinInputs.at(2), '9876');
       await tester.enterText(pinInputs.at(3), '9876');
+      await tester.enterText(pinInputs.at(4), '9876');
       await tester.pumpAndSettle();
 
       // Tap Guardar in dialog

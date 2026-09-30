@@ -36,6 +36,8 @@ class MedicineBoxScanResult {
     this.confidenceScore = 0.0,
   });
 
+  String? get detectedMedicineName => detectedDrugName;
+
   String get statusLabel {
     switch (expirationStatus) {
       case BoxExpirationStatus.valid:

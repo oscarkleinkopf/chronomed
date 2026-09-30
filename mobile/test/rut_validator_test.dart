@@ -18,10 +18,10 @@ void main() {
       expect(RutValidator.isValid('14567890-0'), isTrue);
 
       // RUT ending in K (remainder == 10) - lowercase and uppercase
-      expect(RutValidator.isValid('5.456.789-K'), isTrue);
-      expect(RutValidator.isValid('5456789-k'), isTrue);
-      expect(RutValidator.isValid('5456789K'), isTrue);
-      expect(RutValidator.isValid('5456789k'), isTrue);
+      expect(RutValidator.isValid('10.000.013-K'), isTrue);
+      expect(RutValidator.isValid('10000013-k'), isTrue);
+      expect(RutValidator.isValid('10000013K'), isTrue);
+      expect(RutValidator.isValid('10000013k'), isTrue);
     });
 
     test('Rejects invalid RUTs with incorrect verification digits or malformed input', () {
@@ -46,7 +46,7 @@ void main() {
       expect(RutValidator.format('111111111'), equals('11.111.111-1'));
       expect(RutValidator.format('123456785'), equals('12.345.678-5'));
       expect(RutValidator.format('12.345.678-5'), equals('12.345.678-5'));
-      expect(RutValidator.format('5456789k'), equals('5.456.789-K'));
+      expect(RutValidator.format('10000013k'), equals('10.000.013-K'));
       expect(RutValidator.format('145678900'), equals('14.567.890-0'));
 
       // Too short to format

@@ -120,4 +120,12 @@ class VoiceReminderService {
     isPlaying = false;
     onCompleted?.call();
   }
+
+  /// Atajo para reproducir el recordatorio de un slot específico
+  Future<void> playReminder(SeniorTimeSlot slot) async {
+    await playVoiceReminder(
+      slot: slot,
+      fallbackTtsText: 'Recordatorio de toma para ${slot.label}',
+    );
+  }
 }
