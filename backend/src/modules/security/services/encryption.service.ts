@@ -1,5 +1,7 @@
-﻿import * as crypto from 'crypto';
+import { Injectable } from '@nestjs/common';
+import * as crypto from 'crypto';
 
+@Injectable()
 export class EncryptionService {
   private readonly algorithm = 'aes-256-gcm';
   private readonly masterKey: Buffer;

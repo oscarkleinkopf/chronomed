@@ -1,6 +1,8 @@
-﻿import * as crypto from 'crypto';
+import { Injectable } from '@nestjs/common';
+import * as crypto from 'crypto';
 import { AuditAction, AuditLogEntry, AuditResourceType, UserRole } from '../types/security.types';
 
+@Injectable()
 export class AuditService {
   private readonly auditSecret: Buffer;
   private lastHash: string = 'GENESIS_BLOCK_HASH_CHRONOMED_2026';

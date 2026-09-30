@@ -1,4 +1,5 @@
-﻿import * as crypto from 'crypto';
+import { Injectable } from '@nestjs/common';
+import * as crypto from 'crypto';
 
 export interface MedicalReportData {
   patientId: string;
@@ -18,6 +19,7 @@ export interface MedicalReportData {
   auditChainChecksum: string;
 }
 
+@Injectable()
 export class ClinicalReportGeneratorService {
   private readonly signatureSecret: Buffer;
 

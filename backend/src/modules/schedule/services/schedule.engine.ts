@@ -1,5 +1,7 @@
-﻿import { MedicationScheduleConfig, RoutineSchedule, ScheduledDose, TimeOfDaySlot } from '../types/schedule.types';
+import { Injectable } from '@nestjs/common';
+import { MedicationScheduleConfig, RoutineSchedule, ScheduledDose, TimeOfDaySlot } from '../types/schedule.types';
 
+@Injectable()
 export class ScheduleEngine {
   public generateDailyDoses(
     medicationId: string,

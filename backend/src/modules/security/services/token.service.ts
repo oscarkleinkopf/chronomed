@@ -1,6 +1,8 @@
-﻿import * as crypto from 'crypto';
+import { Injectable } from '@nestjs/common';
+import * as crypto from 'crypto';
 import { PairingTokenPayload } from '../types/security.types';
 
+@Injectable()
 export class TokenService {
   private readonly tokenSecret: Buffer;
   private readonly tokenTtlSeconds = 600;

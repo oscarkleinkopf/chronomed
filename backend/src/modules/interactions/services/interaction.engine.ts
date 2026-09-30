@@ -1,6 +1,8 @@
-﻿import { DrugInteractionRule, FoodRestrictionRule, InteractionCheckResult, InteractionSeverity } from '../types/interactions.types';
+import { Injectable } from '@nestjs/common';
+import { DrugInteractionRule, FoodRestrictionRule, InteractionCheckResult, InteractionSeverity } from '../types/interactions.types';
 import { DRUG_INTERACTION_RULES, FOOD_RESTRICTION_RULES } from '../database/clinical_rules.data';
 
+@Injectable()
 export class InteractionEngine {
   private readonly drugRules = DRUG_INTERACTION_RULES;
   private readonly foodRules = FOOD_RESTRICTION_RULES;
@@ -23,7 +25,10 @@ export class InteractionEngine {
     }
 
     for (const drug of normalizedList) {
-      const foodMatches = this.foodRules.filter((r) => this.normalize(r.activeIngredient) === drug);
+      const foodMatches = this.foodRules.filter((r) => {
+        const normIng = this.normalize(r.activeIngredient);
+        return drug.includes(normIng) || normIng.includes(drug);
+      });
       detectedFoodRestrictions.push(...foodMatches);
     }
 
@@ -47,7 +52,9 @@ export class InteractionEngine {
     return this.drugRules.find((rule) => {
       const normA = this.normalize(rule.ingredientA);
       const normB = this.normalize(rule.ingredientB);
-      return (normA === drugA && normB === drugB) || (normA === drugB && normB === drugA);
+      const matchDirect = (drugA.includes(normA) || normA.includes(drugA)) && (drugB.includes(normB) || normB.includes(drugB));
+      const matchInverse = (drugA.includes(normB) || normB.includes(drugA)) && (drugB.includes(normA) || normA.includes(drugB));
+      return matchDirect || matchInverse;
     });
   }
 

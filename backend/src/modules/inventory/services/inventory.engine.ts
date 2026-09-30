@@ -1,5 +1,7 @@
-﻿import { DepletionPrediction, MedicationStock, StockStatusLevel } from '../types/inventory.types';
+import { Injectable } from '@nestjs/common';
+import { DepletionPrediction, MedicationStock, StockStatusLevel } from '../types/inventory.types';
 
+@Injectable()
 export class InventoryEngine {
   public deductIntakeStock(stock: MedicationStock, intakeLogId: string) {
     if (stock.lastDoseDeductionId === intakeLogId) {

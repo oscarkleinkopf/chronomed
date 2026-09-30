@@ -1,5 +1,7 @@
-﻿import { RescheduleProposal } from '../types/schedule.types';
+import { Injectable } from '@nestjs/common';
+import { RescheduleProposal } from '../types/schedule.types';
 
+@Injectable()
 export class DynamicRescheduleEngine {
   public evaluateDoseDelay(
     frequencyHours: number,
