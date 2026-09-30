@@ -14,6 +14,11 @@ void main() {
 
   group('ChronoMed Medicine Cabinet Widget & Accessibility Suite', () {
     testWidgets('Renders MedicineCabinetScreen with summary stats, badges and default Chilean medications', (WidgetTester tester) async {
+      tester.view.physicalSize = const Size(1080, 2400);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
       await tester.pumpWidget(
         const MaterialApp(
           home: MedicineCabinetScreen(),
@@ -39,6 +44,11 @@ void main() {
     });
 
     testWidgets('Tapping on a pill opens the giant photorealistic magnifier dialog', (WidgetTester tester) async {
+      tester.view.physicalSize = const Size(1080, 2400);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
       await tester.pumpWidget(
         const MaterialApp(
           home: MedicineCabinetScreen(),
@@ -54,15 +64,20 @@ void main() {
 
       // Verify that the magnifier dialog opened
       expect(find.textContaining('Lupa:'), findsOneWidget);
-      expect(find.text('CERRAR LUPA'), findsOneWidget);
+      expect(find.text('ENTENDIDO'), findsOneWidget);
 
       // Close dialog
-      await tester.tap(find.text('CERRAR LUPA'));
+      await tester.tap(find.text('ENTENDIDO'));
       await tester.pumpAndSettle();
-      expect(find.text('CERRAR LUPA'), findsNothing);
+      expect(find.text('ENTENDIDO'), findsNothing);
     });
 
     testWidgets('Search input filters medicines dynamically in real-time', (WidgetTester tester) async {
+      tester.view.physicalSize = const Size(1080, 2400);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
       await tester.pumpWidget(
         const MaterialApp(
           home: MedicineCabinetScreen(),
@@ -89,6 +104,11 @@ void main() {
     });
 
     testWidgets('Touch target for stock adjustment buttons satisfies minimum accessible area', (WidgetTester tester) async {
+      tester.view.physicalSize = const Size(1080, 2400);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
       await tester.pumpWidget(
         const MaterialApp(
           home: MedicineCabinetScreen(),
@@ -97,8 +117,11 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      // Find +/- buttons inside cards
-      final addButtons = find.byIcon(Icons.add);
+      // Find +/- buttons inside cards (targeting IconButton)
+      final addButtons = find.ancestor(
+        of: find.byIcon(Icons.add),
+        matching: find.byType(IconButton),
+      );
       expect(addButtons, findsWidgets);
 
       final Size buttonSize = tester.getSize(addButtons.first);
@@ -128,6 +151,11 @@ void main() {
     });
 
     testWidgets('Medicine deletion requires explicit confirmation and supports undo action', (WidgetTester tester) async {
+      tester.view.physicalSize = const Size(1080, 2400);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
       await tester.pumpWidget(
         const MaterialApp(
           home: MedicineCabinetScreen(),

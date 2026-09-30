@@ -76,15 +76,20 @@ VENCE: 12/2028''';
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Row(
-                    children: const [
-                      Icon(Icons.inventory_2_rounded, color: Color(0xFF2563EB), size: 24),
-                      SizedBox(width: 8),
-                      Text(
-                        'Escaneo de Botiquín',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
-                      ),
-                    ],
+                  Expanded(
+                    child: Row(
+                      children: const [
+                        Icon(Icons.inventory_2_rounded, color: Color(0xFF2563EB), size: 24),
+                        SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'Escaneo de Botiquín',
+                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                   IconButton(
                     constraints: const BoxConstraints(minWidth: 48, minHeight: 48),

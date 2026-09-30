@@ -61,7 +61,7 @@ class HomeScreenWidgetService {
     final slots = [
       {'slot': SeniorTimeSlot.morning, 'time': routine.breakfast, 'defaultDrug': 'Levotiroxina 100mcg'},
       {'slot': SeniorTimeSlot.lunch, 'time': routine.lunch, 'defaultDrug': 'Losartán 50mg'},
-      {'slot': SeniorTimeSlot.afternoon, 'time': routine.afternoonSnack, 'defaultDrug': 'Multivitamínico'},
+      {'slot': SeniorTimeSlot.afternoon, 'time': routine.afternoon, 'defaultDrug': 'Multivitamínico'},
       {'slot': SeniorTimeSlot.night, 'time': routine.night, 'defaultDrug': 'Atorvastatina 20mg'},
     ];
 

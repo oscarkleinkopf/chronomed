@@ -95,7 +95,9 @@ class MedicineCabinetCard extends StatelessWidget {
                                   children: [
                                     Icon(Icons.edit_rounded, size: 18, color: Color(0xFF2563EB)),
                                     SizedBox(width: 8),
-                                    Text('Editar datos'),
+                                    Expanded(
+                                      child: Text('Editar datos', overflow: TextOverflow.ellipsis),
+                                    ),
                                   ],
                                 ),
                               ),
@@ -105,7 +107,13 @@ class MedicineCabinetCard extends StatelessWidget {
                                   children: [
                                     Icon(Icons.delete_outline_rounded, size: 18, color: Color(0xFFDC2626)),
                                     SizedBox(width: 8),
-                                    Text('Eliminar del botiquín', style: TextStyle(color: Color(0xFFDC2626))),
+                                    Expanded(
+                                      child: Text(
+                                        'Eliminar del botiquín',
+                                        style: TextStyle(color: Color(0xFFDC2626)),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
                                   ],
                                 ),
                               ),
