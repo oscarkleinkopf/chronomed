@@ -53,5 +53,9 @@ class PrescriptionParserService {
     );
   }
 
-  void dispose() => _textRecognizer.close();
+  void dispose() {
+    try {
+      _textRecognizer.close();
+    } catch (_) {}
+  }
 }

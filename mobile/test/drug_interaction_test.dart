@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:chronomed/features/ocr/services/drug_interaction_service.dart';
 import 'package:chronomed/features/ocr/services/prescription_parser_service.dart';
@@ -10,12 +11,18 @@ void main() {
     late PrescriptionParserService parserService;
 
     setUp(() {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
+        const MethodChannel('google_mlkit_text_recognizer'),
+        (MethodCall methodCall) async => null,
+      );
       interactionService = DrugInteractionService.instance;
       parserService = PrescriptionParserService();
     });
 
     tearDown(() {
-      parserService.dispose();
+      try {
+        parserService.dispose();
+      } catch (_) {}
     });
 
     test('Compatible candidate returns zero clinical conflicts', () {
