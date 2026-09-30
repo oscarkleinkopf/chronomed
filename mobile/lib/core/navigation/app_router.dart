@@ -8,6 +8,7 @@ import '../../features/senior_mode/screens/senior_single_action_screen.dart';
 import '../../features/medicine_cabinet/screens/medicine_cabinet_screen.dart';
 import '../../features/ocr/screens/ocr_scan_history_screen.dart';
 import '../../features/settings/screens/settings_screen.dart';
+import '../../features/manual/screens/user_manual_screen.dart';
 
 class AppRouter {
   static final GoRouter router = GoRouter(
@@ -58,6 +59,11 @@ class AppRouter {
         path: '/settings',
         name: 'settings',
         builder: (context, state) => const SettingsScreen(),
+      ),
+      GoRoute(
+        path: '/manual',
+        name: 'manual',
+        builder: (context, state) => const UserManualScreen(),
       ),
     ],
   );

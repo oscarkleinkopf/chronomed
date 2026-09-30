@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
 import '../../../core/storage/local_storage_service.dart';
 import '../../../core/utils/rut_validator.dart';
 
@@ -716,6 +717,33 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             fontSize: 13,
                             color: textMutedColor,
                           ),
+                        ),
+                        const SizedBox(height: 16),
+                        const Divider(color: borderColor, height: 1),
+                        const SizedBox(height: 8),
+                        ListTile(
+                          contentPadding: EdgeInsets.zero,
+                          leading: const CircleAvatar(
+                            backgroundColor: Color(0xFFEFF6FF),
+                            child: Icon(Icons.menu_book_rounded, color: primaryColor),
+                          ),
+                          title: const Text(
+                            'Manual de Usuario Oficial',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: textDarkColor,
+                            ),
+                          ),
+                          subtitle: const Text(
+                            'Guía interactiva, modo offline y descarga PDF',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: textMutedColor,
+                            ),
+                          ),
+                          trailing: const Icon(Icons.chevron_right_rounded, color: textMutedColor),
+                          onTap: () => context.push('/manual'),
                         ),
                       ],
                     ),

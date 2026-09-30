@@ -28,6 +28,8 @@
    - *[5.5 Protocolo de Escalada y Alerta de Dosis Omitida (45 min)](#55-protocolo-de-escalada-y-alerta-de-dosis-omitida-45-min)*
 6. [Guía de Uso: Modo Cuidador / Estándar](#6-guía-de-uso-modo-cuidador--estándar)
    - *[6.3 Configuración de Horarios de las 4 Comidas (Hogar vs. Hospital / ELEAM)](#63-configuración-de-horarios-de-las-4-comidas-hogar-vs-hospital--eleam)*
+   - *[6.5 Panel de Ajustes, Validación de RUT Chileno y Seguridad de Botiquín](#65-panel-de-ajustes-validación-de-rut-chileno-y-seguridad-de-botiquín-v100)*
+   - *[6.6 Acceso Integrado al Manual de Usuario y Descarga PDF](#66-acceso-integrado-al-manual-de-usuario-y-descarga-pdf)*
 7. [Escaneo OCR On-Device de Recetas Médicas y Alertas Farmacológicas](#7-escaneo-ocr-on-device-de-recetas-médicas-y-alertas-farmacológicas)
 8. [Control Predictivo de Inventario de Farmacia y Fin de Semana](#8-control-predictivo-de-inventario-de-farmacia-y-fin-de-semana)
    - *[8.5 Escaneo OCR de Cajas de Medicamentos y Botiquín (ISP Chile)](#85-escaneo-ocr-de-cajas-de-medicamentos-y-botiquín-isp-chile)*
@@ -447,6 +449,32 @@ Para reemplazar los porcentajes abstractos por un diagnóstico visual instantán
   - ⬜ **Círculo Gris Claro (`0xFFF1F5F9`):** Días futuros aún no transcurridos.
 - **Indicador Destacado del Día Actual:** El día de hoy se resalta con borde azul eléctrico (`#2563EB`) y sombreado luminoso.
 - **Métricas de Cumplimiento Semanal:** Calcula automáticamente el porcentaje de adherencia sobre los días transcurridos y muestra la fracción de dosis tomadas.
+
+### 6.5 Panel de Ajustes, Validación de RUT Chileno y Seguridad de Botiquín (v1.0.0)
+Con la versión 1.0.0, el Modo Cuidador incorpora una consola integral de configuración técnica y clínica accesible mediante el ícono de engranaje (⚙️) en la barra superior (`SettingsScreen` / `/settings`):
+- **Gestión de Ficha del Paciente:**
+  - **Edición de Nombre y RUT:** Permite modificar el nombre de pila y el identificador nacional del paciente.
+  - **Validador Estricto de RUT Chileno (`RutValidator`):** Implementa el algoritmo oficial de Módulo 11 con ponderadores decrecientes (2 a 7). Valida tanto el dígito verificador numérico (`0-9`) como la letra `K` (mayúscula y minúscula), descartando formatos anómalos o cuerpos numéricos fuera del rango 1.000.000 a 99.999.999.
+  - **Autoformateo en Tiempo Real:** Convierte automáticamente entradas desordenadas al estándar nacional con puntos y guión (`XX.XXX.XXX-Y`).
+- **Seguridad del Modo Senior y Protección por PIN:**
+  - **Consulta y Modificación de PIN:** El cuidador puede consultar su código de seguridad de 4 dígitos o cambiarlo ingresando una confirmación de doble coincidencia.
+  - **Prevención de Manipulación:** Impide que el adulto mayor desactive accidentalmente el Modo Senior o modifique pautas farmacológicas sin autorización del familiar.
+- **Acciones Destructivas Seguras:**
+  - **Restablecimiento Total de Datos (`resetAllData`):** Dispone de un diálogo de confirmación irrevocable con advertencia en rojo (`#EF4444`) para purgar la base de datos local y reiniciar la aplicación a su estado de fábrica según el derecho de cancelación de la Ley N° 19.628.
+- **Seguridad en Eliminación de Fármacos con Acción Deshacer:**
+  - Al borrar un medicamento desde el Botiquín (`MedicineCabinetCard`), se despliega una ventana modal de confirmación obligatoria para evitar toques involuntarios.
+  - Al confirmar la eliminación, la aplicación emite un aviso interactivo (`SnackBar`) con el botón **DESHACER**, permitiendo revertir la acción en 4 segundos y recuperar el fármaco y su stock sin pérdida de datos.
+
+### 6.6 Acceso Integrado al Manual de Usuario y Descarga PDF
+Para facilitar la consulta tanto en terreno (consultorios, ELEAM, visitas domiciliarias) como en el hogar, ChronoMed incluye dos modalidades de acceso al Manual de Usuario:
+1. **Visor Interactivo en la Aplicación (`UserManualScreen` / `/manual`):**
+   - Accesible con un toque desde la barra superior del Modo Cuidador (ícono de libro 📖) o desde el menú de Ajustes.
+   - **Búsqueda Dinámica:** Motor de filtrado en tiempo real que permite encontrar instantáneamente instrucciones sobre cualquier concepto (ej. *"RUT"*, *"bloqueo"*, *"hospital"*, *"dosis"*, *"interacciones"*).
+   - **100% Fuera de Línea:** No requiere conexión a internet; todo el manual se encuentra precargado y optimizado en la aplicación.
+   - **Acceso Rápido a SAMU 131:** Botón de auxilio clínico directo para enlazar con urgencias sanitarias.
+2. **Manual de Alta Calidad Gráfica en PDF:**
+   - Documento editorial vectorizado con identidad visual completa, diagramas clínicos, tablas farmacológicas y sellos normativos (Leyes N° 20.584 y 19.628, ISP, WCAG AAA).
+   - Opción directa de **"Compartir PDF"** dentro de la app para remitir la guía a familiares, cuidadores de relevo, enfermeros o médicos tratantes vía WhatsApp o correo electrónico.
 
 ---
 

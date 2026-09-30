@@ -116,6 +116,11 @@ class _CaregiverHomeScreenState extends State<CaregiverHomeScreen> {
             },
           ),
           IconButton(
+            icon: const Icon(Icons.menu_book_rounded, color: Color(0xFF2563EB)),
+            tooltip: 'Manual de Usuario',
+            onPressed: () => context.push('/manual'),
+          ),
+          IconButton(
             icon: const Icon(Icons.settings_rounded, color: Color(0xFF64748B)),
             tooltip: 'Configuración',
             onPressed: () => context.push('/settings'),
