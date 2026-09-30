@@ -329,8 +329,17 @@ class _CaregiverHomeScreenState extends State<CaregiverHomeScreen> {
               child: _buildOutlinedButton(
                 icon: Icons.history_edu_rounded,
                 color: const Color(0xFF0284C7),
-                label: "Historial OCR & Trazabilidad",
+                label: "Historial OCR",
                 onPressed: () => _ocrController.openOcrHistory(context),
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: _buildOutlinedButton(
+                icon: Icons.menu_book_rounded,
+                color: const Color(0xFF2563EB),
+                label: "Manual de Uso",
+                onPressed: () => context.push('/manual'),
               ),
             ),
           ],

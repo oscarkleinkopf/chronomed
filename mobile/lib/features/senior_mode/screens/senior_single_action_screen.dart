@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../../core/services/tts_service.dart';
 import '../../../core/theme/senior_theme.dart';
 import '../../../core/storage/local_storage_service.dart';
@@ -284,17 +285,34 @@ class _SeniorSingleActionScreenState extends State<SeniorSingleActionScreen> {
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('CANCELAR')),
-          ElevatedButton(
-            onPressed: () {
-              if (pinController.text == widget.caregiverPin) {
-                Navigator.pop(ctx);
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Modo Cuidador Desbloqueado')));
-              } else {
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(backgroundColor: Colors.red, content: Text('PIN Incorrecto')));
-              }
-            },
-            child: const Text('ENTRAR'),
+          Row(
+            children: [
+              TextButton.icon(
+                onPressed: () {
+                  Navigator.pop(ctx);
+                  context.push('/manual');
+                },
+                icon: const Icon(Icons.menu_book_rounded, size: 16, color: SeniorTheme.accentYellow),
+                label: const Text('MANUAL', style: TextStyle(color: SeniorTheme.accentYellow, fontWeight: FontWeight.bold, fontSize: 12)),
+              ),
+              const Spacer(),
+              TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('CANCELAR')),
+              ElevatedButton(
+                onPressed: () {
+                  if (pinController.text == widget.caregiverPin) {
+                    Navigator.pop(ctx);
+                    if (Navigator.canPop(context)) {
+                      Navigator.pop(context);
+                    } else {
+                      context.go('/');
+                    }
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(backgroundColor: Colors.red, content: Text('PIN Incorrecto')));
+                  }
+                },
+                child: const Text('ENTRAR'),
+              ),
+            ],
           ),
         ],
       ),
