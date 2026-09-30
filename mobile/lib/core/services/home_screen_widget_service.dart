@@ -67,7 +67,7 @@ class HomeScreenWidgetService {
 
     for (final item in slots) {
       final slot = item['slot'] as SeniorTimeSlot;
-      final timeOfDay = item['time'];
+      final timeOfDay = item['time'] as TimeOfDay;
       final isTaken = LocalStorageService.instance.isSlotTakenToday(slot, referenceDate);
       if (!isTaken) {
         return {

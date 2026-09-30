@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:chronomed/core/storage/local_storage_service.dart';
 import 'package:chronomed/features/medicine_cabinet/screens/medicine_cabinet_screen.dart';
 import 'package:chronomed/features/medicine_cabinet/widgets/medicine_cabinet_card.dart';
+import 'package:chronomed/features/senior_mode/widgets/physical_pill_widget.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -58,8 +59,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Find the first pill widget (Eutirox) and tap it
-      final pillGesture = find.byType(GestureDetector).first;
-      await tester.tap(pillGesture);
+      await tester.tap(find.byType(PhysicalPillWidget).first);
       await tester.pumpAndSettle();
 
       // Verify that the magnifier dialog opened
