@@ -9,6 +9,7 @@ class MedicineCabinetCard extends StatelessWidget {
   final VoidCallback onEdit;
   final VoidCallback onDelete;
   final Function(int) onUpdateStock;
+  final VoidCallback? onPairNfc;
 
   const MedicineCabinetCard({
     super.key,
@@ -16,6 +17,7 @@ class MedicineCabinetCard extends StatelessWidget {
     required this.onEdit,
     required this.onDelete,
     required this.onUpdateStock,
+    this.onPairNfc,
   });
 
   @override
@@ -79,11 +81,13 @@ class MedicineCabinetCard extends StatelessWidget {
                             ),
                           ),
                           // Menú de opciones
-                          PopupMenuButton<String>(
+                            PopupMenuButton<String>(
                             icon: const Icon(Icons.more_vert_rounded, color: Color(0xFF64748B)),
                             onSelected: (value) {
                               if (value == 'edit') {
                                 onEdit();
+                              } else if (value == 'nfc') {
+                                onPairNfc?.call();
                               } else if (value == 'delete') {
                                 _confirmDelete(context);
                               }
@@ -97,6 +101,21 @@ class MedicineCabinetCard extends StatelessWidget {
                                     SizedBox(width: 8),
                                     Expanded(
                                       child: Text('Editar datos', overflow: TextOverflow.ellipsis),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              PopupMenuItem(
+                                value: 'nfc',
+                                child: Row(
+                                  children: [
+                                    const Icon(Icons.nfc_rounded, size: 18, color: Color(0xFF16A34A)),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Text(
+                                        item.hasNfcTag ? 'Gestionar Tag NFC' : 'Vincular Tag NFC',
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
                                     ),
                                   ],
                                 ),
@@ -200,6 +219,62 @@ class MedicineCabinetCard extends StatelessWidget {
                     child: Text(
                       'Lote: ${item.lotNumber}',
                       style: const TextStyle(fontSize: 11, color: Color(0xFF64748B)),
+                    ),
+                  ),
+                if (item.hasNfcTag)
+                  InkWell(
+                    onTap: onPairNfc,
+                    borderRadius: BorderRadius.circular(8),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFDCFCE7),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: const Color(0xFF86EFAC)),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.nfc_rounded, size: 12, color: Color(0xFF16A34A)),
+                          const SizedBox(width: 4),
+                          Text(
+                            'NFC: ${item.nfcTagId}',
+                            style: const TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF166534),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                else
+                  InkWell(
+                    onTap: onPairNfc,
+                    borderRadius: BorderRadius.circular(8),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF8FAFC),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: const Color(0xFFE2E8F0)),
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.nfc_rounded, size: 12, color: Color(0xFF64748B)),
+                          SizedBox(width: 4),
+                          Text(
+                            '+ Tag NFC',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w500,
+                              color: Color(0xFF64748B),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
               ],

@@ -6,6 +6,7 @@ import '../models/medicine_cabinet_item.dart';
 import '../widgets/medicine_cabinet_card.dart';
 import '../widgets/add_edit_medicine_dialog.dart';
 import '../widgets/pharmacy_list_dialog.dart';
+import '../widgets/nfc_pair_dialog.dart';
 
 enum CabinetFilter {
   all,
@@ -214,6 +215,16 @@ class _MedicineCabinetScreenState extends State<MedicineCabinetScreen> {
     }
   }
 
+  Future<void> _openNfcPairDialog(MedicineCabinetItem item) async {
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => NfcPairDialog(medicine: item),
+    );
+    if (result == true) {
+      _loadCabinetData();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final filtered = _filteredItems;
@@ -346,6 +357,7 @@ class _MedicineCabinetScreenState extends State<MedicineCabinetScreen> {
                       onEdit: () => _openAddEditDialog(item),
                       onDelete: () => _deleteItem(item),
                       onUpdateStock: (newUnits) => _updateItemStock(item, newUnits),
+                      onPairNfc: () => _openNfcPairDialog(item),
                     );
                   },
                   childCount: filtered.length,

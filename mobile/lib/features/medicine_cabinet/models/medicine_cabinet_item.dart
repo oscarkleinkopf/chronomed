@@ -16,6 +16,8 @@ class MedicineCabinetItem {
   final String imprint;
   final bool hasScoreLine;
   final String physicalDescription;
+  final String? nfcTagId;
+  final String? nfcPayload;
   final DateTime createdAt;
 
   MedicineCabinetItem({
@@ -33,8 +35,12 @@ class MedicineCabinetItem {
     this.imprint = '',
     this.hasScoreLine = false,
     this.physicalDescription = '',
+    this.nfcTagId,
+    this.nfcPayload,
     DateTime? createdAt,
   }) : createdAt = createdAt ?? DateTime.now();
+
+  bool get hasNfcTag => nfcTagId != null && nfcTagId!.trim().isNotEmpty;
 
   Color get pillColor => Color(pillColorValue);
 
@@ -118,6 +124,9 @@ class MedicineCabinetItem {
     String? imprint,
     bool? hasScoreLine,
     String? physicalDescription,
+    String? nfcTagId,
+    String? nfcPayload,
+    bool clearNfcTag = false,
     DateTime? createdAt,
   }) {
     return MedicineCabinetItem(
@@ -135,6 +144,8 @@ class MedicineCabinetItem {
       imprint: imprint ?? this.imprint,
       hasScoreLine: hasScoreLine ?? this.hasScoreLine,
       physicalDescription: physicalDescription ?? this.physicalDescription,
+      nfcTagId: clearNfcTag ? null : (nfcTagId ?? this.nfcTagId),
+      nfcPayload: clearNfcTag ? null : (nfcPayload ?? this.nfcPayload),
       createdAt: createdAt ?? this.createdAt,
     );
   }
@@ -155,6 +166,8 @@ class MedicineCabinetItem {
       'imprint': imprint,
       'hasScoreLine': hasScoreLine,
       'physicalDescription': physicalDescription,
+      'nfcTagId': nfcTagId,
+      'nfcPayload': nfcPayload,
       'createdAt': createdAt.toIso8601String(),
     };
   }
@@ -183,6 +196,8 @@ class MedicineCabinetItem {
       imprint: json['imprint']?.toString() ?? '',
       hasScoreLine: json['hasScoreLine'] == true,
       physicalDescription: json['physicalDescription']?.toString() ?? '',
+      nfcTagId: json['nfcTagId']?.toString(),
+      nfcPayload: json['nfcPayload']?.toString(),
       createdAt: DateTime.tryParse(json['createdAt']?.toString() ?? '') ?? DateTime.now(),
     );
   }

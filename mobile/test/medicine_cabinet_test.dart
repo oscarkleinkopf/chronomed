@@ -79,6 +79,8 @@ void main() {
         imprint: '850',
         hasScoreLine: true,
         physicalDescription: 'Comprimido oblongo blanco grande ranurado',
+        nfcTagId: '04:A1:B2:C3:D4:E5:F6',
+        nfcPayload: 'chronomed://med/test-item-1',
       );
 
       final json = original.toJson();
@@ -96,6 +98,9 @@ void main() {
       expect(restored.shapeType, equals('oblong'));
       expect(restored.imprint, equals('850'));
       expect(restored.hasScoreLine, isTrue);
+      expect(restored.hasNfcTag, isTrue);
+      expect(restored.nfcTagId, equals('04:A1:B2:C3:D4:E5:F6'));
+      expect(restored.nfcPayload, equals('chronomed://med/test-item-1'));
     });
 
     test('Cabinet CRUD operations synchronize stock units with fast lookup map', () async {
@@ -138,6 +143,7 @@ void main() {
         ispRegister: 'F-9876/15',
         isBioequivalent: false,
         lotNumber: 'CF-11',
+        nfcTagId: '04:88:99:AA:BB:CC:DD',
       );
       await storage.saveCabinetItem(customMed);
       await storage.updateCabinetStock('default-losartan', 99);
@@ -146,6 +152,7 @@ void main() {
       final backupJson = storage.exportBackupJson();
       expect(backupJson, contains('Clorfenamina Maleato'));
       expect(backupJson, contains('F-9876/15'));
+      expect(backupJson, contains('04:88:99:AA:BB:CC:DD'));
       expect(backupJson, contains('"stockUnits":99'));
 
       // Factory reset
@@ -160,6 +167,8 @@ void main() {
       final restoredClorfenamina = storage.getCabinetItem('clorfenamina-1');
       expect(restoredClorfenamina, isNotNull);
       expect(restoredClorfenamina!.ispRegister, equals('F-9876/15'));
+      expect(restoredClorfenamina.hasNfcTag, isTrue);
+      expect(restoredClorfenamina.nfcTagId, equals('04:88:99:AA:BB:CC:DD'));
       expect(storage.getStock('losartan'), equals(99));
     });
   });

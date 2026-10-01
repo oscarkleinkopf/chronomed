@@ -309,6 +309,43 @@ class LocalStorageService {
     await _persistToDisk();
   }
 
+  MedicineCabinetItem? getMedicineByNfcTag(String tagId) {
+    if (tagId.trim().isEmpty) return null;
+    final normalizedTag = tagId.trim().toLowerCase();
+    try {
+      return _cabinetItems.firstWhere(
+        (e) => e.nfcTagId?.trim().toLowerCase() == normalizedTag,
+      );
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<void> linkNfcTagToMedicine({
+    required String medicineId,
+    required String tagId,
+    String? payload,
+  }) async {
+    final index = _cabinetItems.indexWhere((e) => e.id == medicineId);
+    if (index >= 0) {
+      _cabinetItems[index] = _cabinetItems[index].copyWith(
+        nfcTagId: tagId.trim(),
+        nfcPayload: payload ?? 'chronomed://med/$medicineId',
+      );
+      await _persistToDisk();
+    }
+  }
+
+  Future<void> unlinkNfcTagFromMedicine(String medicineId) async {
+    final index = _cabinetItems.indexWhere((e) => e.id == medicineId);
+    if (index >= 0) {
+      _cabinetItems[index] = _cabinetItems[index].copyWith(
+        clearNfcTag: true,
+      );
+      await _persistToDisk();
+    }
+  }
+
   // --- GESTIÓN DE STOCK ---
 
   int getStock(String drugKey, {int fallback = 0}) {

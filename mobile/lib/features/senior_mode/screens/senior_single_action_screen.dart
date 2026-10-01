@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/services/tts_service.dart';
@@ -10,6 +11,7 @@ import '../widgets/physical_pill_widget.dart';
 import '../../../core/services/voice_reminder_service.dart';
 import '../../../core/sync/local_p2p_sync_service.dart';
 import '../../../core/api/api_client.dart';
+import '../../../core/services/nfc_medication_service.dart';
 
 class SeniorSingleActionScreen extends StatefulWidget {
   final String patientName;
@@ -29,6 +31,7 @@ class SeniorSingleActionScreen extends StatefulWidget {
 
 class _SeniorSingleActionScreenState extends State<SeniorSingleActionScreen> {
   late SeniorIntakeItem _currentIntake;
+  StreamSubscription<NfcTagScanResult>? _nfcSubscription;
 
   @override
   void initState() {
@@ -63,6 +66,74 @@ class _SeniorSingleActionScreenState extends State<SeniorSingleActionScreen> {
         fallbackTtsText: _currentIntake.voiceInstruction,
       );
     });
+
+    _nfcSubscription = NfcMedicationService.instance.onTagScanned.listen(_handleNfcScan);
+    NfcMedicationService.instance.startListening(
+      expectedMedicineName: _currentIntake.medicationName,
+    );
+  }
+
+  @override
+  void dispose() {
+    _nfcSubscription?.cancel();
+    NfcMedicationService.instance.stopListening();
+    super.dispose();
+  }
+
+  void _handleNfcScan(NfcTagScanResult scan) {
+    if (!mounted) return;
+
+    if (_currentIntake.isTaken) {
+      TtsService().speak(
+        'Hola ${widget.patientName}. Ya tomaste tu dosis de ${_currentIntake.medicationName}. Bloqueo anti-sobredosis activo.',
+      );
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          backgroundColor: Color(0xFF1E293B),
+          content: Text('⚠️ Dosis ya registrada. Bloqueo anti-sobredosis activo.'),
+        ),
+      );
+      return;
+    }
+
+    if (scan.isSuccess) {
+      _markAsTaken();
+      TtsService().speak(
+        '¡Pastillero detectado con éxito! Dosis de ${_currentIntake.medicationName} confirmada.',
+      );
+    } else if (scan.isWarning) {
+      TtsService().speak(
+        '¡Atención ${widget.patientName}! Ese pastillero es de ${scan.matchedMedicine?.name ?? "otro medicamento"}. Tu dosis actual es ${_currentIntake.medicationName}.',
+      );
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: const Color(0xFFDC2626),
+          duration: const Duration(seconds: 5),
+          content: Row(
+            children: [
+              const Icon(Icons.warning_amber_rounded, color: Colors.white, size: 26),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  '¡Pastillero incorrecto! Pertenece a ${scan.matchedMedicine?.name}. Tu dosis es ${_currentIntake.medicationName}.',
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    } else if (scan.isUnregistered) {
+      TtsService().speak(
+        'Tag NFC no reconocido. Por favor avisa a tu cuidador para vincularlo en el botiquín.',
+      );
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          backgroundColor: Color(0xFF475569),
+          content: Text('Tag NFC no vinculado a este botiquín.'),
+        ),
+      );
+    }
   }
 
   void _markAsTaken() {
@@ -267,6 +338,35 @@ class _SeniorSingleActionScreenState extends State<SeniorSingleActionScreen> {
                 nextDoseTime: _currentIntake.nextDoseTime ?? '20:30',
                 onConfirm: _markAsTaken,
               ),
+              if (!_currentIntake.isTaken) ...[
+                const SizedBox(height: 10),
+                Semantics(
+                  label: 'También puedes confirmar acercando tu pastillero con tag NFC al teléfono.',
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF1E293B),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: Colors.white12),
+                    ),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.nfc_rounded, color: SeniorTheme.accentYellow, size: 18),
+                        SizedBox(width: 8),
+                        Text(
+                          '📡 O acerca tu pastillero NFC al teléfono',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white70,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
               const SizedBox(height: 12),
             ],
           ),
