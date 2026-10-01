@@ -12,6 +12,7 @@ import '../../../core/services/voice_reminder_service.dart';
 import '../../../core/sync/local_p2p_sync_service.dart';
 import '../../../core/api/api_client.dart';
 import '../../../core/services/nfc_medication_service.dart';
+import '../../vital_signs/widgets/record_vital_signs_dialog.dart';
 
 class SeniorSingleActionScreen extends StatefulWidget {
   final String patientName;
@@ -363,6 +364,39 @@ class _SeniorSingleActionScreenState extends State<SeniorSingleActionScreen> {
                           ),
                         ),
                       ],
+                    ),
+                  ),
+                ),
+              ] else ...[
+                const SizedBox(height: 14),
+                Semantics(
+                  button: true,
+                  label: 'Registrar signos vitales, como presión arterial o glicemia',
+                  child: InkWell(
+                    onTap: () => RecordVitalSignsDialog.show(context),
+                    borderRadius: BorderRadius.circular(16),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF1E293B),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: const Color(0xFF3B82F6)),
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.monitor_heart_rounded, color: Color(0xFF60A5FA), size: 22),
+                          SizedBox(width: 10),
+                          Text(
+                            '🩺 Registrar Presión / Glicemia',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),

@@ -7,6 +7,7 @@ import '../../features/senior_mode/models/senior_intake_item.dart';
 import '../../features/medicine_cabinet/models/medicine_cabinet_item.dart';
 import '../../features/ocr/models/medicine_box_scan_result.dart';
 import '../../features/patients/models/patient_profile.dart';
+import '../../features/vital_signs/models/vital_sign_entry.dart';
 
 class LocalStorageService {
   static final LocalStorageService instance = LocalStorageService._internal();
@@ -132,6 +133,14 @@ class LocalStorageService {
     } catch (_) {
       return _patients.first;
     }
+  }
+
+  List<VitalSignEntry> get vitalSigns => activePatient.vitalSigns;
+
+  VitalSignEntry? get latestVitalSign {
+    final list = activePatient.vitalSigns;
+    if (list.isEmpty) return null;
+    return list.first;
   }
 
   PatientProfile _createDefaultPatient() {
@@ -668,6 +677,33 @@ class LocalStorageService {
     if (caregiverHost != null) _caregiverHost = caregiverHost.trim();
     if (p2pPort != null) _p2pPort = p2pPort;
     if (p2pSecret != null) _p2pSecret = p2pSecret.trim();
+    await _persistToDisk();
+  }
+
+  // --- GESTIÓN DE SIGNOS VITALES (MINSAL / AHA) ---
+
+  Future<void> recordVitalSign(VitalSignEntry entry) async {
+    final p = activePatient;
+    final updatedSigns = [entry, ...p.vitalSigns];
+    updatedSigns.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+    final updated = p.copyWith(vitalSigns: updatedSigns);
+    final idx = _patients.indexWhere((item) => item.id == p.id);
+    if (idx >= 0) {
+      _patients[idx] = updated;
+    } else {
+      _patients.add(updated);
+    }
+    await _persistToDisk();
+  }
+
+  Future<void> deleteVitalSign(String id) async {
+    final p = activePatient;
+    final updatedSigns = p.vitalSigns.where((item) => item.id != id).toList();
+    final updated = p.copyWith(vitalSigns: updatedSigns);
+    final idx = _patients.indexWhere((item) => item.id == p.id);
+    if (idx >= 0) {
+      _patients[idx] = updated;
+    }
     await _persistToDisk();
   }
 

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../medicine_cabinet/models/medicine_cabinet_item.dart';
 import '../../schedule/models/circadian_routine.dart';
+import '../../vital_signs/models/vital_sign_entry.dart';
 
 /// Perfil clínico individual de un paciente / adulto mayor.
 class PatientProfile {
@@ -14,6 +15,7 @@ class PatientProfile {
   final CircadianRoutine routine;
   final List<Map<String, dynamic>> intakes;
   final Map<String, String> voiceNotes;
+  final List<VitalSignEntry> vitalSigns;
   final DateTime createdAt;
 
   PatientProfile({
@@ -27,12 +29,14 @@ class PatientProfile {
     CircadianRoutine? routine,
     List<Map<String, dynamic>>? intakes,
     Map<String, String>? voiceNotes,
+    List<VitalSignEntry>? vitalSigns,
     DateTime? createdAt,
   })  : stocks = stocks != null ? Map<String, int>.from(stocks) : _defaultStocks(),
         cabinetItems = cabinetItems != null ? List<MedicineCabinetItem>.from(cabinetItems) : _defaultCabinetItems(),
         routine = routine ?? CircadianRoutine.home,
         intakes = intakes != null ? List<Map<String, dynamic>>.from(intakes) : [],
         voiceNotes = voiceNotes != null ? Map<String, String>.from(voiceNotes) : {},
+        vitalSigns = vitalSigns != null ? List<VitalSignEntry>.from(vitalSigns) : [],
         createdAt = createdAt ?? DateTime.now();
 
   Color get avatarColor => Color(avatarColorValue);
@@ -102,6 +106,7 @@ class PatientProfile {
     CircadianRoutine? routine,
     List<Map<String, dynamic>>? intakes,
     Map<String, String>? voiceNotes,
+    List<VitalSignEntry>? vitalSigns,
     DateTime? createdAt,
   }) {
     return PatientProfile(
@@ -115,6 +120,7 @@ class PatientProfile {
       routine: routine ?? this.routine,
       intakes: intakes ?? this.intakes,
       voiceNotes: voiceNotes ?? this.voiceNotes,
+      vitalSigns: vitalSigns ?? this.vitalSigns,
       createdAt: createdAt ?? this.createdAt,
     );
   }
@@ -131,6 +137,7 @@ class PatientProfile {
       'routine': routine.toJson(),
       'intakes': intakes,
       'voiceNotes': voiceNotes,
+      'vitalSigns': vitalSigns.map((e) => e.toJson()).toList(),
       'createdAt': createdAt.toIso8601String(),
     };
   }
@@ -170,6 +177,13 @@ class PatientProfile {
       });
     }
 
+    List<VitalSignEntry> loadedVitals = [];
+    if (json['vitalSigns'] != null && json['vitalSigns'] is List) {
+      loadedVitals = (json['vitalSigns'] as List)
+          .map((e) => VitalSignEntry.fromJson(Map<String, dynamic>.from(e as Map)))
+          .toList();
+    }
+
     return PatientProfile(
       id: json['id']?.toString() ?? 'patient-${DateTime.now().millisecondsSinceEpoch}',
       name: json['name']?.toString() ?? 'Marcela',
@@ -181,6 +195,7 @@ class PatientProfile {
       routine: loadedRoutine,
       intakes: loadedIntakes,
       voiceNotes: loadedVoices,
+      vitalSigns: loadedVitals,
       createdAt: DateTime.tryParse(json['createdAt']?.toString() ?? '') ?? DateTime.now(),
     );
   }

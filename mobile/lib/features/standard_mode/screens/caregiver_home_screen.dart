@@ -20,6 +20,8 @@ import '../widgets/circadian_routine_card.dart';
 import '../widgets/escalation_alert_banner.dart';
 import '../widgets/active_medication_card.dart';
 import '../../patients/widgets/patient_switch_sheet.dart';
+import '../../vital_signs/widgets/vital_signs_card.dart';
+import '../../vital_signs/widgets/record_vital_signs_dialog.dart';
 
 class CaregiverHomeScreen extends StatefulWidget {
   const CaregiverHomeScreen({super.key});
@@ -164,6 +166,11 @@ class _CaregiverHomeScreenState extends State<CaregiverHomeScreen> {
               fastingTime: fastingTime,
               onUpdateRoutine: (r) => _circadianController.updateRoutine(context, r),
               onShowCustomRoutineDialog: () => _circadianController.showCustomRoutineDialog(context),
+            ),
+            const SizedBox(height: 16),
+
+            VitalSignsCard(
+              onUpdated: () => setState(() {}),
             ),
             const SizedBox(height: 20),
 
@@ -353,19 +360,22 @@ class _CaregiverHomeScreenState extends State<CaregiverHomeScreen> {
           children: [
             Expanded(
               child: _buildOutlinedButton(
-                icon: Icons.history_edu_rounded,
-                color: const Color(0xFF0284C7),
-                label: "Historial OCR",
-                onPressed: () => _ocrController.openOcrHistory(context),
+                icon: Icons.monitor_heart_rounded,
+                color: const Color(0xFFDC2626),
+                label: "Signos Vitales",
+                onPressed: () async {
+                  final saved = await RecordVitalSignsDialog.show(context);
+                  if (saved == true) setState(() {});
+                },
               ),
             ),
             const SizedBox(width: 10),
             Expanded(
               child: _buildOutlinedButton(
-                icon: Icons.menu_book_rounded,
-                color: const Color(0xFF2563EB),
-                label: "Manual de Uso",
-                onPressed: () => context.push('/manual'),
+                icon: Icons.history_edu_rounded,
+                color: const Color(0xFF0284C7),
+                label: "Historial OCR",
+                onPressed: () => _ocrController.openOcrHistory(context),
               ),
             ),
           ],
