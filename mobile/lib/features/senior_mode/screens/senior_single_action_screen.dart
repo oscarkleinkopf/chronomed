@@ -9,6 +9,7 @@ import '../widgets/overdose_guard_button.dart';
 import '../widgets/physical_pill_widget.dart';
 import '../../../core/services/voice_reminder_service.dart';
 import '../../../core/sync/local_p2p_sync_service.dart';
+import '../../../core/api/api_client.dart';
 
 class SeniorSingleActionScreen extends StatefulWidget {
   final String patientName;
@@ -110,6 +111,19 @@ class _SeniorSingleActionScreenState extends State<SeniorSingleActionScreen> {
         caregiverHost: caregiverHost,
         port: LocalStorageService.instance.p2pPort,
       );
+    }
+
+    // Sincronización en la Nube (si está habilitada en Configuración)
+    if (LocalStorageService.instance.cloudBackupEnabled) {
+      final cloudPayload = LocalP2pSyncService.instance.createSignedPayload(
+        intakeId: _currentIntake.id,
+        patientRut: LocalStorageService.instance.patientRut,
+        medicationName: _currentIntake.medicationName,
+        dosage: _currentIntake.dosage,
+        timeSlot: _currentIntake.timeSlot,
+        timestamp: timestamp,
+      );
+      ApiClient.instance.syncSingleIntake(cloudPayload);
     }
 
     // Refuerzo positivo y celebratorio (accesibilidad cognitiva)

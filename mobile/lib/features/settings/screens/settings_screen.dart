@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/storage/local_storage_service.dart';
 import '../../../core/utils/rut_validator.dart';
+import '../../../core/api/api_client.dart';
 
 /// Pantalla de configuración general de ChronoMed.
 /// Permite gestionar los datos del paciente, PIN de acceso del cuidador,
@@ -19,10 +20,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
   late TextEditingController _nameController;
   late TextEditingController _rutController;
   late TextEditingController _pinController;
+  late TextEditingController _cloudServerUrlController;
+  late TextEditingController _cloudApiKeyController;
 
   bool _obscurePin = true;
   bool _isSavingPatient = false;
   bool _isResetting = false;
+  late bool _cloudBackupEnabled;
+  bool _isSavingCloud = false;
+  bool _isTestingCloud = false;
+  bool _isSyncingCloud = false;
+  String? _cloudConnectionStatus;
+  bool? _cloudConnectionSuccess;
 
   @override
   void initState() {
@@ -31,6 +40,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _nameController = TextEditingController(text: storage.patientName);
     _rutController = TextEditingController(text: storage.patientRut);
     _pinController = TextEditingController(text: storage.caregiverPin);
+    _cloudBackupEnabled = storage.cloudBackupEnabled;
+    _cloudServerUrlController = TextEditingController(text: storage.cloudServerUrl);
+    _cloudApiKeyController = TextEditingController(text: storage.cloudApiKey ?? '');
   }
 
   @override
@@ -38,6 +50,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _nameController.dispose();
     _rutController.dispose();
     _pinController.dispose();
+    _cloudServerUrlController.dispose();
+    _cloudApiKeyController.dispose();
     super.dispose();
   }
 
@@ -72,6 +86,89 @@ class _SettingsScreenState extends State<SettingsScreen> {
       if (mounted) {
         setState(() => _isSavingPatient = false);
       }
+    }
+  }
+
+  Future<void> _saveCloudConfig() async {
+    setState(() => _isSavingCloud = true);
+    try {
+      await LocalStorageService.instance.setCloudConfig(
+        enabled: _cloudBackupEnabled,
+        serverUrl: _cloudServerUrlController.text.trim(),
+        apiKey: _cloudApiKeyController.text.trim(),
+      );
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Configuración de respaldo en la nube guardada.'),
+          backgroundColor: Color(0xFF16A34A),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error al guardar configuración: $e'),
+          backgroundColor: const Color(0xFFDC2626),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _isSavingCloud = false);
+    }
+  }
+
+  Future<void> _testCloudConnection() async {
+    setState(() {
+      _isTestingCloud = true;
+      _cloudConnectionStatus = null;
+      _cloudConnectionSuccess = null;
+    });
+
+    final url = _cloudServerUrlController.text.trim();
+    final isOnline = await ApiClient.instance.testConnection(customUrl: url);
+
+    if (!mounted) return;
+    setState(() {
+      _isTestingCloud = false;
+      _cloudConnectionSuccess = isOnline;
+      _cloudConnectionStatus = isOnline
+          ? 'Servidor en línea y alcanzable'
+          : 'No se pudo conectar al servidor';
+    });
+  }
+
+  Future<void> _syncCloudNow() async {
+    setState(() => _isSyncingCloud = true);
+    // Guardar primero la configuración actual en storage
+    await LocalStorageService.instance.setCloudConfig(
+      enabled: _cloudBackupEnabled,
+      serverUrl: _cloudServerUrlController.text.trim(),
+      apiKey: _cloudApiKeyController.text.trim(),
+    );
+
+    final success = await ApiClient.instance.pushFullSync();
+
+    if (!mounted) return;
+    setState(() => _isSyncingCloud = false);
+
+    if (success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('¡Sincronización en la nube completada exitosamente!'),
+          backgroundColor: Color(0xFF16A34A),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No se pudo sincronizar. Comprueba la URL y que el backend esté activo.'),
+          backgroundColor: Color(0xFFDC2626),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
     }
   }
 
@@ -584,9 +681,265 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ],
               ),
             ),
+             const SizedBox(height: 20),
+
+            // 3. SECCIÓN: RESPALDO EN LA NUBE (CLOUD SYNC)
+            Card(
+              elevation: 0,
+              color: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+                side: const BorderSide(color: borderColor),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const ListTile(
+                    leading: CircleAvatar(
+                      backgroundColor: Color(0xFFEFF6FF),
+                      child: Icon(Icons.cloud_sync_rounded, color: primaryColor),
+                    ),
+                    title: Text(
+                      'Respaldo en la Nube',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: textDarkColor,
+                      ),
+                    ),
+                    subtitle: Text(
+                      'Sincronización segura opcional (Leyes N° 20.584 y 19.628)',
+                      style: TextStyle(fontSize: 12, color: textMutedColor),
+                    ),
+                  ),
+                  const Divider(color: borderColor, height: 1),
+                  SwitchListTile(
+                    value: _cloudBackupEnabled,
+                    onChanged: (val) {
+                      setState(() => _cloudBackupEnabled = val);
+                      LocalStorageService.instance.setCloudConfig(enabled: val);
+                    },
+                    activeColor: primaryColor,
+                    title: const Text(
+                      'Habilitar Respaldo en la Nube',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: textDarkColor,
+                      ),
+                    ),
+                    subtitle: const Text(
+                      'Permite a cuidadores remotos acceder al estado del paciente',
+                      style: TextStyle(fontSize: 12, color: textMutedColor),
+                    ),
+                  ),
+                  if (_cloudBackupEnabled) ...[
+                    const Divider(color: borderColor, height: 1),
+                    Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          TextFormField(
+                            controller: _cloudServerUrlController,
+                            keyboardType: TextInputType.url,
+                            decoration: InputDecoration(
+                              labelText: 'URL del Servidor Backend',
+                              hintText: 'http://localhost:3000/api/v1',
+                              prefixIcon: const Icon(Icons.dns_rounded, color: primaryColor),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: const BorderSide(color: borderColor),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: const BorderSide(color: borderColor),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: const BorderSide(color: primaryColor, width: 2),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 14),
+                          TextFormField(
+                            controller: _cloudApiKeyController,
+                            decoration: InputDecoration(
+                              labelText: 'Token de Autenticación (Opcional)',
+                              hintText: 'Bearer token o clave de cuidador',
+                              prefixIcon: const Icon(Icons.key_rounded, color: primaryColor),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: const BorderSide(color: borderColor),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: const BorderSide(color: borderColor),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: const BorderSide(color: primaryColor, width: 2),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 14),
+                          // Estado de Conexión y Última Sincronización
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF8FAFC),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: borderColor),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Icon(
+                                      _cloudConnectionSuccess == true
+                                          ? Icons.check_circle_rounded
+                                          : (_cloudConnectionSuccess == false
+                                              ? Icons.error_rounded
+                                              : Icons.cloud_queue_rounded),
+                                      size: 16,
+                                      color: _cloudConnectionSuccess == true
+                                          ? const Color(0xFF16A34A)
+                                          : (_cloudConnectionSuccess == false
+                                              ? const Color(0xFFDC2626)
+                                              : textMutedColor),
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Expanded(
+                                      child: Text(
+                                        _cloudConnectionStatus ?? 'Estado de conexión no comprobado',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w600,
+                                          color: _cloudConnectionSuccess == true
+                                              ? const Color(0xFF16A34A)
+                                              : (_cloudConnectionSuccess == false
+                                                  ? const Color(0xFFDC2626)
+                                                  : textDarkColor),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  LocalStorageService.instance.lastCloudSync != null
+                                      ? 'Última sincronización: ${LocalStorageService.instance.lastCloudSync!.toLocal().toString().substring(0, 16)}'
+                                      : 'Última sincronización: Nunca sincronizado',
+                                  style: const TextStyle(fontSize: 11, color: textMutedColor),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 14),
+                          // Botones de acción
+                          Row(
+                            children: [
+                              Expanded(
+                                child: OutlinedButton.icon(
+                                  onPressed: _isTestingCloud ? null : _testCloudConnection,
+                                  icon: _isTestingCloud
+                                      ? const SizedBox(
+                                          width: 14,
+                                          height: 14,
+                                          child: CircularProgressIndicator(strokeWidth: 2),
+                                        )
+                                      : const Icon(Icons.network_check_rounded, size: 16),
+                                  label: Text(_isTestingCloud ? 'Probando...' : 'Probar Conexión'),
+                                  style: OutlinedButton.styleFrom(
+                                    foregroundColor: primaryColor,
+                                    side: const BorderSide(color: primaryColor),
+                                    padding: const EdgeInsets.symmetric(vertical: 12),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: ElevatedButton.icon(
+                                  onPressed: _isSyncingCloud ? null : _syncCloudNow,
+                                  icon: _isSyncingCloud
+                                      ? const SizedBox(
+                                          width: 14,
+                                          height: 14,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                          ),
+                                        )
+                                      : const Icon(Icons.sync_rounded, size: 16),
+                                  label: Text(_isSyncingCloud ? 'Sincronizando...' : 'Sincronizar'),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: primaryColor,
+                                    foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(vertical: 12),
+                                    elevation: 0,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          OutlinedButton.icon(
+                            onPressed: _isSavingCloud ? null : _saveCloudConfig,
+                            icon: const Icon(Icons.save_rounded, size: 16),
+                            label: const Text('Guardar Configuración Cloud'),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: const Color(0xFF0F172A),
+                              side: const BorderSide(color: borderColor),
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          // Badge normativo Ley 20.584 y 19.628
+                          Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF0FDF4),
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(color: const Color(0xFFBBF7D0)),
+                            ),
+                            child: const Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Icon(Icons.security_rounded, size: 18, color: Color(0xFF16A34A)),
+                                SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    'Cumplimiento Leyes N° 20.584 y 19.628: Cifrado AES-256-GCM en reposo y Blind Index HMAC-SHA256 para RUT.',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: Color(0xFF166534),
+                                      height: 1.3,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
             const SizedBox(height: 20),
 
-            // 3. SECCIÓN: DATOS
+            // 4. SECCIÓN: DATOS
             Card(
               elevation: 0,
               color: Colors.white,

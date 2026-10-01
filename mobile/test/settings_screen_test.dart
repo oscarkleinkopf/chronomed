@@ -34,15 +34,19 @@ void main() {
       expect(find.text('PIN de Cuidador actual'), findsOneWidget);
       expect(find.text('Cambiar PIN'), findsOneWidget);
 
+      // Section 3: Respaldo en la Nube
+      expect(find.text('Respaldo en la Nube'), findsOneWidget);
+      expect(find.text('Habilitar Respaldo en la Nube'), findsOneWidget);
+
       // Scroll down to view lower sections
-      await tester.drag(find.byType(ListView), const Offset(0, -400));
+      await tester.drag(find.byType(ListView), const Offset(0, -600));
       await tester.pumpAndSettle();
 
-      // Section 3: Datos
+      // Section 4: Datos
       expect(find.text('Datos'), findsOneWidget);
       expect(find.text('Restablecer todos los datos'), findsOneWidget);
 
-      // Section 4: Acerca de
+      // Section 5: Acerca de
       expect(find.text('ChronoMed v1.0.0'), findsOneWidget);
       expect(find.text('Adherencia medicamentosa para adultos mayores'), findsOneWidget);
     });
@@ -120,7 +124,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Scroll down and find the reset button
-      await tester.drag(find.byType(ListView), const Offset(0, -300));
+      await tester.drag(find.byType(ListView), const Offset(0, -600));
       await tester.pumpAndSettle();
 
       final resetBtn = find.text('Restablecer todos los datos');
@@ -137,6 +141,31 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('¿Restablecer todos los datos?'), findsNothing);
+    });
+
+    testWidgets('Toggles cloud backup switch and reveals configuration form', (WidgetTester tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: SettingsScreen(),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Cloud switch is initially rendered
+      final switchFinder = find.widgetWithText(SwitchListTile, 'Habilitar Respaldo en la Nube');
+      expect(switchFinder, findsOneWidget);
+      expect(find.text('URL del Servidor Backend'), findsNothing);
+
+      // Toggle switch to ON
+      await tester.tap(switchFinder);
+      await tester.pumpAndSettle();
+
+      // Verify that cloud configuration fields and buttons appear
+      expect(find.text('URL del Servidor Backend'), findsOneWidget);
+      expect(find.text('Probar Conexión'), findsOneWidget);
+      expect(find.text('Sincronizar'), findsOneWidget);
+      expect(find.text('Guardar Configuración Cloud'), findsOneWidget);
+      expect(LocalStorageService.instance.cloudBackupEnabled, isTrue);
     });
   });
 }

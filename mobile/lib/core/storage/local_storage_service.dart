@@ -91,6 +91,10 @@ class LocalStorageService {
   String? _caregiverHost;
   int _p2pPort = 8844;
   String _p2pSecret = 'chronomed_p2p_local_secret_2026';
+  bool _cloudBackupEnabled = false;
+  String _cloudServerUrl = 'http://localhost:3000/api/v1';
+  String? _cloudApiKey;
+  DateTime? _lastCloudSync;
 
   bool get isInitialized => _initialized;
   String get caregiverPin => _caregiverPin;
@@ -99,6 +103,10 @@ class LocalStorageService {
   String? get caregiverHost => _caregiverHost;
   int get p2pPort => _p2pPort;
   String get p2pSecret => _p2pSecret;
+  bool get cloudBackupEnabled => _cloudBackupEnabled;
+  String get cloudServerUrl => _cloudServerUrl;
+  String? get cloudApiKey => _cloudApiKey;
+  DateTime? get lastCloudSync => _lastCloudSync;
   List<Map<String, dynamic>> get allIntakes => List.unmodifiable(_intakes);
 
   /// Inicializa el servicio de almacenamiento local.
@@ -195,6 +203,22 @@ class LocalStorageService {
       if (data['p2pSecret'] != null) {
         _p2pSecret = data['p2pSecret'].toString();
       }
+
+      if (data['cloudBackupEnabled'] != null) {
+        _cloudBackupEnabled = data['cloudBackupEnabled'] == true;
+      }
+
+      if (data['cloudServerUrl'] != null) {
+        _cloudServerUrl = data['cloudServerUrl'].toString();
+      }
+
+      if (data['cloudApiKey'] != null) {
+        _cloudApiKey = data['cloudApiKey'].toString();
+      }
+
+      if (data['lastCloudSync'] != null) {
+        _lastCloudSync = DateTime.tryParse(data['lastCloudSync'].toString());
+      }
     } catch (e) {
       debugPrint('ChronoMed LocalStorage: Error al decodificar JSON guardado: $e');
     }
@@ -227,6 +251,10 @@ class LocalStorageService {
         'caregiverHost': _caregiverHost,
         'p2pPort': _p2pPort,
         'p2pSecret': _p2pSecret,
+        'cloudBackupEnabled': _cloudBackupEnabled,
+        'cloudServerUrl': _cloudServerUrl,
+        'cloudApiKey': _cloudApiKey,
+        'lastCloudSync': _lastCloudSync?.toIso8601String(),
       };
 
       final jsonString = jsonEncode(jsonMap);
@@ -486,12 +514,40 @@ class LocalStorageService {
       'caregiverHost': _caregiverHost,
       'p2pPort': _p2pPort,
       'p2pSecret': _p2pSecret,
+      'cloudBackupEnabled': _cloudBackupEnabled,
+      'cloudServerUrl': _cloudServerUrl,
+      'cloudApiKey': _cloudApiKey,
+      'lastCloudSync': _lastCloudSync?.toIso8601String(),
     };
     return jsonEncode(backup);
   }
 
   Future<void> importBackupJson(String jsonContent) async {
     _parseAndLoadJson(jsonContent);
+    await _persistToDisk();
+  }
+
+  Future<void> setCloudConfig({
+    required bool enabled,
+    String? serverUrl,
+    String? apiKey,
+    DateTime? lastSync,
+  }) async {
+    _cloudBackupEnabled = enabled;
+    if (serverUrl != null && serverUrl.trim().isNotEmpty) {
+      _cloudServerUrl = serverUrl.trim();
+    }
+    if (apiKey != null) {
+      _cloudApiKey = apiKey.trim().isEmpty ? null : apiKey.trim();
+    }
+    if (lastSync != null) {
+      _lastCloudSync = lastSync;
+    }
+    await _persistToDisk();
+  }
+
+  Future<void> recordCloudSyncTimestamp(DateTime timestamp) async {
+    _lastCloudSync = timestamp;
     await _persistToDisk();
   }
 
@@ -512,6 +568,10 @@ class LocalStorageService {
     _caregiverHost = null;
     _p2pPort = 8844;
     _p2pSecret = 'chronomed_p2p_local_secret_2026';
+    _cloudBackupEnabled = false;
+    _cloudServerUrl = 'http://localhost:3000/api/v1';
+    _cloudApiKey = null;
+    _lastCloudSync = null;
 
     await _persistToDisk();
   }

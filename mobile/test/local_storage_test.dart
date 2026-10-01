@@ -147,5 +147,47 @@ void main() {
       expect(storage.allIntakes.length, equals(1));
       expect(storage.allIntakes.first['intakeId'], equals('intake-test-export'));
     });
+
+    test('Cloud Backup: persists server configuration, credentials and last sync timestamp', () async {
+      // Default state
+      expect(storage.cloudBackupEnabled, isFalse);
+      expect(storage.cloudServerUrl, equals('http://localhost:3000/api/v1'));
+      expect(storage.cloudApiKey, isNull);
+      expect(storage.lastCloudSync, isNull);
+
+      // Mutate cloud configuration
+      await storage.setCloudConfig(
+        enabled: true,
+        serverUrl: 'https://cloud.chronomed.cl/api/v1',
+        apiKey: 'token-secret-12345',
+      );
+      expect(storage.cloudBackupEnabled, isTrue);
+      expect(storage.cloudServerUrl, equals('https://cloud.chronomed.cl/api/v1'));
+      expect(storage.cloudApiKey, equals('token-secret-12345'));
+
+      final syncTime = DateTime(2026, 10, 1, 15, 30);
+      await storage.recordCloudSyncTimestamp(syncTime);
+      expect(storage.lastCloudSync, equals(syncTime));
+
+      // Test inclusion in backup JSON
+      final backupJson = storage.exportBackupJson();
+      expect(backupJson, contains('"cloudBackupEnabled":true'));
+      expect(backupJson, contains('"cloudServerUrl":"https://cloud.chronomed.cl/api/v1"'));
+      expect(backupJson, contains('"cloudApiKey":"token-secret-12345"'));
+
+      // Reset
+      await storage.resetAllData();
+      expect(storage.cloudBackupEnabled, isFalse);
+      expect(storage.cloudServerUrl, equals('http://localhost:3000/api/v1'));
+      expect(storage.cloudApiKey, isNull);
+      expect(storage.lastCloudSync, isNull);
+
+      // Restore
+      await storage.importBackupJson(backupJson);
+      expect(storage.cloudBackupEnabled, isTrue);
+      expect(storage.cloudServerUrl, equals('https://cloud.chronomed.cl/api/v1'));
+      expect(storage.cloudApiKey, equals('token-secret-12345'));
+      expect(storage.lastCloudSync, equals(syncTime));
+    });
   });
 }
