@@ -19,6 +19,7 @@ import '../controllers/caregiver_ocr_controller.dart';
 import '../widgets/circadian_routine_card.dart';
 import '../widgets/escalation_alert_banner.dart';
 import '../widgets/active_medication_card.dart';
+import '../../patients/widgets/patient_switch_sheet.dart';
 
 class CaregiverHomeScreen extends StatefulWidget {
   const CaregiverHomeScreen({super.key});
@@ -57,6 +58,15 @@ class _CaregiverHomeScreenState extends State<CaregiverHomeScreen> {
   void _loadData() {
     _circadianController.loadRoutine();
     _ocrController.loadStock();
+  }
+
+  Future<void> _openPatientSwitchSheet() async {
+    final changed = await PatientSwitchSheet.show(context);
+    if (changed == true && mounted) {
+      setState(() {
+        _loadData();
+      });
+    }
   }
 
   @override
@@ -189,21 +199,37 @@ class _CaregiverHomeScreenState extends State<CaregiverHomeScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  const CircleAvatar(
-                    backgroundColor: Colors.white24,
-                    child: Icon(Icons.person, color: Colors.white),
-                  ),
-                  const SizedBox(width: 12),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+              InkWell(
+                onTap: _openPatientSwitchSheet,
+                borderRadius: BorderRadius.circular(12),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
+                  child: Row(
                     children: [
-                      Text(_patientName, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
-                      Text("RUT: ${LocalStorageService.instance.patientRut}", style: const TextStyle(fontSize: 12, color: Colors.white70)),
+                      CircleAvatar(
+                        backgroundColor: Color(LocalStorageService.instance.activePatient.avatarColorValue),
+                        child: Text(
+                          _patientName.isNotEmpty ? _patientName[0].toUpperCase() : 'P',
+                          style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Text(_patientName, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
+                              const SizedBox(width: 4),
+                              const Icon(Icons.arrow_drop_down_rounded, color: Colors.white, size: 24),
+                            ],
+                          ),
+                          Text("RUT: ${LocalStorageService.instance.patientRut}", style: const TextStyle(fontSize: 12, color: Colors.white70)),
+                        ],
+                      ),
                     ],
                   ),
-                ],
+                ),
               ),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),

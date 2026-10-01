@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/storage/local_storage_service.dart';
 import '../../../core/utils/rut_validator.dart';
 import '../../../core/api/api_client.dart';
+import '../../patients/widgets/patient_switch_sheet.dart';
 
 /// Pantalla de configuración general de ChronoMed.
 /// Permite gestionar los datos del paciente, PIN de acceso del cuidador,
@@ -86,6 +87,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
       if (mounted) {
         setState(() => _isSavingPatient = false);
       }
+    }
+  }
+
+  Future<void> _managePatients() async {
+    final changed = await PatientSwitchSheet.show(context);
+    if (changed == true && mounted) {
+      setState(() {
+        _nameController.text = LocalStorageService.instance.patientName;
+        _rutController.text = LocalStorageService.instance.patientRut;
+      });
     }
   }
 
@@ -481,12 +492,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const ListTile(
-                    leading: CircleAvatar(
+                  ListTile(
+                    leading: const CircleAvatar(
                       backgroundColor: Color(0xFFEFF6FF),
                       child: Icon(Icons.person_outline_rounded, color: primaryColor),
                     ),
-                    title: Text(
+                    title: const Text(
                       'Datos del Paciente',
                       style: TextStyle(
                         fontSize: 16,
@@ -495,8 +506,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ),
                     ),
                     subtitle: Text(
-                      'Información personal para reportes e identificación',
-                      style: TextStyle(fontSize: 12, color: textMutedColor),
+                      'Gestionando a ${LocalStorageService.instance.patientName} (${LocalStorageService.instance.patients.length} registrado(s))',
+                      style: const TextStyle(fontSize: 12, color: textMutedColor),
+                    ),
+                    trailing: TextButton.icon(
+                      onPressed: _managePatients,
+                      icon: const Icon(Icons.swap_horiz_rounded, size: 18),
+                      label: const Text('Cambiar'),
                     ),
                   ),
                   const Divider(color: borderColor, height: 1),

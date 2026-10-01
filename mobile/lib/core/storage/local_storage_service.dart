@@ -6,6 +6,7 @@ import '../../features/schedule/models/circadian_routine.dart';
 import '../../features/senior_mode/models/senior_intake_item.dart';
 import '../../features/medicine_cabinet/models/medicine_cabinet_item.dart';
 import '../../features/ocr/models/medicine_box_scan_result.dart';
+import '../../features/patients/models/patient_profile.dart';
 
 class LocalStorageService {
   static final LocalStorageService instance = LocalStorageService._internal();
@@ -95,6 +96,8 @@ class LocalStorageService {
   String _cloudServerUrl = 'http://localhost:3000/api/v1';
   String? _cloudApiKey;
   DateTime? _lastCloudSync;
+  List<PatientProfile> _patients = [];
+  String _activePatientId = 'patient-marcela-1';
 
   bool get isInitialized => _initialized;
   String get caregiverPin => _caregiverPin;
@@ -108,6 +111,123 @@ class LocalStorageService {
   String? get cloudApiKey => _cloudApiKey;
   DateTime? get lastCloudSync => _lastCloudSync;
   List<Map<String, dynamic>> get allIntakes => List.unmodifiable(_intakes);
+
+  List<PatientProfile> get patients {
+    if (_patients.isEmpty) {
+      _patients = [_createDefaultPatient()];
+      _activePatientId = _patients.first.id;
+    }
+    return List.unmodifiable(_patients);
+  }
+
+  String get activePatientId => _activePatientId;
+
+  PatientProfile get activePatient {
+    if (_patients.isEmpty) {
+      _patients = [_createDefaultPatient()];
+      _activePatientId = _patients.first.id;
+    }
+    try {
+      return _patients.firstWhere((p) => p.id == _activePatientId);
+    } catch (_) {
+      return _patients.first;
+    }
+  }
+
+  PatientProfile _createDefaultPatient() {
+    return PatientProfile(
+      id: 'patient-marcela-1',
+      name: _patientName,
+      rut: _patientRut,
+      stocks: _stocks,
+      cabinetItems: _cabinetItems,
+      routine: _routine,
+      intakes: _intakes,
+    );
+  }
+
+  void _syncActivePatientFromState() {
+    if (_patients.isEmpty) {
+      _patients = [_createDefaultPatient()];
+      _activePatientId = _patients.first.id;
+      return;
+    }
+
+    final idx = _patients.indexWhere((p) => p.id == _activePatientId);
+    final updated = (_patients[idx >= 0 ? idx : 0]).copyWith(
+      name: _patientName,
+      rut: _patientRut,
+      stocks: _stocks,
+      cabinetItems: _cabinetItems,
+      routine: _routine,
+      intakes: _intakes,
+    );
+
+    if (idx >= 0) {
+      _patients[idx] = updated;
+    } else {
+      _patients.add(updated);
+    }
+  }
+
+  void _syncStateFromActivePatient() {
+    final p = activePatient;
+    _activePatientId = p.id;
+    _patientName = p.name;
+    _patientRut = p.rut;
+    _stocks = Map<String, int>.from(p.stocks);
+    _cabinetItems = List<MedicineCabinetItem>.from(p.cabinetItems);
+    _routine = p.routine;
+    _intakes = List<Map<String, dynamic>>.from(p.intakes);
+  }
+
+  Future<void> switchPatient(String patientId) async {
+    final target = _patients.firstWhere((p) => p.id == patientId, orElse: () => _patients.first);
+    _activePatientId = target.id;
+    _syncStateFromActivePatient();
+    await _persistToDisk();
+  }
+
+  Future<void> addPatient(PatientProfile newPatient, {bool setActive = true}) async {
+    _patients.add(newPatient);
+    if (setActive) {
+      _activePatientId = newPatient.id;
+      _syncStateFromActivePatient();
+    }
+    await _persistToDisk();
+  }
+
+  Future<void> updatePatientProfile({
+    required String id,
+    String? name,
+    String? rut,
+    int? age,
+    int? avatarColorValue,
+  }) async {
+    final idx = _patients.indexWhere((p) => p.id == id);
+    if (idx >= 0) {
+      _patients[idx] = _patients[idx].copyWith(
+        name: name,
+        rut: rut,
+        age: age,
+        avatarColorValue: avatarColorValue,
+      );
+      if (_activePatientId == id) {
+        _syncStateFromActivePatient();
+      }
+      await _persistToDisk();
+    }
+  }
+
+  Future<void> deletePatient(String patientId) async {
+    if (_patients.length <= 1) return;
+    _patients.removeWhere((p) => p.id == patientId);
+    if (_activePatientId == patientId) {
+      _activePatientId = _patients.first.id;
+      _syncStateFromActivePatient();
+    }
+    await _persistToDisk();
+  }
 
   /// Inicializa el servicio de almacenamiento local.
   /// Si [inMemory] es true o se proporciona [overrideDir], no se utiliza el canal nativo de path_provider.
@@ -219,6 +339,20 @@ class LocalStorageService {
       if (data['lastCloudSync'] != null) {
         _lastCloudSync = DateTime.tryParse(data['lastCloudSync'].toString());
       }
+
+      if (data['patients'] != null && data['patients'] is List) {
+        _patients = (data['patients'] as List)
+            .map((e) => PatientProfile.fromJson(Map<String, dynamic>.from(e as Map)))
+            .toList();
+        if (data['activePatientId'] != null) {
+          _activePatientId = data['activePatientId'].toString();
+        } else if (_patients.isNotEmpty) {
+          _activePatientId = _patients.first.id;
+        }
+        _syncStateFromActivePatient();
+      } else {
+        _syncActivePatientFromState();
+      }
     } catch (e) {
       debugPrint('ChronoMed LocalStorage: Error al decodificar JSON guardado: $e');
     }
@@ -233,6 +367,7 @@ class LocalStorageService {
   }
 
   Future<void> _persistToDisk() async {
+    _syncActivePatientFromState();
     _notifyListeners();
     if (_inMemory || _storageFile == null) return;
 
@@ -255,6 +390,8 @@ class LocalStorageService {
         'cloudServerUrl': _cloudServerUrl,
         'cloudApiKey': _cloudApiKey,
         'lastCloudSync': _lastCloudSync?.toIso8601String(),
+        'patients': _patients.map((p) => p.toJson()).toList(),
+        'activePatientId': _activePatientId,
       };
 
       final jsonString = jsonEncode(jsonMap);
@@ -555,6 +692,8 @@ class LocalStorageService {
       'cloudServerUrl': _cloudServerUrl,
       'cloudApiKey': _cloudApiKey,
       'lastCloudSync': _lastCloudSync?.toIso8601String(),
+      'patients': _patients.map((p) => p.toJson()).toList(),
+      'activePatientId': _activePatientId,
     };
     return jsonEncode(backup);
   }
@@ -609,6 +748,14 @@ class LocalStorageService {
     _cloudServerUrl = 'http://localhost:3000/api/v1';
     _cloudApiKey = null;
     _lastCloudSync = null;
+
+    final defaultP = PatientProfile(
+      id: 'patient-marcela-1',
+      name: 'Marcela',
+      rut: '14.567.890-K',
+    );
+    _patients = [defaultP];
+    _activePatientId = defaultP.id;
 
     await _persistToDisk();
   }
