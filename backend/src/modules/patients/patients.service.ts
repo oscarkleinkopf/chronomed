@@ -279,7 +279,7 @@ export class PatientsService {
       updatedIntake.medication.frequencyHours,
       updatedIntake.scheduledTime.toISOString(),
       takenDate.toISOString(),
-      new Date(takenDate.getTime() + updatedIntake.medication.frequencyHours * 3600000).toISOString(),
+      new Date(updatedIntake.scheduledTime.getTime() + updatedIntake.medication.frequencyHours * 3600000).toISOString(),
     );
 
     // Registro de auditoría (Ley 20.584)

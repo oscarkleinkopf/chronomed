@@ -9,7 +9,8 @@
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "test": "jest",
-    "test:watch": "jest --watch"
+    "test:watch": "jest --watch",
+    "demo:sync": "npx ts-node scripts/demo-sync.ts"
   },
   "dependencies": {
     "@nestjs/common": "^10.0.0",
