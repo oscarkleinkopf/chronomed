@@ -1,4 +1,4 @@
-﻿import 'dart:convert';
+import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../models/pairing_payload.dart';
 
@@ -47,6 +47,9 @@ class PairingService {
       patientName: data['patientName'] ?? 'Familiar',
       seniorPin: data['seniorPin'] ?? '1234',
       expiresAt: data['expiresAt'] ?? 0,
+      routine: data['routine'] is Map ? Map<String, dynamic>.from(data['routine']) : null,
+      medications: data['medications'] is List ? List<dynamic>.from(data['medications']) : null,
+      vitals: data['vitals'] is List ? List<dynamic>.from(data['vitals']) : null,
     );
 
     if (payload.isExpired) throw Exception('Código QR expirado.');
