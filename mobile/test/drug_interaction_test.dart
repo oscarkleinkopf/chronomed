@@ -84,6 +84,28 @@ void main() {
       expect(result.recommendation, contains('alcohólicas'));
     });
 
+    test('RegimenSafetyReport evaluates multiple active drugs with dietary precautions and no critical contraindications', () {
+      final active = ['Eutirox 100 mcg', 'Losartán 50 mg', 'Atorvastatina 20 mg'];
+      final report = interactionService.evaluateActiveRegimen(active);
+
+      expect(report.totalDrugs, equals(3));
+      expect(report.hasCritical, isFalse);
+      expect(report.hasWarnings, isFalse);
+      expect(report.hasDietaryRestrictions, isTrue);
+      expect(report.isCompletelySafe, isTrue);
+      expect(report.dietaryPrecautions.any((d) => d.title.contains('LÁCTEOS')), isTrue);
+      expect(report.dietaryPrecautions.any((d) => d.title.contains('POMELO')), isTrue);
+    });
+
+    test('RegimenSafetyReport catches critical contraindications between active drugs', () {
+      final active = ['Acenocumarol 4 mg', 'Ibuprofeno 600 mg', 'Paracetamol 500 mg'];
+      final report = interactionService.evaluateActiveRegimen(active);
+
+      expect(report.hasCritical, isTrue);
+      expect(report.isCompletelySafe, isFalse);
+      expect(report.criticalAlerts.first.clinicalRisk, contains('Hemorragia'));
+    });
+
     test('PrescriptionParser extracts drug name, dosage, frequency and meal relation', () {
       const rawRx = '''
       RECETA MEDICA CESFAM

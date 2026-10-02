@@ -25,10 +25,74 @@ class DrugInteractionResult {
   bool get hasConflict => severity != InteractionSeverity.none;
 }
 
+class RegimenSafetyReport {
+  final int totalDrugs;
+  final List<DrugInteractionResult> criticalAlerts;
+  final List<DrugInteractionResult> majorWarnings;
+  final List<DrugInteractionResult> dietaryPrecautions;
+
+  const RegimenSafetyReport({
+    required this.totalDrugs,
+    required this.criticalAlerts,
+    required this.majorWarnings,
+    required this.dietaryPrecautions,
+  });
+
+  bool get hasCritical => criticalAlerts.isNotEmpty;
+  bool get hasWarnings => majorWarnings.isNotEmpty;
+  bool get hasDietaryRestrictions => dietaryPrecautions.isNotEmpty;
+  bool get isCompletelySafe => criticalAlerts.isEmpty && majorWarnings.isEmpty;
+  int get totalIssues => criticalAlerts.length + majorWarnings.length + dietaryPrecautions.length;
+}
+
 class DrugInteractionService {
   static final DrugInteractionService instance = DrugInteractionService._internal();
   factory DrugInteractionService() => instance;
   DrugInteractionService._internal();
+
+  /// Evalúa la seguridad global de todo el régimen de fármacos activos de un paciente.
+  RegimenSafetyReport evaluateActiveRegimen(List<String> activeDrugs) {
+    final critical = <DrugInteractionResult>[];
+    final major = <DrugInteractionResult>[];
+    final dietary = <DrugInteractionResult>[];
+
+    final processedPairs = <String>{};
+
+    // 1. Evaluación de pares fármaco - fármaco
+    for (int i = 0; i < activeDrugs.length; i++) {
+      for (int j = i + 1; j < activeDrugs.length; j++) {
+        final drugA = activeDrugs[i];
+        final drugB = activeDrugs[j];
+        final pairKey = '${drugA.toLowerCase()}|${drugB.toLowerCase()}';
+        if (processedPairs.contains(pairKey)) continue;
+        processedPairs.add(pairKey);
+
+        final result = evaluateCandidate(drugA, [drugB]);
+        if (result.severity == InteractionSeverity.criticalContraindication) {
+          critical.add(result);
+        } else if (result.severity == InteractionSeverity.majorWarning) {
+          major.add(result);
+        }
+      }
+    }
+
+    // 2. Evaluación individual de restricciones dietarias y cronofarmacológicas
+    for (final drug in activeDrugs) {
+      final res = evaluateCandidate(drug, const []);
+      if (res.severity == InteractionSeverity.foodRestriction) {
+        if (!dietary.any((d) => d.title == res.title)) {
+          dietary.add(res);
+        }
+      }
+    }
+
+    return RegimenSafetyReport(
+      totalDrugs: activeDrugs.length,
+      criticalAlerts: critical,
+      majorWarnings: major,
+      dietaryPrecautions: dietary,
+    );
+  }
 
   /// Evalúa el fármaco candidato contra la lista de fármacos ya activos del paciente.
   DrugInteractionResult evaluateCandidate(String candidateDrug, List<String> activeDrugs) {
@@ -37,13 +101,13 @@ class DrugInteractionService {
 
     // 1. REGLAS DE CONTRAINDICACIÓN CRÍTICA (Bloqueo por riesgo vital)
 
-    // Ibuprofeno + Acenocumarol (Neosintrom)
+    // Ibuprofeno / AINE + Acenocumarol (Neosintrom)
     if (_isIbuprofen(candidate) && _hasAcenocoumarol(activeList) ||
         _isAcenocoumarol(candidate) && _hasIbuprofen(activeList)) {
       return const DrugInteractionResult(
         severity: InteractionSeverity.criticalContraindication,
         title: '🚨 CONTRAINDICACIÓN CRÍTICA (RIESGO VITAL)',
-        description: 'Interacción de alto riesgo: Ibuprofeno (AINE) + Acenocumarol (Anticoagulante).',
+        description: 'Interacción de alto riesgo: AINE (Ibuprofeno) + Acenocumarol (Anticoagulante).',
         clinicalRisk: 'Inhibición de COX-1 y función plaquetaria por el AINE sumado al bloqueo de factores de coagulación. Hemorragia digestiva masiva o sangrado intracraneal.',
         recommendation: 'Alerta Roja Bloqueante: No administrar conjuntamente. Recomienda suspender el AINE de inmediato y consultar al médico por alternativa segura (ej. Paracetamol).',
         isBlocking: true,
@@ -63,6 +127,19 @@ class DrugInteractionService {
       );
     }
 
+    // Benzodiacepinas (Clonazepam) + Opioides (Tramadol)
+    if ((_isBenzodiazepine(candidate) && _hasOpioid(activeList)) ||
+        (_isOpioid(candidate) && _hasBenzodiazepine(activeList))) {
+      return const DrugInteractionResult(
+        severity: InteractionSeverity.criticalContraindication,
+        title: '🚨 CONTRAINDICACIÓN CRÍTICA (RIESGO VITAL)',
+        description: 'Sinergia sedante central: Benzodiacepina + Opioide.',
+        clinicalRisk: 'Depresión profunda del sistema nervioso central y del centro respiratorio bulbar. Riesgo inminente de parada respiratoria y coma.',
+        recommendation: 'Alerta Roja Bloqueante: Evitar co-administración sin monitoreo ventilatorio estricto.',
+        isBlocking: true,
+      );
+    }
+
     // 2. ADVERTENCIAS MAYORES (Alerta Ámbar)
 
     // Losartán + Espironolactona
@@ -78,7 +155,20 @@ class DrugInteractionService {
       );
     }
 
-    // 3. RESTRICCIONES ALIMENTARIAS Y DIETARIAS
+    // Losartán / Enalapril + AINEs (Ibuprofeno/Ketoprofeno/Diclofenaco)
+    if ((_isAntihypertensiveRaas(candidate) && _hasIbuprofen(activeList)) ||
+        (_isIbuprofen(candidate) && _hasAntihypertensiveRaas(activeList))) {
+      return const DrugInteractionResult(
+        severity: InteractionSeverity.majorWarning,
+        title: '⚠️ ADVERTENCIA CLÍNICA MAYOR',
+        description: 'Antihipertensivo (ARA-II / IECA) + AINE (Ibuprofeno).',
+        clinicalRisk: 'Inhibición de prostaglandinas vasodilatadoras renales por el AINE, reduciendo el filtrado glomerular y atenuando el control de la presión arterial.',
+        recommendation: 'Monitorear presión arterial y función renal. Evitar cursos prolongados de AINEs en hipertensos.',
+        isBlocking: false,
+      );
+    }
+
+    // 3. RESTRICCIONES ALIMENTARIAS Y CRONOFARMACOLÓGICAS
 
     // Levotiroxina (Eutirox)
     if (_isLevothyroxine(candidate)) {
@@ -88,6 +178,18 @@ class DrugInteractionService {
         description: 'Interacción físico-química: Levotiroxina con Calcio y Alimentos.',
         clinicalRisk: 'Los iones de calcio forman quelatos insolubles con la levotiroxina, reduciendo drásticamente su absorción digestiva.',
         recommendation: 'Ingerir en estricto ayuno 30 a 60 minutos antes del desayuno. No mezclar con leche, yogur o café.',
+        isBlocking: false,
+      );
+    }
+
+    // Atorvastatina (Pomelo / Noche)
+    if (_isAtorvastatin(candidate)) {
+      return const DrugInteractionResult(
+        severity: InteractionSeverity.foodRestriction,
+        title: '🍊 RESTRICCIÓN DIETARIA Y CRONOFARMACOLOGÍA (POMELO)',
+        description: 'Atorvastatina + Jugo de Pomelo / Toma Nocturna.',
+        clinicalRisk: 'El jugo de pomelo inhibe el CYP3A4 intestinal, aumentando la biodisponibilidad de la estatina y el riesgo de mialgias. La síntesis de colesterol tiene pico circadiano nocturno.',
+        recommendation: 'Evitar consumo de pomelo/toronja. Administrar preferentemente en la noche según el ritmo circadiano de la HMG-CoA Reductasa.',
         isBlocking: false,
       );
     }
@@ -104,23 +206,38 @@ class DrugInteractionService {
       );
     }
 
+    // Acenocumarol (Vitamina K)
+    if (_isAcenocoumarol(candidate)) {
+      return const DrugInteractionResult(
+        severity: InteractionSeverity.foodRestriction,
+        title: '🥗 RESTRICCIÓN DIETARIA (VITAMINA K)',
+        description: 'Acenocumarol + Vegetales verdes con alta Vitamina K.',
+        clinicalRisk: 'Las fluctuaciones en el consumo de vitamina K alteran el INR terapéutico, comprometiendo la anticoagulación.',
+        recommendation: 'Mantener un consumo estable y regular de verduras de hoja verde (espinacas, acelga, brócoli) sin cambios bruscos.',
+        isBlocking: false,
+      );
+    }
+
     return const DrugInteractionResult();
   }
 
-  bool _isIbuprofen(String s) => s.contains('ibuprof');
+  bool _isIbuprofen(String s) => s.contains('ibuprof') || s.contains('ketoprof') || s.contains('diclofen');
   bool _hasIbuprofen(List<String> l) => l.any(_isIbuprofen);
 
-  bool _isAcenocoumarol(String s) => s.contains('acenoc') || s.contains('neosint');
+  bool _isAcenocoumarol(String s) => s.contains('acenoc') || s.contains('neosint') || s.contains('warfar');
   bool _hasAcenocoumarol(List<String> l) => l.any(_isAcenocoumarol);
 
-  bool _isAtorvastatin(String s) => s.contains('atorvast');
+  bool _isAtorvastatin(String s) => s.contains('atorvast') || s.contains('simvast');
   bool _hasAtorvastatin(List<String> l) => l.any(_isAtorvastatin);
 
-  bool _isClarithromycin(String s) => s.contains('claritr');
+  bool _isClarithromycin(String s) => s.contains('claritr') || s.contains('eritrom');
   bool _hasClarithromycin(List<String> l) => l.any(_isClarithromycin);
 
-  bool _isLosartan(String s) => s.contains('losart');
+  bool _isLosartan(String s) => s.contains('losart') || s.contains('valsart') || s.contains('candesart');
   bool _hasLosartan(List<String> l) => l.any(_isLosartan);
+
+  bool _isAntihypertensiveRaas(String s) => _isLosartan(s) || s.contains('enalapr');
+  bool _hasAntihypertensiveRaas(List<String> l) => l.any(_isAntihypertensiveRaas);
 
   bool _isSpironolactone(String s) => s.contains('espiron');
   bool _hasSpironolactone(List<String> l) => l.any(_isSpironolactone);
@@ -128,4 +245,10 @@ class DrugInteractionService {
   bool _isLevothyroxine(String s) => s.contains('levotirox') || s.contains('eutirox');
 
   bool _isMetformin(String s) => s.contains('metform');
+
+  bool _isBenzodiazepine(String s) => s.contains('clonazep') || s.contains('alprazol') || s.contains('diazepam') || s.contains('lorazep');
+  bool _hasBenzodiazepine(List<String> l) => l.any(_isBenzodiazepine);
+
+  bool _isOpioid(String s) => s.contains('tramadol') || s.contains('morfina') || s.contains('codein') || s.contains('fentanil');
+  bool _hasOpioid(List<String> l) => l.any(_isOpioid);
 }

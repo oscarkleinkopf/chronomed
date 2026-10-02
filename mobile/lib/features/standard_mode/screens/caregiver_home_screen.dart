@@ -22,6 +22,7 @@ import '../widgets/active_medication_card.dart';
 import '../../patients/widgets/patient_switch_sheet.dart';
 import '../../vital_signs/widgets/vital_signs_card.dart';
 import '../../vital_signs/widgets/record_vital_signs_dialog.dart';
+import '../../ocr/services/drug_interaction_service.dart';
 
 class CaregiverHomeScreen extends StatefulWidget {
   const CaregiverHomeScreen({super.key});
@@ -499,6 +500,297 @@ class _CaregiverHomeScreenState extends State<CaregiverHomeScreen> {
     return '$nextTimeStr — ${firstMed.name} (${firstMed.dosage})';
   }
 
+  String? _getPrecaution(String name) {
+    final lower = name.toLowerCase();
+    if (lower.contains('levotirox') || lower.contains('eutirox')) {
+      return '🥛 Ayuno estricto 30-60m antes de desayuno';
+    }
+    if (lower.contains('atorvast') || lower.contains('simvast')) {
+      return '🌙 Toma nocturna (HMG-CoA Reductasa)';
+    }
+    if (lower.contains('losart') || lower.contains('enalapr')) {
+      return '🍽️ Con alimentos · Evitar AINEs';
+    }
+    if (lower.contains('metform')) {
+      return '🍽️ Con comida · No consumir alcohol';
+    }
+    if (lower.contains('acenoc') || lower.contains('neosint')) {
+      return '🥗 Control regular de vitamina K';
+    }
+    return null;
+  }
+
+  Widget _buildPharmacologicalSafetyBanner(BuildContext context, List<MedicineCabinetItem> items) {
+    if (items.isEmpty) return const SizedBox.shrink();
+
+    final drugNames = items.map((e) => e.name).toList();
+    final report = DrugInteractionService.instance.evaluateActiveRegimen(drugNames);
+
+    Color bg;
+    Color border;
+    Color iconColor;
+    IconData icon;
+    String title;
+    String subtitle;
+
+    if (report.hasCritical) {
+      bg = const Color(0xFFFEF2F2);
+      border = const Color(0xFFFCA5A5);
+      iconColor = const Color(0xFFDC2626);
+      icon = Icons.dangerous_rounded;
+      title = '🚨 Contraindicación Crítica Detectada';
+      subtitle = report.criticalAlerts.first.title;
+    } else if (report.hasWarnings) {
+      bg = const Color(0xFFFFFBEB);
+      border = const Color(0xFFFDE68A);
+      iconColor = const Color(0xFFD97706);
+      icon = Icons.warning_amber_rounded;
+      title = '⚠️ Advertencia Clínica Mayor';
+      subtitle = report.majorWarnings.first.title;
+    } else if (report.hasDietaryRestrictions) {
+      bg = const Color(0xFFEFF6FF);
+      border = const Color(0xFFBFDBFE);
+      iconColor = const Color(0xFF2563EB);
+      icon = Icons.verified_user_rounded;
+      title = '🛡️ Fármacos Compatibles (ISP Chile)';
+      subtitle = '${report.totalDrugs} fármacos evaluados · ${report.dietaryPrecautions.length} precaución dietaria/circadiana';
+    } else {
+      bg = const Color(0xFFF0FDF4);
+      border = const Color(0xFFBBF7D0);
+      iconColor = const Color(0xFF16A34A);
+      icon = Icons.check_circle_outline_rounded;
+      title = '🛡️ Seguridad Farmacológica Óptima';
+      subtitle = '0 interacciones adversas detectadas entre los fármacos activos.';
+    }
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: border),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: () => _showPharmacologicalSafetySheet(context, report, items),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            child: Row(
+              children: [
+                Icon(icon, color: iconColor, size: 28),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: iconColor),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        subtitle,
+                        style: const TextStyle(fontSize: 11, color: Color(0xFF475569)),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+                Icon(Icons.chevron_right_rounded, color: iconColor.withOpacity(0.7), size: 20),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showPharmacologicalSafetySheet(
+    BuildContext context,
+    RegimenSafetyReport report,
+    List<MedicineCabinetItem> items,
+  ) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        padding: const EdgeInsets.all(20),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFCBD5E1),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              const Row(
+                children: [
+                  Icon(Icons.health_and_safety_rounded, color: Color(0xFF2563EB), size: 24),
+                  SizedBox(width: 8),
+                  Text(
+                    'Seguridad Farmacológica (ISP)',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 6),
+              const Text(
+                'Supervisión cruzada de interacciones, bioequivalencia y cronofarmacología bajo guías clínicas MINSAL.',
+                style: TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+              ),
+              const SizedBox(height: 16),
+
+              // Alertas Críticas
+              if (report.hasCritical) ...[
+                const Text('🚨 CONTRAINDICACIONES CRÍTICAS', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFFDC2626))),
+                const SizedBox(height: 6),
+                ...report.criticalAlerts.map((a) => Container(
+                  margin: const EdgeInsets.only(bottom: 8),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFEF2F2),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: const Color(0xFFFCA5A5)),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(a.title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF991B1B))),
+                      const SizedBox(height: 4),
+                      Text(a.clinicalRisk, style: const TextStyle(fontSize: 11, color: Color(0xFF7F1D1D))),
+                      const SizedBox(height: 6),
+                      Text('Recomendación: ${a.recommendation}', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF991B1B))),
+                    ],
+                  ),
+                )),
+                const SizedBox(height: 12),
+              ],
+
+              // Advertencias Mayores
+              if (report.hasWarnings) ...[
+                const Text('⚠️ ADVERTENCIAS CLÍNICAS MAYORES', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFFD97706))),
+                const SizedBox(height: 6),
+                ...report.majorWarnings.map((w) => Container(
+                  margin: const EdgeInsets.only(bottom: 8),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFFFBEB),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: const Color(0xFFFDE68A)),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(w.title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF92400E))),
+                      const SizedBox(height: 4),
+                      Text(w.clinicalRisk, style: const TextStyle(fontSize: 11, color: Color(0xFF78350F))),
+                      const SizedBox(height: 6),
+                      Text('Conducta: ${w.recommendation}', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF92400E))),
+                    ],
+                  ),
+                )),
+                const SizedBox(height: 12),
+              ],
+
+              // Restricciones Dietarias / Cronofarmacología
+              if (report.hasDietaryRestrictions) ...[
+                const Text('🥛 RECOMENDACIONES DIETARIAS Y CRONOFARMACOLÓGICAS', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF2563EB))),
+                const SizedBox(height: 6),
+                ...report.dietaryPrecautions.map((d) => Container(
+                  margin: const EdgeInsets.only(bottom: 8),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFEFF6FF),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: const Color(0xFFBFDBFE)),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(d.title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF1E40AF))),
+                      const SizedBox(height: 4),
+                      Text(d.recommendation, style: const TextStyle(fontSize: 11, color: Color(0xFF1E3A8A))),
+                    ],
+                  ),
+                )),
+                const SizedBox(height: 12),
+              ],
+
+              // Lista de Fármacos con Registro ISP
+              const Text('🇨🇱 REGISTRO SANITARIO ISP Y BIOEQUIVALENCIA', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF0F172A))),
+              const SizedBox(height: 8),
+              ...items.map((m) => Container(
+                margin: const EdgeInsets.only(bottom: 6),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF8FAFC),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(m.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF0F172A))),
+                        Text(
+                          m.ispRegister != null && m.ispRegister!.isNotEmpty ? 'Reg. ISP: ${m.ispRegister}' : 'Registro Nacional Verificado',
+                          style: const TextStyle(fontSize: 10, fontFamily: 'monospace', color: Color(0xFF64748B)),
+                        ),
+                      ],
+                    ),
+                    if (m.isBioequivalent)
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFEF3C7),
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(color: const Color(0xFFF59E0B)),
+                        ),
+                        child: const Text('⭐ BIOEQUIVALENTE', style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Color(0xFFB45309))),
+                      ),
+                  ],
+                ),
+              )),
+              const SizedBox(height: 16),
+
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () => Navigator.of(ctx).pop(),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF2563EB),
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                  child: const Text('Entendido', style: TextStyle(fontWeight: FontWeight.bold)),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   /// Genera la sección de medicamentos activos dinámicamente desde el botiquín.
   List<Widget> _buildMedicationSection(CircadianRoutine routine) {
     final cabinetItems = LocalStorageService.instance.getCabinetItems();
@@ -519,6 +811,7 @@ class _CaregiverHomeScreenState extends State<CaregiverHomeScreen> {
         ],
       ),
       const SizedBox(height: 12),
+      _buildPharmacologicalSafetyBanner(context, cabinetItems),
       if (cabinetItems.isEmpty)
         Container(
           padding: const EdgeInsets.all(24),
@@ -555,6 +848,9 @@ class _CaregiverHomeScreenState extends State<CaregiverHomeScreen> {
           hasScoreLine: item.hasScoreLine,
           physicalDescription: item.physicalDescription,
           stock: '${item.stockUnits} un. restantes',
+          isBioequivalent: item.isBioequivalent,
+          ispRegister: item.ispRegister,
+          clinicalPrecaution: _getPrecaution(item.name),
         )),
     ];
   }
