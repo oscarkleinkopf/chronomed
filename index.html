@@ -37,11 +37,20 @@
   <!-- HEADER -->
   <header class="bg-slate-900 border-b border-slate-800 p-3 sticky top-0 z-50">
     <div class="max-w-md mx-auto flex items-center justify-between">
-      <div class="flex items-center space-x-2 cursor-pointer" onclick="openPatientModal()">
+      <div class="flex items-center space-x-2 cursor-pointer" onclick="openPatientModal()" title="Gestionar Usuarios y Roles">
         <span class="text-2xl">⏰</span>
-        <span class="font-black text-xl tracking-tight text-white">Chrono<span class="text-blue-500">Med</span></span>
+        <div>
+          <span class="font-black text-xl tracking-tight text-white">Chrono<span class="text-blue-500">Med</span></span>
+          <div id="headerRoleBadge" class="text-[10px] text-blue-400 font-semibold flex items-center space-x-1">
+            <span>👨‍⚕️ Cuidador Familiar</span>
+          </div>
+        </div>
       </div>
       <div class="flex items-center space-x-2">
+        <button onclick="openPatientModal()" class="px-2.5 py-1.5 rounded-xl text-xs font-bold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 shadow transition flex items-center space-x-1" title="Cambiar Rol de Usuario">
+          <i data-lucide="users" class="w-3.5 h-3.5 text-blue-400"></i>
+          <span>Rol</span>
+        </button>
         <button onclick="openManualModal()" class="px-2.5 py-1.5 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-500 text-white shadow transition flex items-center space-x-1.5" title="Ver Manual de Usuario">
           <i data-lucide="book-open" class="w-3.5 h-3.5"></i>
           <span>Manual</span>
@@ -53,31 +62,91 @@
       </div>
     </div>
   </header>
-  <!-- 1. VISTA: CONFIGURACIÓN / FICHA DE PACIENTE -->
+  <!-- 1. VISTA: CONFIGURACIÓN / FICHA DE USUARIO Y PACIENTE -->
   <div id="viewOnboarding" class="hidden flex-1 max-w-md w-full mx-auto p-4 flex flex-col justify-center">
     <div class="senior-card p-6 rounded-3xl border shadow-2xl">
       <div class="w-14 h-14 bg-blue-600/20 text-blue-400 rounded-2xl flex items-center justify-center mx-auto mb-3">
-        <i data-lucide="user-check" class="w-8 h-8"></i>
+        <i data-lucide="users" class="w-8 h-8"></i>
       </div>
-      <h2 class="text-2xl font-black text-white text-center mb-1">Ficha Clínica del Paciente</h2>
-      <p class="text-xs text-slate-400 text-center mb-5">Datos de identificación y horarios de rutina:</p>
+      <h2 class="text-2xl font-black text-white text-center mb-1">Identificación y Roles</h2>
+      <p class="text-xs text-slate-400 text-center mb-4">Selecciona tu contexto de uso principal:</p>
+
+      <!-- SELECTOR DE ROL -->
+      <div class="grid grid-cols-3 gap-1.5 mb-4 p-1 bg-slate-950/80 rounded-2xl border border-slate-800">
+        <button type="button" onclick="selectWebRole('caregiver')" id="btnRoleCaregiver" class="py-2 px-1 text-center rounded-xl text-xs font-bold transition flex flex-col items-center justify-center space-y-1 bg-blue-600 text-white shadow">
+          <span class="text-base">👨‍⚕️</span>
+          <span class="text-[11px] leading-tight">Cuidador/a</span>
+        </button>
+        <button type="button" onclick="selectWebRole('professional')" id="btnRoleProfessional" class="py-2 px-1 text-center rounded-xl text-xs font-bold transition flex flex-col items-center justify-center space-y-1 text-slate-400 hover:text-white">
+          <span class="text-base">👩‍⚕️</span>
+          <span class="text-[11px] leading-tight">Profesional</span>
+        </button>
+        <button type="button" onclick="selectWebRole('patient')" id="btnRolePatient" class="py-2 px-1 text-center rounded-xl text-xs font-bold transition flex flex-col items-center justify-center space-y-1 text-slate-400 hover:text-white">
+          <span class="text-base">👴</span>
+          <span class="text-[11px] leading-tight">Autónomo</span>
+        </button>
+      </div>
 
       <form onsubmit="savePatientOnboarding(event)" class="space-y-3.5">
-        <div>
-          <label class="block text-xs font-bold text-slate-300 mb-1">Nombre Completo del Paciente</label>
-          <input type="text" id="inputPatientName" required placeholder="Ej: Marcela" value="Marcela" class="w-full bg-slate-900 border border-slate-700 text-white rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-blue-500">
+        <!-- 1. SECCIÓN: DATOS DE CUIDADOR -->
+        <div id="secCaregiverFields" class="p-3 bg-slate-900/80 rounded-2xl border border-slate-800 space-y-2.5">
+          <div class="flex items-center space-x-1.5 text-blue-400 text-xs font-bold">
+            <i data-lucide="shield-check" class="w-4 h-4"></i>
+            <span>Tus Datos de Cuidador/a</span>
+          </div>
+          <div>
+            <label class="block text-[11px] font-bold text-slate-300 mb-1">Tu Nombre Completo</label>
+            <input type="text" id="inputCaregiverName" placeholder="Ej: Carlos Gómez" value="Carlos Gómez" class="w-full bg-slate-950 border border-slate-700 text-white rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-blue-500">
+          </div>
+          <div>
+            <label class="block text-[11px] font-bold text-slate-300 mb-1">PIN de Seguridad (4 dígitos)</label>
+            <input type="password" id="inputCaregiverPin" maxlength="4" value="1234" class="w-full bg-slate-950 border border-slate-700 text-white rounded-xl px-3 py-2 text-xs tracking-widest text-center focus:outline-none focus:border-blue-500">
+          </div>
         </div>
 
-        <div>
-          <label class="block text-xs font-bold text-slate-300 mb-1">RUT o Ficha Clínica (Opcional)</label>
-          <input type="text" id="inputPatientRut" placeholder="Ej: 14.567.890-K" value="14.567.890-K" class="w-full bg-slate-900 border border-slate-700 text-white rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-blue-500">
+        <!-- 2. SECCIÓN: DATOS PROFESIONALES -->
+        <div id="secProfessionalFields" class="hidden p-3 bg-slate-900/80 rounded-2xl border border-slate-800 space-y-2.5">
+          <div class="flex items-center space-x-1.5 text-teal-400 text-xs font-bold">
+            <i data-lucide="stethoscope" class="w-4 h-4"></i>
+            <span>Credenciales de Salud</span>
+          </div>
+          <div>
+            <label class="block text-[11px] font-bold text-slate-300 mb-1">Nombre Profesional</label>
+            <input type="text" id="inputProfessionalName" placeholder="Ej: Dra. Sofía Morales / Enf. Rodrigo Silva" value="Dra. Sofía Morales" class="w-full bg-slate-950 border border-slate-700 text-white rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-blue-500">
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="block text-[11px] font-bold text-slate-300 mb-1">Rol Clínico</label>
+              <select id="selectProfessionalTitle" class="w-full bg-slate-950 border border-slate-700 text-white rounded-xl px-2 py-2 text-xs focus:outline-none focus:border-blue-500">
+                <option value="Médico/a Tratante">Médico/a Tratante</option>
+                <option value="Enfermero/a Clínico/a">Enfermero/a Clínico/a</option>
+                <option value="TENS / Cuidador Clínico">TENS / Asistente</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-[11px] font-bold text-slate-300 mb-1">Centro Asistencial</label>
+              <input type="text" id="inputProfessionalOrg" placeholder="Ej: CESFAM Santa Julia" value="CESFAM Santa Julia" class="w-full bg-slate-950 border border-slate-700 text-white rounded-xl px-2 py-2 text-xs focus:outline-none focus:border-blue-500">
+            </div>
+          </div>
         </div>
 
-        <div>
-          <label class="block text-xs font-bold text-slate-300 mb-1">PIN de Seguridad del Cuidador</label>
-          <input type="password" id="inputCaregiverPin" maxlength="4" required value="1234" class="w-full bg-slate-900 border border-slate-700 text-white rounded-xl px-3 py-2 text-sm tracking-widest text-center focus:outline-none focus:border-blue-500">
+        <!-- 3. SECCIÓN: DATOS DEL PACIENTE -->
+        <div class="space-y-2.5">
+          <div class="flex items-center justify-between">
+            <label id="secPatientLabel" class="block text-xs font-bold text-slate-200">Familiar a Cuidar (Paciente):</label>
+            <span id="secPatientBadge" class="text-[10px] text-slate-400 italic">Ficha Activa</span>
+          </div>
+          <div>
+            <input type="text" id="inputPatientName" required placeholder="Ej: Marcela" value="Marcela" class="w-full bg-slate-900 border border-slate-700 text-white rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-blue-500">
+          </div>
+
+          <div>
+            <label class="block text-[11px] font-bold text-slate-400 mb-1">RUT o N° de Ficha Clínica</label>
+            <input type="text" id="inputPatientRut" placeholder="Ej: 14.567.890-K" value="14.567.890-K" class="w-full bg-slate-900 border border-slate-700 text-white rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-blue-500">
+          </div>
         </div>
 
+        <!-- 4. SECCIÓN: HORARIOS Y REGIMEN CIRCADIANO -->
         <div class="border-t border-slate-800 pt-2.5">
           <div class="flex items-center justify-between mb-1.5">
             <p class="text-xs font-bold text-yellow-400">⏰ Horarios de Rutina (4 Comidas):</p>
@@ -123,9 +192,15 @@
           </label>
         </div>
 
-        <button type="submit" class="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-2xl shadow-lg transition text-sm">
-          Guardar Ficha de Marcela ➔
-        </button>
+        <div class="flex space-x-2">
+          <button type="button" onclick="cancelOnboardingModal()" class="w-1/3 py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-2xl transition text-sm">
+            Cancelar
+          </button>
+          <button type="submit" id="btnSubmitOnboarding" class="flex-1 py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-2xl shadow-lg transition text-sm flex items-center justify-center space-x-2">
+            <span>Guardar y Entrar</span>
+            <i data-lucide="arrow-right" class="w-4 h-4"></i>
+          </button>
+        </div>
       </form>
     </div>
   </div>
@@ -202,9 +277,29 @@
       </div>
     </div>
   </main>
-  <!-- 3. VISTA: MODO CUIDADOR (Dashboard de Marcela) -->
-  <main id="viewCaregiver" class="hidden flex-1 max-w-md w-full mx-auto p-4 flex flex-col space-y-4">
-    <div class="flex items-center justify-between">
+  <!-- 3. VISTA: MODO CUIDADOR / CLÍNICO -->
+  <main id="viewCaregiver" class="hidden flex-1 max-w-md w-full mx-auto p-4 flex flex-col space-y-3.5">
+    <!-- Banner de Operador / Rol Activo -->
+    <div id="caregiverOperatorBanner" class="senior-card p-3 rounded-2xl border flex items-center justify-between">
+      <div class="flex items-center space-x-2.5">
+        <div id="operatorAvatarCircle" class="w-9 h-9 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center font-bold text-base">
+          👨‍⚕️
+        </div>
+        <div>
+          <div class="flex items-center space-x-1.5">
+            <span id="operatorNameDisplay" class="font-bold text-white text-xs">Carlos Gómez</span>
+            <span id="operatorRoleBadge" class="text-[9px] px-1.5 py-0.5 rounded-md font-bold bg-blue-900/60 text-blue-300 border border-blue-700/40">Cuidador</span>
+          </div>
+          <p id="operatorOrgDisplay" class="text-[10px] text-slate-400">Hogar · Gestión Familiar</p>
+        </div>
+      </div>
+      <button onclick="openPatientModal()" class="text-xs bg-slate-800 hover:bg-slate-700 text-blue-400 px-2.5 py-1.5 rounded-xl border border-slate-700 font-bold transition flex items-center space-x-1">
+        <i data-lucide="user-cog" class="w-3.5 h-3.5"></i>
+        <span>Cambiar</span>
+      </button>
+    </div>
+
+    <div class="flex items-center justify-between pt-1">
       <div>
         <span class="text-xs font-semibold text-slate-400">Paciente en supervisión:</span>
         <div class="flex items-center space-x-2">
@@ -718,6 +813,12 @@
     const STORAGE_KEY = "chronomed_marcela_v1";
 
     let appState = {
+      currentUser: {
+        role: "caregiver", // "caregiver" | "professional" | "patient"
+        name: "Carlos Gómez",
+        title: "Cuidador/a Familiar",
+        organization: "Hogar"
+      },
       patient: {
         name: "Marcela",
         rut: "14.567.890-K",
@@ -732,15 +833,68 @@
     };
 
     let currentCategoryFilter = "TODOS";
+    let selectedWebRole = "caregiver";
+
+    function selectWebRole(role) {
+      selectedWebRole = role;
+      const btnC = document.getElementById("btnRoleCaregiver");
+      const btnP = document.getElementById("btnRoleProfessional");
+      const btnA = document.getElementById("btnRolePatient");
+
+      const activeCls = "py-2 px-1 text-center rounded-xl text-xs font-bold transition flex flex-col items-center justify-center space-y-1 bg-blue-600 text-white shadow";
+      const inactiveCls = "py-2 px-1 text-center rounded-xl text-xs font-bold transition flex flex-col items-center justify-center space-y-1 text-slate-400 hover:text-white";
+
+      if (btnC) btnC.className = role === 'caregiver' ? activeCls : inactiveCls;
+      if (btnP) btnP.className = role === 'professional' ? activeCls : inactiveCls;
+      if (btnA) btnA.className = role === 'patient' ? activeCls : inactiveCls;
+
+      const secC = document.getElementById("secCaregiverFields");
+      const secP = document.getElementById("secProfessionalFields");
+      if (secC) secC.classList.toggle("hidden", role !== 'caregiver');
+      if (secP) secP.classList.toggle("hidden", role !== 'professional');
+
+      const lbl = document.getElementById("secPatientLabel");
+      const desc = document.getElementById("secPatientBadge");
+      if (lbl) {
+        lbl.innerText = role === 'patient' 
+          ? "Tus Datos Personales:" 
+          : (role === 'professional' ? "Primer Paciente en Supervisión:" : "Familiar a Cuidar (Paciente):");
+      }
+      if (desc) {
+        desc.innerText = role === 'patient' ? "Tratamiento Personal" : "Ficha Activa";
+      }
+
+      if (role === 'professional') {
+        setCircadianPreset('HOSPITAL');
+      } else {
+        setCircadianPreset('HOME');
+      }
+      lucide.createIcons();
+    }
+
+    function cancelOnboardingModal() {
+      document.getElementById("viewOnboarding").classList.add("hidden");
+      if (appState.currentUser && appState.currentUser.role === 'patient') {
+        switchMode("senior");
+      } else {
+        switchMode("caregiver");
+      }
+    }
 
     function loadState() {
       localStorage.removeItem("chronomed_state_v1");
       const s = localStorage.getItem(STORAGE_KEY);
       if (s) {
-        try { appState = JSON.parse(s); } catch(e){}
+        try {
+          appState = JSON.parse(s);
+          if (!appState.currentUser) {
+            appState.currentUser = { role: "caregiver", name: "Carlos Gómez", title: "Cuidador/a Familiar", organization: "Hogar" };
+          }
+        } catch(e){}
       } else {
         saveState();
       }
+      selectedWebRole = appState.currentUser?.role || "caregiver";
     }
 
     function saveState() {
@@ -759,6 +913,50 @@
       const firstName = appState.patient.name.split(" ")[0];
       document.getElementById("seniorDisplayName").innerText = "Hola, " + firstName + " 👋";
       document.getElementById("caregiverPatientTitle").innerText = appState.patient.name;
+
+      // Header role badge
+      const user = appState.currentUser || { role: 'caregiver', name: 'Carlos Gómez', title: 'Cuidador/a Familiar', organization: 'Hogar' };
+      const roleBadgeEl = document.getElementById("headerRoleBadge");
+      if (roleBadgeEl) {
+        if (user.role === 'professional') {
+          roleBadgeEl.innerHTML = `<span class="text-teal-400">👩‍⚕️ ${user.name}</span> <span class="text-slate-400 text-[9px]">(${user.organization || "CESFAM"})</span>`;
+        } else if (user.role === 'patient') {
+          roleBadgeEl.innerHTML = `<span class="text-emerald-400">👴 Tratamiento de ${firstName}</span>`;
+        } else {
+          roleBadgeEl.innerHTML = `<span class="text-blue-400">👨‍⚕️ ${user.name || "Cuidador"}</span>`;
+        }
+      }
+
+      // Caregiver operator banner
+      const opNameEl = document.getElementById("operatorNameDisplay");
+      const opRoleEl = document.getElementById("operatorRoleBadge");
+      const opOrgEl = document.getElementById("operatorOrgDisplay");
+      const opIconEl = document.getElementById("operatorAvatarCircle");
+
+      if (opNameEl && opRoleEl && opOrgEl && opIconEl) {
+        if (user.role === 'professional') {
+          opNameEl.innerText = user.name || "Dra. Sofía Morales";
+          opRoleEl.innerText = user.title || "Médico/a";
+          opRoleEl.className = "text-[9px] px-1.5 py-0.5 rounded-md font-bold bg-teal-900/60 text-teal-300 border border-teal-700/40";
+          opOrgEl.innerText = `${user.organization || "CESFAM"} · Supervisión Clínica`;
+          opIconEl.innerText = "👩‍⚕️";
+          opIconEl.className = "w-9 h-9 rounded-xl bg-teal-500/20 text-teal-400 flex items-center justify-center font-bold text-base";
+        } else if (user.role === 'patient') {
+          opNameEl.innerText = appState.patient.name;
+          opRoleEl.innerText = "Autónomo";
+          opRoleEl.className = "text-[9px] px-1.5 py-0.5 rounded-md font-bold bg-emerald-900/60 text-emerald-300 border border-emerald-700/40";
+          opOrgEl.innerText = "Hogar · Auto-administración";
+          opIconEl.innerText = "👴";
+          opIconEl.className = "w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-base";
+        } else {
+          opNameEl.innerText = user.name || "Carlos Gómez";
+          opRoleEl.innerText = "Cuidador";
+          opRoleEl.className = "text-[9px] px-1.5 py-0.5 rounded-md font-bold bg-blue-900/60 text-blue-300 border border-blue-700/40";
+          opOrgEl.innerText = "Hogar · Gestión Familiar";
+          opIconEl.innerText = "👨‍⚕️";
+          opIconEl.className = "w-9 h-9 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center font-bold text-base";
+        }
+      }
 
       const activeMed = getActiveMedication();
       if (activeMed) {
@@ -1158,9 +1356,30 @@
         return;
       }
 
-      appState.patient.name = document.getElementById("inputPatientName").value.trim() || "Marcela";
-      appState.patient.rut = document.getElementById("inputPatientRut").value.trim();
-      appState.patient.pin = document.getElementById("inputCaregiverPin").value.trim() || "1234";
+      const pName = document.getElementById("inputPatientName").value.trim() || "Marcela";
+      const pRut = document.getElementById("inputPatientRut").value.trim();
+      const pPin = document.getElementById("inputCaregiverPin").value.trim() || "1234";
+
+      appState.patient.name = pName;
+      appState.patient.rut = pRut;
+      appState.patient.pin = pPin;
+
+      if (!appState.currentUser) appState.currentUser = {};
+      appState.currentUser.role = selectedWebRole;
+
+      if (selectedWebRole === 'professional') {
+        appState.currentUser.name = document.getElementById("inputProfessionalName").value.trim() || "Dra. Sofía Morales";
+        appState.currentUser.title = document.getElementById("selectProfessionalTitle").value;
+        appState.currentUser.organization = document.getElementById("inputProfessionalOrg").value.trim() || "CESFAM Santa Julia";
+      } else if (selectedWebRole === 'patient') {
+        appState.currentUser.name = pName;
+        appState.currentUser.title = "Paciente Autónomo";
+        appState.currentUser.organization = "Hogar";
+      } else {
+        appState.currentUser.name = document.getElementById("inputCaregiverName").value.trim() || "Carlos Gómez";
+        appState.currentUser.title = "Cuidador/a Familiar";
+        appState.currentUser.organization = "Hogar";
+      }
 
       appState.patient.routine = {
         breakfast: document.getElementById("inputTimeBreakfast").value || "08:00",
@@ -1168,7 +1387,7 @@
         afternoon: document.getElementById("inputTimeAfternoon").value || "18:30",
         sleep: document.getElementById("inputTimeSleep").value || "22:30"
       };
-      appState.patient.regime = appState.patient.regime || "HOME";
+      appState.patient.regime = appState.patient.regime || (selectedWebRole === 'professional' ? "HOSPITAL" : "HOME");
 
       // Actualizar automáticamente los horarios de las tomas de los medicamentos
       const b = appState.patient.routine.breakfast;
@@ -1187,7 +1406,13 @@
 
       saveState();
       document.getElementById("viewOnboarding").classList.add("hidden");
-      switchMode("caregiver");
+
+      if (selectedWebRole === 'patient') {
+        switchMode("senior");
+        setTimeout(() => speakCurrentInstruction(), 500);
+      } else {
+        switchMode("caregiver");
+      }
       renderAll();
     }
 
@@ -1205,9 +1430,21 @@
       document.getElementById("viewSenior").classList.add("hidden");
       document.getElementById("viewCaregiver").classList.add("hidden");
       document.getElementById("viewOnboarding").classList.remove("hidden");
+
+      const user = appState.currentUser || { role: 'caregiver', name: 'Carlos Gómez', title: 'Cuidador/a Familiar', organization: 'Hogar' };
+      selectWebRole(user.role || 'caregiver');
+
+      if (user.role === 'professional') {
+        document.getElementById("inputProfessionalName").value = user.name || "Dra. Sofía Morales";
+        if (document.getElementById("selectProfessionalTitle")) document.getElementById("selectProfessionalTitle").value = user.title || "Médico/a Tratante";
+        document.getElementById("inputProfessionalOrg").value = user.organization || "CESFAM Santa Julia";
+      } else {
+        document.getElementById("inputCaregiverName").value = user.name || "Carlos Gómez";
+      }
+
       document.getElementById("inputPatientName").value = appState.patient.name;
       document.getElementById("inputPatientRut").value = appState.patient.rut || "";
-      document.getElementById("inputCaregiverPin").value = appState.patient.pin;
+      document.getElementById("inputCaregiverPin").value = appState.patient.pin || "1234";
 
       const r = appState.patient.routine || { breakfast: "08:00", lunch: "13:30", afternoon: "18:30", sleep: "22:30" };
       document.getElementById("inputTimeBreakfast").value = r.breakfast;
@@ -1222,6 +1459,7 @@
       } else {
         setCircadianPreset("HOME");
       }
+      lucide.createIcons();
     }
 
     function openAddMedModal() {

@@ -29,6 +29,14 @@ class _AddPatientDialogState extends State<AddPatientDialog> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    if (LocalStorageService.instance.isProfessional) {
+      _selectedRegime = CircadianRegimeType.hospital;
+    }
+  }
+
+  @override
   void dispose() {
     _nameController.dispose();
     _rutController.dispose();
@@ -128,8 +136,10 @@ class _AddPatientDialogState extends State<AddPatientDialog> {
                             ),
                           ),
                           Text(
-                            'Registra a otro adulto mayor a tu cuidado',
-                            style: TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+                            LocalStorageService.instance.isProfessional
+                                ? 'Registra a otro paciente bajo tu supervisión clínica'
+                                : 'Registra a otro adulto mayor a tu cuidado',
+                            style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
                           ),
                         ],
                       ),

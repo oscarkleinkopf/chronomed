@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../core/storage/local_storage_service.dart';
 import '../../../core/services/onboarding_service.dart';
 import '../../../core/utils/rut_validator.dart';
+import '../../schedule/models/circadian_routine.dart';
 import 'package:go_router/go_router.dart';
 
 class OnboardingScreen extends StatefulWidget {
@@ -15,33 +16,91 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
 
-  // Page 2 State
-  String? _selectedRole;
+  // Page 2 State: Rol del Usuario
+  String? _selectedRole = 'cuidador'; // 'cuidador', 'profesional', 'paciente'
 
-  // Page 3 State
+  // Page 3 State: Formulario Adaptativo
   final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController();
-  final _rutController = TextEditingController();
-  String _mealSchedule = 'Estándar';
+
+  // Datos Operador (Cuidador / Profesional)
+  final _operatorNameController = TextEditingController();
+  final _operatorOrgController = TextEditingController();
+  final _pinController = TextEditingController(text: '1234');
+  String _professionalRole = 'Médico/a Tratante';
+
+  // Datos Paciente / Tratamiento
+  final _patientNameController = TextEditingController();
+  final _patientRutController = TextEditingController();
+  CircadianRegimeType _selectedRegime = CircadianRegimeType.home;
 
   @override
   void dispose() {
     _pageController.dispose();
-    _nameController.dispose();
-    _rutController.dispose();
+    _operatorNameController.dispose();
+    _operatorOrgController.dispose();
+    _pinController.dispose();
+    _patientNameController.dispose();
+    _patientRutController.dispose();
     super.dispose();
   }
 
-  void _nextPage() {
+  void _nextPage() async {
     if (_currentPage == 2) {
       if (!_formKey.currentState!.validate()) {
         return;
       }
-      // Save to local storage service
-      LocalStorageService.instance.savePatientData(
-        name: _nameController.text,
-        rut: _rutController.text,
+      
+      final storage = LocalStorageService.instance;
+      final role = _selectedRole ?? 'cuidador';
+      
+      String patientName = _patientNameController.text.trim();
+      String patientRut = _patientRutController.text.trim();
+      if (patientName.isEmpty) patientName = 'Marcela';
+      if (patientRut.isEmpty) patientRut = '14.567.890-K';
+
+      if (role == 'paciente') {
+        await storage.saveUserProfile(
+          role: 'autonomous_patient',
+          userName: patientName,
+          userTitle: 'Paciente Autónomo',
+          userOrganization: 'Hogar',
+        );
+      } else if (role == 'profesional') {
+        final profName = _operatorNameController.text.trim().isNotEmpty
+            ? _operatorNameController.text.trim()
+            : 'Profesional de Salud';
+        final org = _operatorOrgController.text.trim().isNotEmpty
+            ? _operatorOrgController.text.trim()
+            : 'CESFAM';
+        await storage.saveUserProfile(
+          role: 'professional',
+          userName: profName,
+          userTitle: _professionalRole,
+          userOrganization: org,
+          caregiverPin: _pinController.text.trim().isNotEmpty ? _pinController.text.trim() : '1234',
+        );
+      } else {
+        final caregiverName = _operatorNameController.text.trim().isNotEmpty
+            ? _operatorNameController.text.trim()
+            : 'Cuidador Familiar';
+        await storage.saveUserProfile(
+          role: 'caregiver',
+          userName: caregiverName,
+          userTitle: 'Cuidador/a Familiar',
+          userOrganization: 'Hogar',
+          caregiverPin: _pinController.text.trim().isNotEmpty ? _pinController.text.trim() : '1234',
+        );
+      }
+
+      await storage.savePatientData(
+        name: patientName,
+        rut: patientRut,
       );
+
+      final routine = _selectedRegime == CircadianRegimeType.hospital
+          ? CircadianRoutine.hospital
+          : CircadianRoutine.home;
+      await storage.updateCircadianRoutine(routine);
     }
 
     if (_currentPage < 3) {
@@ -66,7 +125,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   Future<void> _finishOnboarding() async {
     await OnboardingService.instance.completeOnboarding();
     if (!mounted) return;
-    context.go('/');
+    if (_selectedRole == 'paciente') {
+      context.go('/senior');
+    } else {
+      context.go('/');
+    }
   }
 
   @override
@@ -284,6 +347,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   Widget _buildPatientDataPage() {
+    final role = _selectedRole ?? 'cuidador';
+
     return Padding(
       padding: const EdgeInsets.all(24.0),
       child: SingleChildScrollView(
@@ -292,117 +357,403 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Datos del Paciente',
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF1E293B),
+              if (role == 'profesional') ...[
+                _buildProfessionalHeader(),
+                const SizedBox(height: 20),
+                _buildProfessionalFields(),
+                const SizedBox(height: 20),
+                _buildPatientFields(
+                  title: 'Primer Paciente en Supervisión',
+                  subtitle: 'Ficha clínica del adulto mayor que ingresarás.',
+                  nameHint: 'Ej: Marcela Gómez',
                 ),
-              ),
-              const SizedBox(height: 8),
-              const Text(
-                'Ingresa la información de la persona que tomará los medicamentos.',
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Color(0xFF64748B),
+              ] else if (role == 'paciente') ...[
+                _buildAutonomousPatientHeader(),
+                const SizedBox(height: 20),
+                _buildAutonomousPatientFields(),
+              ] else ...[
+                _buildCaregiverHeader(),
+                const SizedBox(height: 20),
+                _buildCaregiverFields(),
+                const SizedBox(height: 20),
+                _buildPatientFields(
+                  title: 'Familiar a Cuidar',
+                  subtitle: 'Información de tu ser querido que tomará los medicamentos.',
+                  nameHint: 'Ej: Marcela',
                 ),
-              ),
-              const SizedBox(height: 32),
-              
-              const Text('Nombre del paciente', style: TextStyle(fontWeight: FontWeight.w600)),
-              const SizedBox(height: 8),
-              TextFormField(
-                controller: _nameController,
-                decoration: InputDecoration(
-                  hintText: 'Ej: Juan Pérez',
-                  filled: true,
-                  fillColor: Colors.white,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-                  ),
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) return 'Ingresa el nombre';
-                  return null;
-                },
-              ),
-              const SizedBox(height: 24),
-              
-              const Text('RUT', style: TextStyle(fontWeight: FontWeight.w600)),
-              const SizedBox(height: 8),
-              TextFormField(
-                controller: _rutController,
-                decoration: InputDecoration(
-                  hintText: 'Ej: 14.567.890-K',
-                  helperText: 'Se valida con dígito verificador',
-                  filled: true,
-                  fillColor: Colors.white,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-                  ),
-                ),
-                onEditingComplete: () {
-                  // Auto-formatear el RUT al perder foco
-                  final raw = _rutController.text;
-                  if (raw.isNotEmpty && RutValidator.isValid(raw)) {
-                    _rutController.text = RutValidator.format(raw);
-                  }
-                },
-                validator: RutValidator.validate,
-              ),
-              const SizedBox(height: 24),
-              
-              const Text('Horario habitual de comidas', style: TextStyle(fontWeight: FontWeight.w600)),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  ChoiceChip(
-                    label: const Text('Estándar'),
-                    selected: _mealSchedule == 'Estándar',
-                    onSelected: (selected) {
-                      if (selected) setState(() => _mealSchedule = 'Estándar');
-                    },
-                    selectedColor: const Color(0xFFDBEAFE),
-                    labelStyle: TextStyle(
-                      color: _mealSchedule == 'Estándar' ? const Color(0xFF1D4ED8) : const Color(0xFF64748B),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  ChoiceChip(
-                    label: const Text('Personalizado'),
-                    selected: _mealSchedule == 'Personalizado',
-                    onSelected: (selected) {
-                      if (selected) setState(() => _mealSchedule = 'Personalizado');
-                    },
-                    selectedColor: const Color(0xFFDBEAFE),
-                    labelStyle: TextStyle(
-                      color: _mealSchedule == 'Personalizado' ? const Color(0xFF1D4ED8) : const Color(0xFF64748B),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Text(
-                _mealSchedule == 'Estándar' 
-                    ? 'Desayuno 8:00, Almuerzo 13:00, Once 17:00, Cena 20:00'
-                    : 'Podrás ajustarlo más adelante en la configuración.',
-                style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
-              ),
+              ],
             ],
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildCaregiverHeader() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: const [
+        Text(
+          'Configuración de Cuidador/a',
+          style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+        ),
+        SizedBox(height: 6),
+        Text(
+          'Registra tus datos y los de tu familiar para coordinar y asegurar su tratamiento.',
+          style: TextStyle(fontSize: 14, color: Color(0xFF64748B)),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildProfessionalHeader() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: const [
+        Text(
+          'Registro Profesional de Salud',
+          style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+        ),
+        SizedBox(height: 6),
+        Text(
+          'Supervisión de rondas, adherencia clínica y fichas de salud.',
+          style: TextStyle(fontSize: 14, color: Color(0xFF64748B)),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAutonomousPatientHeader() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: const [
+        Text(
+          'Tu Tratamiento Personal',
+          style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+        ),
+        SizedBox(height: 6),
+        Text(
+          'Configura tu nombre y horarios para avisarte por voz y en pantalla grande.',
+          style: TextStyle(fontSize: 14, color: Color(0xFF64748B)),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCaregiverFields() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Row(
+            children: [
+              Icon(Icons.shield_outlined, color: Color(0xFF2563EB), size: 20),
+              SizedBox(width: 8),
+              Text('Tus Datos de Cuidador/a', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Color(0xFF1E293B))),
+            ],
+          ),
+          const SizedBox(height: 14),
+          const Text('Tu Nombre Completo', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF475569))),
+          const SizedBox(height: 6),
+          TextFormField(
+            controller: _operatorNameController,
+            textCapitalization: TextCapitalization.words,
+            decoration: _inputDecoration('Ej: Carlos Gómez', Icons.person_outline),
+          ),
+          const SizedBox(height: 14),
+          const Text('PIN de Seguridad (4 dígitos)', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF475569))),
+          const SizedBox(height: 4),
+          const Text('Para proteger cambios de recetas y ajustes.', style: TextStyle(fontSize: 11, color: Color(0xFF94A3B8))),
+          const SizedBox(height: 6),
+          TextFormField(
+            controller: _pinController,
+            keyboardType: TextInputType.number,
+            maxLength: 4,
+            obscureText: true,
+            decoration: _inputDecoration('1234', Icons.lock_outline),
+            validator: (v) {
+              if (v == null || v.trim().length != 4) return 'Ingresa un PIN de 4 dígitos';
+              return null;
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProfessionalFields() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Row(
+            children: [
+              Icon(Icons.badge_outlined, color: Color(0xFF2563EB), size: 20),
+              SizedBox(width: 8),
+              Text('Credenciales Clínicas', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Color(0xFF1E293B))),
+            ],
+          ),
+          const SizedBox(height: 14),
+          const Text('Nombre Profesional', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF475569))),
+          const SizedBox(height: 6),
+          TextFormField(
+            controller: _operatorNameController,
+            textCapitalization: TextCapitalization.words,
+            decoration: _inputDecoration('Ej: Dra. Sofía Morales / Enf. Rodrigo Silva', Icons.person_pin_outlined),
+          ),
+          const SizedBox(height: 14),
+          const Text('Rol Clínico', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF475569))),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            children: ['Médico/a Tratante', 'Enfermero/a Clínico/a', 'TENS'].map((r) {
+              final sel = _professionalRole == r;
+              return ChoiceChip(
+                label: Text(r),
+                selected: sel,
+                onSelected: (s) {
+                  if (s) setState(() => _professionalRole = r);
+                },
+                selectedColor: const Color(0xFFDBEAFE),
+                labelStyle: TextStyle(
+                  color: sel ? const Color(0xFF1D4ED8) : const Color(0xFF64748B),
+                  fontWeight: sel ? FontWeight.bold : FontWeight.normal,
+                ),
+              );
+            }).toList(),
+          ),
+          const SizedBox(height: 14),
+          const Text('Establecimiento o Servicio', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF475569))),
+          const SizedBox(height: 6),
+          TextFormField(
+            controller: _operatorOrgController,
+            decoration: _inputDecoration('Ej: CESFAM Santa Julia / ELEAM Los Nogales', Icons.local_hospital_outlined),
+          ),
+          const SizedBox(height: 14),
+          const Text('PIN de Acceso Rápido (4 dígitos)', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF475569))),
+          const SizedBox(height: 6),
+          TextFormField(
+            controller: _pinController,
+            keyboardType: TextInputType.number,
+            maxLength: 4,
+            obscureText: true,
+            decoration: _inputDecoration('1234', Icons.lock_outline),
+            validator: (v) {
+              if (v == null || v.trim().length != 4) return 'Ingresa un PIN de 4 dígitos';
+              return null;
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAutonomousPatientFields() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Row(
+            children: [
+              Icon(Icons.face_retouching_natural_rounded, color: Color(0xFF2563EB), size: 20),
+              SizedBox(width: 8),
+              Text('Tus Datos Personales', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Color(0xFF1E293B))),
+            ],
+          ),
+          const SizedBox(height: 14),
+          const Text('¿Cómo te gusta que te llamen?', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF475569))),
+          const SizedBox(height: 6),
+          TextFormField(
+            controller: _patientNameController,
+            textCapitalization: TextCapitalization.words,
+            decoration: _inputDecoration('Ej: Roberto Gómez', Icons.person_outline),
+            validator: (val) {
+              if (val == null || val.trim().isEmpty) return 'Por favor escribe tu nombre';
+              return null;
+            },
+          ),
+          const SizedBox(height: 14),
+          const Text('Tu RUT Chileno (Opcional)', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF475569))),
+          const SizedBox(height: 6),
+          Focus(
+            onFocusChange: (hasFocus) {
+              if (!hasFocus) {
+                final raw = _patientRutController.text.trim();
+                if (raw.isNotEmpty && RutValidator.isValid(raw)) {
+                  _patientRutController.text = RutValidator.format(raw);
+                }
+              }
+            },
+            child: TextFormField(
+              controller: _patientRutController,
+              decoration: _inputDecoration('Ej: 14.567.890-K', Icons.badge_outlined),
+              validator: (v) {
+                if (v != null && v.trim().isNotEmpty) {
+                  return RutValidator.validateField(v);
+                }
+                return null;
+              },
+            ),
+          ),
+          const SizedBox(height: 16),
+          _buildCircadianRegimeSelector(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPatientFields({
+    required String title,
+    required String subtitle,
+    required String nameHint,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.person_pin_circle_outlined, color: Color(0xFF2563EB), size: 20),
+              const SizedBox(width: 8),
+              Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Color(0xFF1E293B))),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(subtitle, style: const TextStyle(fontSize: 12, color: Color(0xFF64748B))),
+          const SizedBox(height: 14),
+          const Text('Nombre Completo del Paciente', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF475569))),
+          const SizedBox(height: 6),
+          TextFormField(
+            controller: _patientNameController,
+            textCapitalization: TextCapitalization.words,
+            decoration: _inputDecoration(nameHint, Icons.person_outline),
+            validator: (val) {
+              if (val == null || val.trim().isEmpty) return 'Ingresa el nombre del paciente';
+              if (val.trim().length < 2) return 'El nombre debe tener al menos 2 caracteres';
+              return null;
+            },
+          ),
+          const SizedBox(height: 14),
+          const Text('RUT Chileno o N° de Ficha', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF475569))),
+          const SizedBox(height: 6),
+          Focus(
+            onFocusChange: (hasFocus) {
+              if (!hasFocus) {
+                final raw = _patientRutController.text.trim();
+                if (raw.isNotEmpty && RutValidator.isValid(raw)) {
+                  _patientRutController.text = RutValidator.format(raw);
+                }
+              }
+            },
+            child: TextFormField(
+              controller: _patientRutController,
+              decoration: _inputDecoration('Ej: 14.567.890-K', Icons.badge_outlined),
+              validator: RutValidator.validateField,
+            ),
+          ),
+          const SizedBox(height: 16),
+          _buildCircadianRegimeSelector(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCircadianRegimeSelector() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('Régimen Horario Inicial (4 Comidas):', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF475569))),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            Expanded(
+              child: ChoiceChip(
+                label: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.home_rounded, size: 16),
+                    SizedBox(width: 4),
+                    Text('Hogar (8:00)'),
+                  ],
+                ),
+                selected: _selectedRegime == CircadianRegimeType.home,
+                onSelected: (selected) {
+                  if (selected) setState(() => _selectedRegime = CircadianRegimeType.home);
+                },
+                selectedColor: const Color(0xFFDBEAFE),
+                labelStyle: TextStyle(
+                  color: _selectedRegime == CircadianRegimeType.home ? const Color(0xFF1D4ED8) : const Color(0xFF64748B),
+                  fontWeight: _selectedRegime == CircadianRegimeType.home ? FontWeight.bold : FontWeight.normal,
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: ChoiceChip(
+                label: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.local_hospital_rounded, size: 16),
+                    SizedBox(width: 4),
+                    Text('Hospital (7:30)'),
+                  ],
+                ),
+                selected: _selectedRegime == CircadianRegimeType.hospital,
+                onSelected: (selected) {
+                  if (selected) setState(() => _selectedRegime = CircadianRegimeType.hospital);
+                },
+                selectedColor: const Color(0xFFDBEAFE),
+                labelStyle: TextStyle(
+                  color: _selectedRegime == CircadianRegimeType.hospital ? const Color(0xFF1D4ED8) : const Color(0xFF64748B),
+                  fontWeight: _selectedRegime == CircadianRegimeType.hospital ? FontWeight.bold : FontWeight.normal,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  InputDecoration _inputDecoration(String hint, IconData icon) {
+    return InputDecoration(
+      hintText: hint,
+      prefixIcon: Icon(icon, color: const Color(0xFF2563EB), size: 20),
+      filled: true,
+      fillColor: const Color(0xFFF8FAFC),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+      ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
     );
   }
 

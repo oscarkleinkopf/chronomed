@@ -154,6 +154,7 @@ class _CaregiverHomeScreenState extends State<CaregiverHomeScreen> {
               const SizedBox(height: 16),
             ],
 
+            _buildOperatorHeader(),
             _buildPatientBanner(activeOmissionAlert != null, _computeNextDoseLabel(routine)),
             const SizedBox(height: 16),
 
@@ -182,6 +183,63 @@ class _CaregiverHomeScreenState extends State<CaregiverHomeScreen> {
             ..._buildMedicationSection(routine),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildOperatorHeader() {
+    final storage = LocalStorageService.instance;
+    final role = storage.userRole;
+    final name = storage.userName;
+    final title = storage.userTitle;
+    final org = storage.userOrganization;
+
+    if (name.isEmpty && role != 'professional') return const SizedBox.shrink();
+
+    IconData icon;
+    Color color;
+    String label;
+
+    if (role == 'professional') {
+      icon = Icons.medical_services_rounded;
+      color = const Color(0xFF0284C7);
+      final profTitle = title.isNotEmpty ? title : 'Profesional de Salud';
+      final orgLabel = org.isNotEmpty ? ' · $org' : '';
+      label = '${name.isNotEmpty ? name : "Profesional"} ($profTitle$orgLabel)';
+    } else if (role == 'autonomous_patient') {
+      icon = Icons.person_rounded;
+      color = const Color(0xFF16A34A);
+      label = 'Tratamiento Autónomo';
+    } else {
+      icon = Icons.family_restroom_rounded;
+      color = const Color(0xFF2563EB);
+      label = 'Cuidador/a: ${name.isNotEmpty ? name : "Familiar"}';
+    }
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withOpacity(0.25)),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: color, size: 18),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                color: color,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
       ),
     );
   }

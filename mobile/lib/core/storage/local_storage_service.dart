@@ -90,6 +90,10 @@ class LocalStorageService {
   String _caregiverPin = '1234';
   String _patientName = 'Marcela';
   String _patientRut = '14.567.890-K';
+  String _userRole = 'caregiver'; // 'caregiver', 'professional', 'autonomous_patient'
+  String _userName = '';
+  String _userTitle = '';
+  String _userOrganization = '';
   String? _caregiverHost;
   int _p2pPort = 8844;
   String _p2pSecret = 'chronomed_p2p_local_secret_2026';
@@ -104,6 +108,13 @@ class LocalStorageService {
   String get caregiverPin => _caregiverPin;
   String get patientName => _patientName;
   String get patientRut => _patientRut;
+  String get userRole => _userRole;
+  String get userName => _userName;
+  String get userTitle => _userTitle;
+  String get userOrganization => _userOrganization;
+  bool get isProfessional => _userRole == 'professional';
+  bool get isAutonomousPatient => _userRole == 'autonomous_patient';
+  bool get isCaregiver => _userRole == 'caregiver';
   String? get caregiverHost => _caregiverHost;
   int get p2pPort => _p2pPort;
   String get p2pSecret => _p2pSecret;
@@ -307,6 +318,22 @@ class LocalStorageService {
         _caregiverPin = data['caregiverPin'].toString();
       }
 
+      if (data['userRole'] != null) {
+        _userRole = data['userRole'].toString();
+      }
+
+      if (data['userName'] != null) {
+        _userName = data['userName'].toString();
+      }
+
+      if (data['userTitle'] != null) {
+        _userTitle = data['userTitle'].toString();
+      }
+
+      if (data['userOrganization'] != null) {
+        _userOrganization = data['userOrganization'].toString();
+      }
+
       if (data['patientName'] != null) {
         _patientName = data['patientName'].toString();
       }
@@ -387,6 +414,10 @@ class LocalStorageService {
         'patientName': _patientName,
         'patientRut': _patientRut,
         'caregiverPin': _caregiverPin,
+        'userRole': _userRole,
+        'userName': _userName,
+        'userTitle': _userTitle,
+        'userOrganization': _userOrganization,
         'stocks': _stocks,
         'cabinetItems': _cabinetItems.map((e) => e.toJson()).toList(),
         'routine': _routine.toJson(),
@@ -664,6 +695,21 @@ class LocalStorageService {
     await _persistToDisk();
   }
 
+  Future<void> saveUserProfile({
+    required String role,
+    String? userName,
+    String? userTitle,
+    String? userOrganization,
+    String? caregiverPin,
+  }) async {
+    _userRole = role.trim();
+    if (userName != null) _userName = userName.trim();
+    if (userTitle != null) _userTitle = userTitle.trim();
+    if (userOrganization != null) _userOrganization = userOrganization.trim();
+    if (caregiverPin != null && caregiverPin.isNotEmpty) _caregiverPin = caregiverPin.trim();
+    await _persistToDisk();
+  }
+
   Future<void> updateCaregiverPin(String newPin) async {
     _caregiverPin = newPin.trim();
     await _persistToDisk();
@@ -777,6 +823,10 @@ class LocalStorageService {
     _caregiverPin = '1234';
     _patientName = 'Marcela';
     _patientRut = '14.567.890-K';
+    _userRole = 'caregiver';
+    _userName = '';
+    _userTitle = '';
+    _userOrganization = '';
     _caregiverHost = null;
     _p2pPort = 8844;
     _p2pSecret = 'chronomed_p2p_local_secret_2026';
