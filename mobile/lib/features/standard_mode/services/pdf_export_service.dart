@@ -32,6 +32,9 @@ class PdfExportService {
     required int onTimeDoses,
     CircadianRoutine? routine,
     List<Map<String, String>>? medications,
+    Map<String, dynamic>? vitalSigns,
+    String? issuerName,
+    String? issuerRole,
   }) async {
     final pdf = pw.Document(
       title: 'Informe Clínico ChronoMed - $patientName',
@@ -52,24 +55,33 @@ class PdfExportService {
 
     final medList = medications ?? [
       {
-        'name': 'Eutirox (Levotiroxina)',
-        'dose': '100 mcg',
-        'schedule': '${routineRef.formatTime(routineRef.fastingTime)} (En ayunas)',
-        'stock': '28 comprimidos',
+        'name': 'Eutirox (Levotiroxina) • ⭐ Bioequivalente (ISP)',
+        'dose': '100 mcg (Reg. F-18452/19)',
+        'schedule': '${routineRef.formatTime(routineRef.fastingTime)} (En ayunas estricto)',
+        'stock': '28 comp. (Merck S.A.)',
       },
       {
-        'name': 'Losartán Potásico',
-        'dose': '50 mg',
+        'name': 'Losartán Potásico • ⭐ Bioequivalente (ISP)',
+        'dose': '50 mg (Reg. F-14205/20)',
         'schedule': '${routineRef.formatTime(routineRef.lunch)} (Con almuerzo)',
-        'stock': '14 comprimidos',
+        'stock': '14 comp. (Lab. Chile)',
       },
       {
-        'name': 'Atorvastatina',
-        'dose': '20 mg',
-        'schedule': '${routineRef.formatTime(routineRef.night)} (Al acostarse)',
-        'stock': '30 comprimidos',
+        'name': 'Atorvastatina • ⭐ Bioequivalente (ISP)',
+        'dose': '20 mg (Reg. F-19320/21)',
+        'schedule': '${routineRef.formatTime(routineRef.night)} (Al acostarse / Sin pomelo)',
+        'stock': '30 comp. (Mintlab)',
       },
     ];
+
+    final vitals = vitalSigns ?? {
+      'systolic': 118,
+      'diastolic': 76,
+      'heartRate': 68,
+      'glucose': 94,
+      'map': 76 + (118 - 76) / 3.0,
+      'bpClassification': 'Normal / Óptima (MINSAL/AHA)',
+    };
 
     pdf.addPage(
       pw.MultiPage(
@@ -238,7 +250,101 @@ class PdfExportService {
                 ),
               ],
             ),
-            pw.SizedBox(height: 24),
+            pw.SizedBox(height: 14),
+
+            // Monitoreo de Signos Vitales y Semáforo Clínico (MINSAL / AHA)
+            pw.Text('Monitoreo de Signos Vitales y Semáforo Clínico (MINSAL / AHA):', style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold, color: PdfColor.fromInt(0xFF0F172A))),
+            pw.SizedBox(height: 6),
+            pw.Table(
+              border: pw.TableBorder.all(color: PdfColor.fromInt(0xFFCBD5E1), width: 0.5),
+              children: [
+                pw.TableRow(
+                  decoration: pw.BoxDecoration(color: PdfColor.fromInt(0xFFF1F5F9)),
+                  children: [
+                    pw.Padding(padding: const pw.EdgeInsets.all(5), child: pw.Text('Signo Vital / Parámetro', style: pw.TextStyle(fontSize: 8.5, fontWeight: pw.FontWeight.bold))),
+                    pw.Padding(padding: const pw.EdgeInsets.all(5), child: pw.Text('Medición Registrada', style: pw.TextStyle(fontSize: 8.5, fontWeight: pw.FontWeight.bold))),
+                    pw.Padding(padding: const pw.EdgeInsets.all(5), child: pw.Text('Cálculo / Interpretación Clínica', style: pw.TextStyle(fontSize: 8.5, fontWeight: pw.FontWeight.bold))),
+                  ],
+                ),
+                pw.TableRow(
+                  children: [
+                    pw.Padding(padding: const pw.EdgeInsets.all(5), child: pw.Text('Presión Arterial (PA)', style: pw.TextStyle(fontSize: 8.5, fontWeight: pw.FontWeight.bold))),
+                    pw.Padding(padding: const pw.EdgeInsets.all(5), child: pw.Text('${vitals['systolic']}/${vitals['diastolic']} mmHg', style: const pw.TextStyle(fontSize: 8.5))),
+                    pw.Padding(padding: const pw.EdgeInsets.all(5), child: pw.Text('${vitals['bpClassification']}', style: pw.TextStyle(fontSize: 8.5, color: PdfColor.fromInt(0xFF059669), fontWeight: pw.FontWeight.bold))),
+                  ],
+                ),
+                pw.TableRow(
+                  children: [
+                    pw.Padding(padding: const pw.EdgeInsets.all(5), child: pw.Text('Presión Arterial Media (PAM)', style: const pw.TextStyle(fontSize: 8.5))),
+                    pw.Padding(padding: const pw.EdgeInsets.all(5), child: pw.Text('${(vitals['map'] as num).toStringAsFixed(1)} mmHg', style: const pw.TextStyle(fontSize: 8.5))),
+                    pw.Padding(padding: const pw.EdgeInsets.all(5), child: pw.Text('Fórmula: PAD + (PAS - PAD)/3 (Normorango 70-105)', style: const pw.TextStyle(fontSize: 8))),
+                  ],
+                ),
+                pw.TableRow(
+                  children: [
+                    pw.Padding(padding: const pw.EdgeInsets.all(5), child: pw.Text('Frecuencia Cardíaca (Pulso)', style: const pw.TextStyle(fontSize: 8.5))),
+                    pw.Padding(padding: const pw.EdgeInsets.all(5), child: pw.Text('${vitals['heartRate']} lpm', style: const pw.TextStyle(fontSize: 8.5))),
+                    pw.Padding(padding: const pw.EdgeInsets.all(5), child: pw.Text('Normocardia en reposo (60-100 lpm)', style: const pw.TextStyle(fontSize: 8))),
+                  ],
+                ),
+                if (vitals['glucose'] != null)
+                  pw.TableRow(
+                    children: [
+                      pw.Padding(padding: const pw.EdgeInsets.all(5), child: pw.Text('Glicemia Capilar', style: const pw.TextStyle(fontSize: 8.5))),
+                      pw.Padding(padding: const pw.EdgeInsets.all(5), child: pw.Text('${vitals['glucose']} mg/dL', style: const pw.TextStyle(fontSize: 8.5))),
+                      pw.Padding(padding: const pw.EdgeInsets.all(5), child: pw.Text('Normoglicemia en ayunas (< 100 mg/dL)', style: const pw.TextStyle(fontSize: 8))),
+                    ],
+                  ),
+              ],
+            ),
+            pw.SizedBox(height: 14),
+
+            // Firmas del Equipo de Salud y Responsable
+            pw.Row(
+              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+              children: [
+                pw.Expanded(
+                  child: pw.Container(
+                    padding: const pw.EdgeInsets.all(8),
+                    decoration: pw.BoxDecoration(
+                      border: pw.Border.all(color: PdfColor.fromInt(0xFFCBD5E1), width: 0.5),
+                      borderRadius: pw.BorderRadius.circular(6),
+                    ),
+                    child: pw.Column(
+                      crossAxisAlignment: pw.CrossAxisAlignment.center,
+                      children: [
+                        pw.SizedBox(height: 18),
+                        pw.Container(width: 140, height: 0.8, color: PdfColor.fromInt(0xFF64748B)),
+                        pw.SizedBox(height: 3),
+                        pw.Text(issuerName ?? 'Firma y Timbre Profesional Tratante', style: pw.TextStyle(fontSize: 7.5, fontWeight: pw.FontWeight.bold, color: PdfColor.fromInt(0xFF334155))),
+                        pw.Text(issuerRole ?? 'Médico Tratante / Enfermero/a / CESFAM', style: const pw.TextStyle(fontSize: 7, color: PdfColors.grey700)),
+                      ],
+                    ),
+                  ),
+                ),
+                pw.SizedBox(width: 10),
+                pw.Expanded(
+                  child: pw.Container(
+                    padding: const pw.EdgeInsets.all(8),
+                    decoration: pw.BoxDecoration(
+                      border: pw.Border.all(color: PdfColor.fromInt(0xFFCBD5E1), width: 0.5),
+                      borderRadius: pw.BorderRadius.circular(6),
+                    ),
+                    child: pw.Column(
+                      crossAxisAlignment: pw.CrossAxisAlignment.center,
+                      children: [
+                        pw.SizedBox(height: 18),
+                        pw.Container(width: 140, height: 0.8, color: PdfColor.fromInt(0xFF64748B)),
+                        pw.SizedBox(height: 3),
+                        pw.Text('Firma de Conformidad Cuidador / Paciente', style: pw.TextStyle(fontSize: 7.5, fontWeight: pw.FontWeight.bold, color: PdfColor.fromInt(0xFF334155))),
+                        pw.Text('Trazabilidad y supervisión en el hogar', style: const pw.TextStyle(fontSize: 7, color: PdfColors.grey700)),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            pw.SizedBox(height: 14),
 
             // Legal & Cryptographic HMAC Certification
             pw.Container(

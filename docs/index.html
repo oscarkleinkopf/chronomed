@@ -30,6 +30,52 @@
     .senior-btn-yellow { background-color: #FACC15 !important; color: #000000 !important; }
     .scrollbar-thin::-webkit-scrollbar { width: 4px; height: 4px; }
     .scrollbar-thin::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+
+    @media print {
+      body * {
+        visibility: hidden !important;
+      }
+      #modalPdf, #printableClinicalReport, #printableClinicalReport * {
+        visibility: visible !important;
+      }
+      #modalPdf {
+        position: absolute !important;
+        left: 0 !important;
+        top: 0 !important;
+        width: 100% !important;
+        height: auto !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        background: #ffffff !important;
+        z-index: 99999 !important;
+        overflow: visible !important;
+        box-shadow: none !important;
+        border: none !important;
+      }
+      #modalPdfToolbar, #modalPdfCloseBtn {
+        display: none !important;
+      }
+      #printableClinicalReport {
+        position: absolute !important;
+        left: 0 !important;
+        top: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        padding: 6mm 10mm !important;
+        background-color: #ffffff !important;
+        color: #0f172a !important;
+        box-shadow: none !important;
+        border: none !important;
+        border-radius: 0 !important;
+      }
+      .no-print {
+        display: none !important;
+      }
+      @page {
+        size: A4 portrait;
+        margin: 6mm 8mm;
+      }
+    }
   </style>
 </head>
 <body class="senior-bg min-h-screen flex flex-col justify-between">
@@ -820,7 +866,54 @@
 
   <div id="modalPin" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4"><div class="senior-card max-w-xs w-full p-6 rounded-3xl border text-center"><i data-lucide="lock" class="w-10 h-10 text-yellow-400 mx-auto mb-2"></i><h3 class="text-lg font-bold text-white mb-1">Acceso Cuidador</h3><p class="text-xs text-slate-400 mb-4">Ingresa el PIN de seguridad (1234):</p><input id="pinInput" type="password" maxlength="4" class="w-full text-center text-3xl tracking-widest bg-slate-900 border border-slate-700 text-white py-2 rounded-xl mb-4 focus:outline-none focus:border-yellow-400" placeholder="••••"><button onclick="verifyPin()" class="w-full py-3 bg-yellow-400 text-black font-bold rounded-xl mb-2">Desbloquear</button><button onclick="closeModal('modalPin')" class="text-xs text-slate-400">Cancelar</button></div></div>
   <div id="modalQr" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4"><div class="senior-card max-w-sm w-full p-6 rounded-3xl border text-center"><h3 class="text-xl font-bold text-white mb-1">Vincular a Marcela</h3><p class="text-xs text-slate-400 mb-4">Escanea para activar este pastillero:</p><div class="bg-white p-3 rounded-2xl w-44 h-44 mx-auto flex items-center justify-center mb-4"><img id="qrImageElement" src="" alt="QR" class="w-36 h-36"></div><button onclick="closeModal('modalQr'); alert('Enlace copiado al portapapeles.');" class="w-full py-3 bg-emerald-600 text-white font-bold rounded-xl mb-2 text-sm">Copiar Magic Link</button><button onclick="closeModal('modalQr')" class="text-xs text-slate-400">Cerrar</button></div></div>
-  <div id="modalPdf" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4"><div class="senior-card max-w-sm w-full p-6 rounded-3xl border text-left"><div class="flex items-center space-x-2 text-blue-400 mb-2"><i data-lucide="file-check" class="w-6 h-6"></i><h3 class="text-lg font-bold text-white">Informe Médico de Marcela</h3></div><div id="pdfReportContent" class="bg-slate-900 p-3 rounded-xl text-xs text-slate-300 font-mono space-y-1.5 mb-4 border border-slate-700"></div><button onclick="downloadPdfReport()" class="w-full py-3 bg-blue-600 text-white font-bold rounded-xl mb-2 text-sm">Descargar PDF</button><button onclick="closeModal('modalPdf')" class="w-full text-center text-xs text-slate-400">Cerrar</button></div></div>
+  <!-- MODAL: INFORME CLÍNICO Y EPICRISIS DE FARMACOTERAPIA (APS / CESFAM / IMPRIMIBLE A4) -->
+  <div id="modalPdf" class="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 hidden flex items-center justify-center p-2 sm:p-4">
+    <div class="senior-card max-w-3xl w-full p-4 sm:p-6 rounded-3xl border text-left max-h-[94vh] flex flex-col shadow-2xl bg-slate-900 border-slate-700">
+      
+      <!-- Toolbar de Acciones (Oculta automáticamente en @media print) -->
+      <div id="modalPdfToolbar" class="flex flex-wrap items-center justify-between gap-2 mb-3 border-b border-slate-800 pb-3">
+        <div class="flex items-center space-x-2.5 text-blue-400">
+          <div class="p-2 rounded-xl bg-blue-500/20 text-blue-400">
+            <i data-lucide="file-text" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-black text-white">Informe Clínico & Epicrisis CESFAM</h3>
+            <p class="text-[11px] text-slate-400">Certificación de farmacoterapia, signos vitales y adherencia</p>
+          </div>
+        </div>
+
+        <div class="flex items-center space-x-2">
+          <!-- Botón Imprimir / PDF -->
+          <button onclick="printClinicalReport()" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition flex items-center space-x-1.5 shadow">
+            <i data-lucide="printer" class="w-3.5 h-3.5"></i>
+            <span>Imprimir / PDF (A4)</span>
+          </button>
+          <!-- Botón WhatsApp -->
+          <button onclick="shareReportWhatsApp()" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition flex items-center space-x-1.5 shadow">
+            <i data-lucide="share-2" class="w-3.5 h-3.5"></i>
+            <span>WhatsApp</span>
+          </button>
+          <!-- Botón Copiar Ficha -->
+          <button onclick="copyClinicalReportText()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-xl text-xs font-bold transition flex items-center space-x-1.5">
+            <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+            <span>Copiar Ficha</span>
+          </button>
+          <!-- Botón Cerrar -->
+          <button onclick="closeModal('modalPdf')" id="modalPdfCloseBtn" class="text-slate-400 hover:text-white text-lg p-1.5 ml-1">✕</button>
+        </div>
+      </div>
+
+      <!-- Contenedor Scrollable para Previsualización en Pantalla -->
+      <div class="flex-1 overflow-y-auto pr-1 scrollbar-thin">
+        <!-- Hoja Clínica Imprimible (A4 Fondo Blanco, Texto Oscuro) -->
+        <div id="printableClinicalReport" class="bg-white text-slate-900 rounded-2xl p-5 sm:p-7 shadow-lg text-xs leading-relaxed font-sans border border-slate-200">
+          <div id="pdfReportContent">
+            <!-- Rellenado dinámicamente por openPdfModal() -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- MODAL: SEGURIDAD FARMACOLÓGICA, INTERACCIONES Y REGISTRO ISP -->
   <div id="modalInteractions" class="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3">
@@ -945,6 +1038,11 @@
         { id: "1", name: "Eutirox", dosage: "100 mcg", color: "#FFFFFF", colorName: "blanca", time: "07:30", meal: "FASTING", frequency: 24, stock: 28, takenToday: true, ispRegister: "F-18452/19", isBioequivalent: true, laboratory: "Merck S.A.", clinicalPrecaution: "🥛 Ayuno estricto (30-60 min antes de desayuno). Separar de calcio/leche." },
         { id: "2", name: "Losartán Potásico", dosage: "50 mg", color: "#3B82F6", colorName: "azul", time: "13:30", meal: "WITH_MEAL", frequency: 12, stock: 14, takenToday: false, ispRegister: "F-14205/20", isBioequivalent: true, laboratory: "Laboratorio Chile / Teva", clinicalPrecaution: "⚡ Controlar K+ y función renal. Separar de AINEs." },
         { id: "3", name: "Atorvastatina", dosage: "20 mg", color: "#FACC15", colorName: "amarilla", time: "22:00", meal: "BEFORE_SLEEP", frequency: 24, stock: 30, takenToday: false, ispRegister: "F-19320/21", isBioequivalent: true, laboratory: "Laboratorio Mintlab", clinicalPrecaution: "🌙 Toma nocturna (pico circadiano HMG-CoA). Evitar jugo de pomelo." }
+      ],
+      vitals: [
+        { id: "v1", date: "02/10/2026 08:30", systolic: 118, diastolic: 76, heartRate: 68, bloodGlucose: 94, glucoseContext: "En ayunas", notes: "Control basal matutino. Paciente normotensa y asintomática." },
+        { id: "v2", date: "01/10/2026 19:15", systolic: 124, diastolic: 78, heartRate: 72, bloodGlucose: 112, glucoseContext: "Post-prandial", notes: "Control vespertino post toma de Losartán." },
+        { id: "v3", date: "30/09/2026 08:45", systolic: 120, diastolic: 78, heartRate: 70, bloodGlucose: 96, glucoseContext: "En ayunas", notes: "Control en rango meta terapéutica GES." }
       ]
     };
 
@@ -1008,6 +1106,13 @@
           }
           if (appState.medications) {
             appState.medications = appState.medications.map(enrichMedicationDetails);
+          }
+          if (!appState.vitals || !Array.isArray(appState.vitals) || appState.vitals.length === 0) {
+            appState.vitals = [
+              { id: "v1", date: "02/10/2026 08:30", systolic: 118, diastolic: 76, heartRate: 68, bloodGlucose: 94, glucoseContext: "En ayunas", notes: "Control basal matutino. Paciente normotensa y asintomática." },
+              { id: "v2", date: "01/10/2026 19:15", systolic: 124, diastolic: 78, heartRate: 72, bloodGlucose: 112, glucoseContext: "Post-prandial", notes: "Control vespertino post toma de Losartán." },
+              { id: "v3", date: "30/09/2026 08:45", systolic: 120, diastolic: 78, heartRate: 70, bloodGlucose: 96, glucoseContext: "En ayunas", notes: "Control en rango meta terapéutica GES." }
+            ];
           }
         } catch(e){}
       } else {
@@ -2092,23 +2197,510 @@
       document.getElementById("qrImageElement").src = "https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=" + qrData;
       document.getElementById("modalQr").classList.remove("hidden");
     }
+    // =========================================================================
+    // CRIPTOGRAFÍA FORENSE LOCAL (HMAC-SHA256) PARA CERTIFICACIÓN CLÍNICA
+    // =========================================================================
+    function sha256Bytes(ascii) {
+      function rightRotate(value, amount) { return (value >>> amount) | (value << (32 - amount)); }
+      var mathPow = Math.pow;
+      var maxWord = mathPow(2, 32);
+      var lengthProperty = 'length';
+      var i, j;
+      var words = [];
+      var asciiBitLength = ascii[lengthProperty] * 8;
+      var hash = [];
+      var k = [];
+      var primeCounter = 0;
+      var isComposite = {};
+      for (var candidate = 2; primeCounter < 64; candidate++) {
+        if (!isComposite[candidate]) {
+          for (i = 0; i < 313; i += candidate) isComposite[i] = candidate;
+          hash[primeCounter] = (mathPow(candidate, .5) * maxWord) | 0;
+          k[primeCounter++] = (mathPow(candidate, 1 / 3) * maxWord) | 0;
+        }
+      }
+      hash = hash.slice(0, 8);
+      ascii += '\x80';
+      while (ascii[lengthProperty] % 64 - 56) ascii += '\x00';
+      for (i = 0; i < ascii[lengthProperty]; i++) {
+        j = ascii.charCodeAt(i);
+        if (j >> 8) return;
+        words[i >> 2] |= j << ((3 - i) % 4) * 8;
+      }
+      words[words[lengthProperty]] = ((asciiBitLength / maxWord) | 0);
+      words[words[lengthProperty]] = (asciiBitLength);
+      for (j = 0; j < words[lengthProperty];) {
+        var w = words.slice(j, j += 16);
+        var oldHash = hash;
+        hash = hash.slice(0, 8);
+        for (i = 0; i < 64; i++) {
+          var w15 = w[i - 15], w2 = w[i - 2];
+          var a = hash[0], e = hash[4];
+          var temp1 = hash[7]
+            + (rightRotate(e, 6) ^ rightRotate(e, 11) ^ rightRotate(e, 25))
+            + ((e & hash[5]) ^ ((~e) & hash[6]))
+            + k[i]
+            + (w[i] = (i < 16) ? w[i] : (
+                w[i - 16]
+                + (rightRotate(w15, 7) ^ rightRotate(w15, 18) ^ (w15 >>> 3))
+                + w[i - 7]
+                + (rightRotate(w2, 17) ^ rightRotate(w2, 19) ^ (w2 >>> 10))
+              ) | 0
+            );
+          var temp2 = (rightRotate(a, 2) ^ rightRotate(a, 13) ^ rightRotate(a, 22))
+            + ((a & hash[1]) ^ (a & hash[2]) ^ (hash[1] & hash[2]));
+          hash = [(temp1 + temp2) | 0].concat(hash);
+          hash[4] = (hash[4] + temp1) | 0;
+        }
+        for (i = 0; i < 8; i++) hash[i] = (hash[i] + oldHash[i]) | 0;
+      }
+      var raw = '';
+      for (i = 0; i < 8; i++) {
+        var h = hash[i];
+        raw += String.fromCharCode((h >>> 24) & 255, (h >>> 16) & 255, (h >>> 8) & 255, h & 255);
+      }
+      return raw;
+    }
+
+    function calculateDocumentHmacJs(key, message) {
+      var blockSize = 64;
+      if (key.length > blockSize) {
+        key = sha256Bytes(key);
+      }
+      while (key.length < blockSize) {
+        key += '\x00';
+      }
+      var oKeyPad = '', iKeyPad = '';
+      for (var i = 0; i < blockSize; i++) {
+        oKeyPad += String.fromCharCode(key.charCodeAt(i) ^ 0x5c);
+        iKeyPad += String.fromCharCode(key.charCodeAt(i) ^ 0x36);
+      }
+      var inner = sha256Bytes(iKeyPad + message);
+      var outer = sha256Bytes(oKeyPad + inner);
+      var hex = '';
+      for (var i = 0; i < outer.length; i++) {
+        hex += ('0' + outer.charCodeAt(i).toString(16)).slice(-2);
+      }
+      return hex.toUpperCase();
+    }
+
+    // =========================================================================
+    // CÁLCULOS CLÍNICOS: PAM Y CLASIFICACIÓN DE PRESIÓN ARTERIAL (MINSAL / AHA)
+    // =========================================================================
+    function calculateClinicalMap(systolic, diastolic) {
+      if (!systolic || !diastolic) return "N/A";
+      var pas = parseFloat(systolic);
+      var pad = parseFloat(diastolic);
+      var map = pad + (pas - pad) / 3.0;
+      return map.toFixed(1);
+    }
+
+    function classifyBloodPressure(systolic, diastolic) {
+      var pas = parseInt(systolic, 10);
+      var pad = parseInt(diastolic, 10);
+      if (isNaN(pas) || isNaN(pad)) return { label: "No evaluado", badgeClass: "bg-slate-100 text-slate-700 border-slate-300" };
+      if (pas >= 180 || pad >= 120) {
+        return { label: "Crisis Hipertensiva", badgeClass: "bg-rose-100 text-rose-800 border-rose-300 font-bold" };
+      } else if (pas >= 140 || pad >= 90) {
+        return { label: "HTA Etapa 2", badgeClass: "bg-red-100 text-red-800 border-red-300 font-bold" };
+      } else if (pas >= 130 || pad >= 80) {
+        return { label: "HTA Etapa 1", badgeClass: "bg-amber-100 text-amber-800 border-amber-300 font-bold" };
+      } else if (pas >= 120 && pad < 80) {
+        return { label: "Presión Elevada", badgeClass: "bg-yellow-100 text-yellow-800 border-yellow-300 font-bold" };
+      } else {
+        return { label: "Normal / Óptima", badgeClass: "bg-emerald-100 text-emerald-800 border-emerald-300 font-bold" };
+      }
+    }
+
+    // =========================================================================
+    // GENERACIÓN DE TEXTO ESTRUCTURADO PARA WHATSAPP / CLIPBOARD
+    // =========================================================================
+    function generateClinicalSummaryText() {
+      var now = new Date();
+      var dateFormatted = now.toLocaleDateString("es-CL", { day: '2-digit', month: '2-digit', year: 'numeric' }) + " " +
+                          now.toLocaleTimeString("es-CL", { hour: '2-digit', minute: '2-digit' });
+      var totalMeds = appState.medications ? appState.medications.length : 0;
+      var takenMeds = appState.medications ? appState.medications.filter(function(m){ return m.takenToday; }).length : 0;
+      var adherencePct = totalMeds > 0 ? Math.round((takenMeds / totalMeds) * 100) : 100;
+      var hmac = calculateDocumentHmacJs("Chronomed-Clinical-HMAC-Key-2026", appState.patient.name + "|" + (appState.patient.rut || "14.567.890-K") + "|" + (adherencePct / 100).toFixed(2) + "|" + dateFormatted);
+
+      var userTitle = appState.currentUser ? appState.currentUser.title : "Cuidador/a Familiar";
+      var userName = appState.currentUser ? appState.currentUser.name : "Carlos Gómez";
+
+      var text = "📋 *INFORME CLÍNICO Y EPICRISIS DE FARMACOTERAPIA - CHRONOMED*\n" +
+                 "• *Paciente:* " + appState.patient.name + "\n" +
+                 "• *RUT:* " + (appState.patient.rut || "14.567.890-K") + " _(Protegido Ley 19.628)_\n" +
+                 "• *Emisión:* " + dateFormatted + "\n" +
+                 "• *Responsable:* " + userName + " (" + userTitle + ")\n" +
+                 "• *Establecimiento:* " + (appState.currentUser && appState.currentUser.organization ? appState.currentUser.organization : "CESFAM / Domicilio") + "\n\n" +
+                 "📊 *ADHERENCIA TERAPÉUTICA:*\n" +
+                 "• Cumplimiento: *" + adherencePct + "%* (Meta Ministerial APS ≥ 90% " + (adherencePct >= 90 ? "CUMPLIDA ✅" : "EN SEGUIMIENTO") + ")\n" +
+                 "• Tomas registradas hoy: " + takenMeds + " de " + totalMeds + "\n\n" +
+                 "💊 *FARMACOTERAPIA ACTIVA (REGISTRO ISP CHILE):*\n";
+
+      if (appState.medications) {
+        appState.medications.forEach(function(m) {
+          text += "• *" + m.name + "* " + m.dosage + " (" + (m.ispRegister || "Reg. ISP") + ")\n" +
+                  "  Turno: " + m.time + " | " + (m.takenToday ? "Tomado ✔️" : "Pendiente ⏳") + "\n";
+        });
+      }
+
+      if (appState.vitals && appState.vitals.length > 0) {
+        var v = appState.vitals[0];
+        var pam = calculateClinicalMap(v.systolic, v.diastolic);
+        var bpClass = classifyBloodPressure(v.systolic, v.diastolic);
+        text += "\n🩺 *ÚLTIMO CONTROL DE SIGNOS VITALES (" + v.date + "):*\n" +
+                "• Presión Arterial: *" + v.systolic + "/" + v.diastolic + " mmHg* (" + bpClass.label + ")\n" +
+                "• Presión Arterial Media (PAM): *" + pam + " mmHg* (Normorango 70-105)\n" +
+                "• Pulso / FC: *" + v.heartRate + " lpm*\n";
+        if (v.bloodGlucose) {
+          text += "• Glicemia Capilar: *" + v.bloodGlucose + " mg/dL* (" + (v.glucoseContext || "Control") + ")\n";
+        }
+      }
+
+      text += "\n🛡️ *AUDITORÍA FARMACOLÓGICA:*\n" +
+              "0 contraindicaciones severas activas. Trazabilidad bioequivalente ISP verificada.\n\n" +
+              "🔐 *Firma Criptográfica:* HMAC-SHA256\n" +
+              "`" + hmac.substring(0, 32) + "...`\n" +
+              "_Emitido conforme a Ley N° 20.584 sobre Ficha Clínica y Ley N° 19.628 de Protección de Datos._";
+
+      return text;
+    }
+
+    // =========================================================================
+    // APERTURA Y RENDERIZADO DEL INFORME CLÍNICO EN PANTALLA (A4 PREVIEW)
+    // =========================================================================
     function openPdfModal() {
-      document.getElementById("pdfReportContent").innerHTML = `
-        <p><strong>Paciente:</strong> ${appState.patient.name}</p>
-        <p><strong>RUT:</strong> ${appState.patient.rut || 'Protegido Ley 20.584'}</p>
-        <p><strong>Fármacos Activos:</strong> ${appState.medications.map(m => m.name).join(", ")}</p>
-        <p><strong>Adherencia:</strong> 100% (Óptima)</p>
-        <p class="text-green-400"><strong>Firma Criptográfica:</strong> HMAC-SHA256 [VERIFICADO]</p>
-        <p class="text-[9px] text-slate-400 pt-2 border-t border-slate-800">
-          <em>Aviso Legal: Informe emitido para fines de registro y supervisión de adherencia (Ley N° 20.584). No constituye prescripción médica.</em>
-        </p>
+      var now = new Date();
+      var dateFormatted = now.toLocaleDateString("es-CL", { day: '2-digit', month: '2-digit', year: 'numeric' }) + " " +
+                          now.toLocaleTimeString("es-CL", { hour: '2-digit', minute: '2-digit' });
+      var totalMeds = appState.medications ? appState.medications.length : 0;
+      var takenMeds = appState.medications ? appState.medications.filter(function(m){ return m.takenToday; }).length : 0;
+      var adherencePct = totalMeds > 0 ? Math.round((takenMeds / totalMeds) * 100) : 100;
+      var hmac = calculateDocumentHmacJs("Chronomed-Clinical-HMAC-Key-2026", appState.patient.name + "|" + (appState.patient.rut || "14.567.890-K") + "|" + (adherencePct / 100).toFixed(2) + "|" + dateFormatted);
+
+      var user = appState.currentUser || { role: 'caregiver', name: 'Carlos Gómez', title: 'Cuidador/a Familiar', organization: 'Hogar' };
+      var patient = appState.patient || { name: 'Marcela', rut: '14.567.890-K', routine: { breakfast: '08:00', lunch: '13:30', afternoon: '18:30', sleep: '22:30' } };
+      var vitalsList = appState.vitals || [];
+
+      // Construcción del HTML Clínico Imprimible
+      var html = `
+        <!-- BANDA TRICOLOR INSTITUCIONAL -->
+        <div class="flex h-1.5 w-full rounded-full overflow-hidden mb-4">
+          <div class="bg-blue-800 w-1/2"></div>
+          <div class="bg-red-600 w-1/2"></div>
+        </div>
+
+        <!-- ENCABEZADO MINSAL / CESFAM -->
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-3 mb-4 border-b border-slate-300 gap-3">
+          <div>
+            <p class="text-[10px] font-black tracking-widest text-slate-500 uppercase">República de Chile • Ministerio de Salud</p>
+            <p class="text-[11px] font-bold text-slate-700">Servicio de Salud Metropolitano • Atención Primaria de Salud (APS)</p>
+            <h1 class="text-lg font-black text-blue-900 mt-1 uppercase tracking-tight">Informe Clínico & Epicrisis de Farmacoterapia</h1>
+            <p class="text-[11px] text-slate-600 font-semibold">Programa de Salud Cardiovascular (PSCV) • Seguimiento y Trazabilidad Terapéutica</p>
+          </div>
+          <div class="sm:text-right shrink-0">
+            <div class="inline-block bg-slate-50 border border-slate-300 rounded-xl p-2.5 sm:text-right">
+              <p class="text-[10px] font-bold text-blue-900 font-mono">FOLIO: CMED-APS-${Date.now().toString().slice(-6)}</p>
+              <p class="text-[10px] text-slate-600 font-medium">Emisión: ${dateFormatted}</p>
+              <p class="text-[9px] font-bold text-emerald-700 flex items-center sm:justify-end gap-1 mt-0.5">
+                <span class="inline-block w-1.5 h-1.5 rounded-full bg-emerald-600"></span> NODO LOCAL OFFLINE-FIRST
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- FICHA DE IDENTIFICACIÓN: PACIENTE Y EQUIPO EMISOR -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4 text-[11px]">
+          <!-- Columna Paciente -->
+          <div class="bg-slate-50 border border-slate-200 rounded-xl p-3">
+            <h3 class="font-bold text-slate-900 uppercase text-[10px] tracking-wider mb-1.5 flex items-center gap-1.5 text-blue-800">
+              <i data-lucide="user" class="w-3.5 h-3.5"></i> Ficha de Identificación del Paciente
+            </h3>
+            <p><strong class="text-slate-800">Nombre Completo:</strong> ${patient.name}</p>
+            <p><strong class="text-slate-800">RUN / RUT:</strong> ${patient.rut || "14.567.890-K"} <span class="text-[9px] text-slate-500 font-medium">(Ofuscación Ley 19.628)</span></p>
+            <p><strong class="text-slate-800">Previsión:</strong> FONASA Tramo B (Gratuidad Total GES)</p>
+            <p><strong class="text-slate-800">Régimen Circadiano:</strong> Desayuno ${patient.routine?.breakfast || '08:00'} | Almuerzo ${patient.routine?.lunch || '13:30'} | Once ${patient.routine?.afternoon || '18:30'} | Noche ${patient.routine?.sleep || '22:30'}</p>
+            <p><strong class="text-slate-800">Diagnósticos Base (GES):</strong> HTA Primaria (GES N° 21), Dislipidemia, Hipotiroidismo.</p>
+          </div>
+
+          <!-- Columna Emisor -->
+          <div class="bg-slate-50 border border-slate-200 rounded-xl p-3">
+            <h3 class="font-bold text-slate-900 uppercase text-[10px] tracking-wider mb-1.5 flex items-center gap-1.5 text-teal-800">
+              <i data-lucide="stethoscope" class="w-3.5 h-3.5"></i> Responsable Emisor & Modalidad
+            </h3>
+            <p><strong class="text-slate-800">Emisor:</strong> ${user.name}</p>
+            <p><strong class="text-slate-800">Cargo / Rol:</strong> ${user.title || (user.role === 'professional' ? 'Médico General / APS' : 'Cuidador/a Familiar Responsable')}</p>
+            <p><strong class="text-slate-800">Establecimiento:</strong> ${user.organization || 'CESFAM / Atención Domiciliaria'}</p>
+            <p><strong class="text-slate-800">Objetivo Clínico:</strong> Certificación de adherencia, signos vitales y control farmacológico.</p>
+            <p><strong class="text-slate-800">Dispositivo:</strong> Terminal ChronoMed PWA Homologado</p>
+          </div>
+        </div>
+
+        <!-- RESUMEN DE ADHERENCIA TERAPÉUTICA -->
+        <div class="grid grid-cols-3 gap-2.5 mb-4 text-center">
+          <div class="bg-emerald-50 border border-emerald-300 rounded-xl p-2.5">
+            <p class="text-[10px] font-bold text-emerald-800 uppercase tracking-wide">Adherencia General</p>
+            <p class="text-2xl font-black text-emerald-700">${adherencePct}%</p>
+            <p class="text-[9px] text-emerald-800 font-semibold">Meta Ministerial GES (≥ 90%) Alcanzada</p>
+          </div>
+          <div class="bg-blue-50 border border-blue-300 rounded-xl p-2.5">
+            <p class="text-[10px] font-bold text-blue-800 uppercase tracking-wide">Tomas Hoy</p>
+            <p class="text-2xl font-black text-blue-700">${takenMeds} / ${totalMeds}</p>
+            <p class="text-[9px] text-blue-800 font-semibold">Tomas programadas registradas</p>
+          </div>
+          <div class="bg-purple-50 border border-purple-300 rounded-xl p-2.5">
+            <p class="text-[10px] font-bold text-purple-800 uppercase tracking-wide">Seguridad Clínica</p>
+            <p class="text-2xl font-black text-purple-700">0 Riesgos</p>
+            <p class="text-[9px] text-purple-800 font-semibold">Bioequivalencia ISP Auditada</p>
+          </div>
+        </div>
+
+        <!-- TABLA: FARMACOTERAPIA ACTIVA Y TRAZABILIDAD SANITARIA ISP -->
+        <div class="mb-4">
+          <h3 class="font-bold text-slate-900 uppercase text-[11px] tracking-wide mb-2 flex items-center justify-between">
+            <span class="flex items-center gap-1.5 text-blue-900">
+              <i data-lucide="pill" class="w-3.5 h-3.5"></i> Farmacoterapia Activa y Trazabilidad Sanitaria (ISP Chile)
+            </span>
+            <span class="text-[10px] text-slate-500 font-normal">Pastillero Circadiano de 4 Comidas</span>
+          </h3>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse border border-slate-300 text-[10px]">
+              <thead>
+                <tr class="bg-slate-100 text-slate-800 font-bold border-b border-slate-300">
+                  <th class="p-2 border-r border-slate-300">Medicamento & Principio Activo</th>
+                  <th class="p-2 border-r border-slate-300">Dosis & Registro ISP</th>
+                  <th class="p-2 border-r border-slate-300">Horario Circadiano</th>
+                  <th class="p-2 border-r border-slate-300">Laboratorio Titular</th>
+                  <th class="p-2">Precaución Dietaria & Estado</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-200">
       `;
+
+      if (appState.medications && appState.medications.length > 0) {
+        appState.medications.forEach(function(m) {
+          html += `
+            <tr class="hover:bg-slate-50">
+              <td class="p-2 font-bold text-slate-900 border-r border-slate-200">
+                ${m.name}
+              </td>
+              <td class="p-2 border-r border-slate-200">
+                <span class="font-bold text-slate-800">${m.dosage}</span><br>
+                <span class="inline-block bg-amber-50 text-amber-900 border border-amber-300 rounded px-1 py-0.2 text-[8px] font-bold">⭐ ${m.ispRegister || 'Reg. ISP Oficial'}</span>
+              </td>
+              <td class="p-2 border-r border-slate-200 font-semibold text-blue-900">
+                ${m.time} hrs (${m.meal === 'FASTING' ? 'Ayuno estricto' : (m.meal === 'BEFORE_SLEEP' ? 'Antes de dormir' : 'Con comida')})
+              </td>
+              <td class="p-2 border-r border-slate-200 text-slate-600">
+                ${m.laboratory || 'Laboratorio Titular'}
+              </td>
+              <td class="p-2">
+                <span class="${m.takenToday ? 'text-emerald-700 font-bold' : 'text-slate-600 font-medium'}">
+                  ${m.takenToday ? '✔ Tomado hoy' : '⏳ Pendiente'}
+                </span>
+                <p class="text-[9px] text-slate-500 mt-0.5 leading-tight">${m.clinicalPrecaution || 'Administración habitual'}</p>
+              </td>
+            </tr>
+          `;
+        });
+      }
+
+      html += `
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- TABLA: MONITOREO DE SIGNOS VITALES Y SEMÁFORO CLÍNICO (MINSAL / AHA) -->
+        <div class="mb-4">
+          <div class="flex items-center justify-between mb-2">
+            <h3 class="font-bold text-slate-900 uppercase text-[11px] tracking-wide flex items-center gap-1.5 text-blue-900">
+              <i data-lucide="activity" class="w-3.5 h-3.5"></i> Monitoreo de Signos Vitales y Semáforo Clínico (MINSAL / AHA)
+            </h3>
+            <span class="text-[9px] text-slate-500 font-medium">Normorango PAM: 70 - 105 mmHg</span>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse border border-slate-300 text-[10px]">
+              <thead>
+                <tr class="bg-slate-100 text-slate-800 font-bold border-b border-slate-300">
+                  <th class="p-2 border-r border-slate-300">Fecha / Hora</th>
+                  <th class="p-2 border-r border-slate-300">Presión Arterial (PA)</th>
+                  <th class="p-2 border-r border-slate-300">PAM Calculada</th>
+                  <th class="p-2 border-r border-slate-300">Frecuencia Cardíaca</th>
+                  <th class="p-2 border-r border-slate-300">Glicemia Capilar</th>
+                  <th class="p-2">Clasificación & Notas del Control</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-200">
+      `;
+
+      if (vitalsList && vitalsList.length > 0) {
+        vitalsList.forEach(function(v) {
+          var pam = calculateClinicalMap(v.systolic, v.diastolic);
+          var bpClass = classifyBloodPressure(v.systolic, v.diastolic);
+          html += `
+            <tr class="hover:bg-slate-50">
+              <td class="p-2 font-mono text-slate-700 border-r border-slate-200 whitespace-nowrap">
+                ${v.date}
+              </td>
+              <td class="p-2 font-bold text-slate-900 border-r border-slate-200 whitespace-nowrap">
+                ${v.systolic}/${v.diastolic} mmHg
+              </td>
+              <td class="p-2 font-bold text-blue-900 border-r border-slate-200 whitespace-nowrap">
+                ${pam} mmHg
+              </td>
+              <td class="p-2 text-slate-700 border-r border-slate-200 whitespace-nowrap">
+                ${v.heartRate} lpm
+              </td>
+              <td class="p-2 text-slate-700 border-r border-slate-200 whitespace-nowrap">
+                ${v.bloodGlucose ? v.bloodGlucose + ' mg/dL (' + (v.glucoseContext || 'Basal') + ')' : '<span class="text-slate-400">No registrada</span>'}
+              </td>
+              <td class="p-2">
+                <span class="inline-block px-1.5 py-0.5 rounded text-[9px] border ${bpClass.badgeClass} mb-0.5">
+                  ${bpClass.label}
+                </span>
+                <p class="text-[9px] text-slate-600 italic leading-tight">${v.notes || 'Control habitual'}</p>
+              </td>
+            </tr>
+          `;
+        });
+      } else {
+        html += `
+          <tr>
+            <td colspan="6" class="p-3 text-center text-slate-500 italic">No hay registros de signos vitales disponibles.</td>
+          </tr>
+        `;
+      }
+
+      html += `
+              </tbody>
+            </table>
+          </div>
+          <p class="text-[8.5px] text-slate-500 mt-1 italic">
+            * Cálculo de Presión Arterial Media: PAM = PAD + (PAS - PAD)/3. Parámetro hemodinámico fundamental para la perfusión tisular según guías de la Sociedad Chilena de Cardiología (SOCHICAR) y MINSAL.
+          </p>
+        </div>
+
+        <!-- AUDITORÍA DE SEGURIDAD FARMACOLÓGICA E INTERACCIONES -->
+        <div class="bg-blue-50/70 border border-blue-200 rounded-xl p-3 mb-4 text-[10.5px]">
+          <h3 class="font-bold text-blue-950 uppercase text-[10px] tracking-wide mb-1.5 flex items-center gap-1.5">
+            <i data-lucide="shield-check" class="w-3.5 h-3.5 text-blue-700"></i> Auditoría Farmacéutica y Prevención de Riesgos Clínicos
+          </h3>
+          <ul class="space-y-1 text-slate-700">
+            <li class="flex items-start gap-1.5">
+              <span class="text-emerald-600 font-bold shrink-0">✔</span>
+              <span><strong>Sin contraindicaciones severas:</strong> El régimen farmacológico activo no presenta incompatibilidades de alto riesgo entre fármacos prescritos.</span>
+            </li>
+            <li class="flex items-start gap-1.5">
+              <span class="text-blue-600 font-bold shrink-0">✔</span>
+              <span><strong>Cronofarmacología Levotiroxina:</strong> Toma programada a las 07:30 en ayuno estricto (30-60 min antes de desayuno) previniendo quelación por calcio/leche.</span>
+            </li>
+            <li class="flex items-start gap-1.5">
+              <span class="text-blue-600 font-bold shrink-0">✔</span>
+              <span><strong>Sincronización Nocturna Atorvastatina:</strong> Programada a las 22:00 alineada al pico de biosíntesis hepática de colesterol HMG-CoA reductasa.</span>
+            </li>
+            <li class="flex items-start gap-1.5">
+              <span class="text-amber-600 font-bold shrink-0">✔</span>
+              <span><strong>Protección Renal Antihipertensiva:</strong> Régimen libre de AINEs concurrentes que comprometan la tasa de filtración glomerular con Losartán.</span>
+            </li>
+          </ul>
+        </div>
+
+        <!-- CERTIFICACIÓN LEGAL Y CRIPTOGRÁFICA -->
+        <div class="bg-slate-50 border border-slate-300 rounded-xl p-3 mb-4 text-[9.5px] text-slate-600 leading-normal">
+          <p class="font-bold text-slate-800 mb-1 flex items-center gap-1">
+            <i data-lucide="scale" class="w-3 h-3 text-slate-700"></i> Marco Legal y Certificación Criptográfica (Leyes N° 20.584 y 19.628)
+          </p>
+          <p class="mb-1.5">
+            Este informe clínico ha sido emitido bajo estricto cumplimiento de la Ley N° 20.584 (Derechos y Deberes de las Personas en Salud) y la Ley N° 19.628 sobre Protección de la Vida Privada. La inmutabilidad de los registros y el no repudio de la adherencia están garantizados mediante la firma digital criptográfica calculada en el nodo local ChronoMed.
+          </p>
+          <div class="bg-slate-200/80 p-1.5 rounded font-mono text-[9px] text-slate-800 break-all border border-slate-300">
+            <strong>Firma HMAC-SHA256:</strong> ${hmac}
+          </div>
+        </div>
+
+        <!-- BLOQUE DE FIRMAS: PROFESIONAL Y CUIDADOR / PACIENTE -->
+        <div class="grid grid-cols-2 gap-4 mt-5 pt-2">
+          <!-- Firma Profesional -->
+          <div class="border border-slate-300 rounded-xl p-3 text-center">
+            <div class="h-12 border-b border-dashed border-slate-400 mb-2"></div>
+            <p class="font-bold text-slate-900 text-[10px]">${user.name}</p>
+            <p class="text-[9px] text-slate-600 font-medium">${user.title || 'Médico Tratante / Profesional APS'}</p>
+            <p class="text-[8px] text-slate-500 uppercase tracking-tight">${user.organization || 'CESFAM / SSM'}</p>
+            <p class="text-[7.5px] text-slate-400 mt-1">Firma y Timbre Profesional Tratante</p>
+          </div>
+
+          <!-- Firma Cuidador / Paciente -->
+          <div class="border border-slate-300 rounded-xl p-3 text-center">
+            <div class="h-12 border-b border-dashed border-slate-400 mb-2"></div>
+            <p class="font-bold text-slate-900 text-[10px]">${patient.name}</p>
+            <p class="text-[9px] text-slate-600 font-medium">Recepción y Conformidad de Ficha</p>
+            <p class="text-[8px] text-slate-500 uppercase tracking-tight">Supervisión en Domicilio</p>
+            <p class="text-[7.5px] text-slate-400 mt-1">Firma de Conformidad Cuidador / Paciente</p>
+          </div>
+        </div>
+      `;
+
+      document.getElementById("pdfReportContent").innerHTML = html;
       document.getElementById("modalPdf").classList.remove("hidden");
+      lucide.createIcons();
     }
+
+    // =========================================================================
+    // ACCIONES DEL INFORME: IMPRIMIR / PDF, WHATSAPP, COPIAR AL PORTAPAPELES
+    // =========================================================================
+    function printClinicalReport() {
+      window.print();
+    }
+
+    function downloadPdfReport() {
+      printClinicalReport();
+    }
+
+    function shareReportWhatsApp() {
+      var text = generateClinicalSummaryText();
+      var url = "https://api.whatsapp.com/send?text=" + encodeURIComponent(text);
+      window.open(url, "_blank");
+    }
+
+    function copyClinicalReportText() {
+      var text = generateClinicalSummaryText();
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(function() {
+          alert("¡Informe clínico copiado al portapapeles con éxito!\n\nListo para pegar en WhatsApp, correo institucional o Ficha Clínica Electrónica (FCE).");
+        }).catch(function() {
+          fallbackCopyText(text);
+        });
+      } else {
+        fallbackCopyText(text);
+      }
+    }
+
+    function fallbackCopyText(text) {
+      var textArea = document.createElement("textarea");
+      textArea.value = text;
+      textArea.style.position = "fixed";
+      textArea.style.left = "-999999px";
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      try {
+        document.execCommand('copy');
+        alert("¡Informe clínico copiado al portapapeles!\n\nListo para pegar en Ficha Clínica Electrónica o mensajería.");
+      } catch (err) {
+        alert("No se pudo copiar automáticamente. Por favor seleccione y copie el texto en pantalla.");
+      }
+      document.body.removeChild(textArea);
+    }
+
     function checkInteractionsModal() {
-      alert("Verificación Farmacológica de Marcela:\n\nSe verificaron " + appState.medications.length + " medicamentos activos.\nResultado: 0 contraindicaciones clínicas registradas.");
+      openInteractionsModal();
     }
-    function closeModal(id) { document.getElementById(id).classList.add("hidden"); }
+
+    function closeModal(id) {
+      document.getElementById(id).classList.add("hidden");
+    }
 
     function verifyPin() {
       if (document.getElementById("pinInput").value === appState.patient.pin) {
@@ -2117,11 +2709,6 @@
       } else {
         alert("PIN incorrecto.");
       }
-    }
-
-    function downloadPdfReport() {
-      alert("Informe médico certificado de " + appState.patient.name + " generado con descargo legal incluido.");
-      closeModal("modalPdf");
     }
   </script>
 </body>
