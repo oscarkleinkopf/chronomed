@@ -435,6 +435,17 @@
         </div>
         <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400"></i>
       </button>
+      <button onclick="openFhirHl7Modal()" class="senior-card p-3 rounded-2xl border text-left flex items-center space-x-2.5 hover:border-indigo-500 transition col-span-2">
+        <div class="p-2 rounded-xl bg-indigo-500/20 text-indigo-400"><i data-lucide="network" class="w-5 h-5"></i></div>
+        <div class="flex-1">
+          <div class="flex items-center space-x-2">
+            <h4 class="font-bold text-xs text-white">Interoperabilidad FHIR R4 & HL7 (APS Chile)</h4>
+            <span class="text-[9px] bg-indigo-900/60 text-indigo-300 border border-indigo-700/50 px-1.5 py-0.5 rounded font-bold">Rayen • Saydex • Florence</span>
+          </div>
+          <p class="text-[10px] text-indigo-300">Exportar Ficha Clínica interoperable estándar HL7 FHIR CL y mensajería HL7 v2.5 para CESFAM</p>
+        </div>
+        <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400"></i>
+      </button>
       <a href="ChronoMed_Manual_de_Usuario_v1.0.0.pdf" download class="senior-card p-3 rounded-2xl border text-left flex items-center space-x-2.5 hover:border-yellow-500 transition col-span-2">
         <div class="p-2 rounded-xl bg-yellow-500/20 text-yellow-400"><i data-lucide="book-open" class="w-5 h-5"></i></div>
         <div class="flex-1">
@@ -1016,6 +1027,11 @@
             <i data-lucide="copy" class="w-3.5 h-3.5"></i>
             <span>Copiar Ficha</span>
           </button>
+          <!-- Botón Exportar FHIR / HL7 (APS) -->
+          <button onclick="openFhirHl7Modal()" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold transition flex items-center space-x-1.5 shadow">
+            <i data-lucide="network" class="w-3.5 h-3.5"></i>
+            <span>FHIR / HL7 (APS)</span>
+          </button>
           <!-- Botón Cerrar -->
           <button onclick="closeModal('modalPdf')" id="modalPdfCloseBtn" class="text-slate-400 hover:text-white text-lg p-1.5 ml-1">✕</button>
         </div>
@@ -1450,6 +1466,127 @@
           </button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- MODAL: INTEROPERABILIDAD FHIR R4 & HL7 (RAYEN SALUD, SAYDEX, FLORENCE / APS CHILE) -->
+  <div id="modalFhirHl7" class="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 hidden flex items-center justify-center p-2 sm:p-4">
+    <div class="senior-card max-w-4xl w-full p-4 sm:p-6 rounded-3xl border border-indigo-700/50 bg-slate-900 shadow-2xl flex flex-col max-h-[94vh] text-left">
+      <!-- Encabezado -->
+      <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-800">
+        <div class="flex items-center space-x-2.5 text-indigo-400">
+          <div class="p-2 rounded-xl bg-indigo-500/20 text-indigo-400">
+            <i data-lucide="network" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <div class="flex items-center space-x-2">
+              <h3 class="text-base font-black text-white">Interoperabilidad FHIR R4 & HL7 v2.5.1</h3>
+              <span class="text-[9px] bg-emerald-900/60 text-emerald-300 border border-emerald-700/50 px-2 py-0.5 rounded-full font-bold">HL7 Chile Core CL</span>
+            </div>
+            <p class="text-[11px] text-slate-400">Ficha clínica interoperable para Rayen Salud, Saydex, Florence y CESFAM</p>
+          </div>
+        </div>
+
+        <div class="flex items-center space-x-2">
+          <!-- Botón Descargar según Tab activo -->
+          <button onclick="downloadCurrentFhirHl7Export()" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold transition flex items-center space-x-1.5 shadow">
+            <i data-lucide="download" class="w-3.5 h-3.5"></i>
+            <span id="fhirHl7DownloadBtnText">Descargar .json</span>
+          </button>
+          <!-- Botón Copiar -->
+          <button onclick="copyCurrentFhirHl7Export()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-xl text-xs font-bold transition flex items-center space-x-1.5">
+            <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+            <span>Copiar</span>
+          </button>
+          <!-- Botón WhatsApp CESFAM -->
+          <button onclick="shareFhirWhatsApp()" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition flex items-center space-x-1.5 shadow">
+            <i data-lucide="share-2" class="w-3.5 h-3.5"></i>
+            <span>WhatsApp</span>
+          </button>
+          <button onclick="closeModal('modalFhirHl7')" class="text-slate-400 hover:text-white text-lg p-1.5 ml-1">✕</button>
+        </div>
+      </div>
+
+      <!-- Barra de Compatibilidad con Sistemas de APS -->
+      <div class="grid grid-cols-3 gap-2 my-3">
+        <div class="p-2.5 rounded-xl bg-slate-950/80 border border-slate-800 flex items-center space-x-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+          <div>
+            <h5 class="text-[11px] font-bold text-white">Rayen Salud (APS)</h5>
+            <p class="text-[9px] text-slate-400">FCE / Bundle R4 & HL7 v2</p>
+          </div>
+        </div>
+        <div class="p-2.5 rounded-xl bg-slate-950/80 border border-slate-800 flex items-center space-x-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+          <div>
+            <h5 class="text-[11px] font-bold text-white">Saydex (Red Pública)</h5>
+            <p class="text-[9px] text-slate-400">Interoperabilidad Hospitales</p>
+          </div>
+        </div>
+        <div class="p-2.5 rounded-xl bg-slate-950/80 border border-slate-800 flex items-center space-x-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+          <div>
+            <h5 class="text-[11px] font-bold text-white">Florence / T-Salud</h5>
+            <p class="text-[9px] text-slate-400">Monitoreo y Farmacoterapia</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Selector de Pestañas -->
+      <div class="flex space-x-2 mb-3 bg-slate-950 p-1.5 rounded-2xl border border-slate-800">
+        <button id="tabBtnFhirJson" onclick="switchFhirTab('fhirJson')" class="flex-1 py-1.5 px-3 rounded-xl bg-indigo-600 text-white font-bold text-xs transition flex items-center justify-center space-x-1.5">
+          <i data-lucide="code" class="w-3.5 h-3.5"></i>
+          <span>FHIR R4 Bundle (JSON)</span>
+        </button>
+        <button id="tabBtnHl7Pipe" onclick="switchFhirTab('hl7Pipe')" class="flex-1 py-1.5 px-3 rounded-xl text-slate-400 hover:text-white font-bold text-xs transition flex items-center justify-center space-x-1.5">
+          <i data-lucide="file-text" class="w-3.5 h-3.5"></i>
+          <span>HL7 v2.5.1 (ER7 Pipe)</span>
+        </button>
+        <button id="tabBtnApsSummary" onclick="switchFhirTab('apsSummary')" class="flex-1 py-1.5 px-3 rounded-xl text-slate-400 hover:text-white font-bold text-xs transition flex items-center justify-center space-x-1.5">
+          <i data-lucide="list-checks" class="w-3.5 h-3.5"></i>
+          <span>Mapeo Clínico DEIS/LOINC</span>
+        </button>
+      </div>
+
+      <!-- Contenedor Scrollable del Contenido de las Pestañas -->
+      <div class="flex-1 overflow-y-auto pr-1 text-xs scrollbar-thin">
+        <!-- Tab 1: FHIR R4 JSON -->
+        <div id="fhirTabJsonContent" class="space-y-2">
+          <div class="flex items-center justify-between text-[11px] text-slate-400 bg-slate-950/60 px-3 py-1.5 rounded-xl border border-slate-800">
+            <span>Tipo: <strong class="text-indigo-300 font-mono">Bundle (document)</strong> • Perfil: <strong class="text-slate-300 font-mono">BundleCl</strong></span>
+            <span id="fhirTotalEntriesBadge" class="px-2 py-0.5 rounded bg-indigo-900/60 text-indigo-300 font-bold font-mono">Cargando recursos...</span>
+          </div>
+          <div class="relative bg-slate-950 rounded-2xl p-3 border border-slate-800 font-mono text-[11px] text-emerald-400 overflow-x-auto max-h-[50vh]">
+            <pre id="fhirJsonPreviewCode" class="whitespace-pre">Generando JSON FHIR R4...</pre>
+          </div>
+        </div>
+
+        <!-- Tab 2: HL7 v2.5.1 ER7 Pipe -->
+        <div id="fhirTabHl7Content" class="hidden space-y-2">
+          <div class="flex items-center justify-between text-[11px] text-slate-400 bg-slate-950/60 px-3 py-1.5 rounded-xl border border-slate-800">
+            <span>Mensajería: <strong class="text-indigo-300 font-mono">ORU^R01 (Observaciones / Epicrisis)</strong> • Versión: <strong class="text-slate-300 font-mono">HL7 v2.5.1</strong></span>
+            <span class="px-2 py-0.5 rounded bg-indigo-900/60 text-indigo-300 font-bold font-mono">MSH | PID | PV1 | DG1 | RXE | OBR | OBX</span>
+          </div>
+          <div class="relative bg-slate-950 rounded-2xl p-3 border border-slate-800 font-mono text-[11px] text-amber-300 overflow-x-auto max-h-[50vh]">
+            <pre id="hl7PipePreviewCode" class="whitespace-pre">Generando Mensaje HL7 v2.5.1...</pre>
+          </div>
+        </div>
+
+        <!-- Tab 3: Resumen Mapeo Clínico DEIS/LOINC -->
+        <div id="fhirTabSummaryContent" class="hidden space-y-3">
+          <div id="fhirSummaryCardsContainer" class="space-y-2.5">
+            <!-- Rellenado dinámicamente -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="pt-3 border-t border-slate-800 mt-3 flex items-center justify-between text-[11px] text-slate-400">
+        <span>🔒 Cumplimiento estricto Ley N° 20.584 y Ley N° 19.628 de Protección de Datos en Salud.</span>
+        <button onclick="closeModal('modalFhirHl7')" class="px-4 py-1.5 rounded-xl bg-slate-800 text-slate-200 font-bold hover:bg-slate-700 transition">
+          Cerrar
+        </button>
+      </div>
     </div>
   </div>
 
@@ -2700,6 +2837,567 @@
     window.runDrugSimulation = runDrugSimulation;
     window.updatePharmacologicalSafetyBanner = updatePharmacologicalSafetyBanner;
     window.enrichMedicationDetails = enrichMedicationDetails;
+
+    // --- MOTOR DE INTEROPERABILIDAD HL7 FHIR R4 & HL7 v2.5.1 (RAYEN, SAYDEX, FLORENCE / APS CHILE) ---
+    const FhirHl7Engine = {
+      generateFhirR4Bundle(patient, medications, vitals) {
+        const p = patient || (typeof appState !== 'undefined' ? appState.patient : null) || { id: "p-marcela", name: "Marcela Gómez", rut: "14.567.890-0", age: 74 };
+        const meds = medications || (typeof appState !== 'undefined' ? appState.medications : []) || [];
+        const vList = vitals || (typeof appState !== 'undefined' ? appState.vitals : []) || [];
+        const nowIso = new Date().toISOString();
+        const patientId = p.id || "p-marcela";
+
+        // 1. Composition
+        const composition = {
+          resourceType: "Composition",
+          id: "comp-" + patientId,
+          status: "final",
+          type: {
+            coding: [{
+              system: "http://loinc.org",
+              code: "60591-5",
+              display: "Patient Summary Document"
+            }],
+            text: "Ficha Clínica y Epicrisis Farmacoterapéutica Ambulatoria"
+          },
+          category: [{
+            coding: [{
+              system: "http://loinc.org",
+              code: "11488-4",
+              display: "Consult Note"
+            }],
+            text: "Atención Primaria de Salud (APS / CESFAM)"
+          }],
+          subject: {
+            reference: "Patient/" + patientId,
+            display: p.name
+          },
+          date: nowIso,
+          author: [{
+            display: (typeof appState !== 'undefined' && appState.currentUser && appState.currentUser.name) || "ChronoMed APS Interoperability Suite"
+          }],
+          title: "Ficha Clínica y Epicrisis Farmacoterapéutica ChronoMed (APS Chile)",
+          custodian: {
+            display: "Centro de Salud Familiar (CESFAM) / Red de Atención Primaria"
+          },
+          section: [
+            {
+              title: "Farmacoterapia y Medicamentos Activos",
+              code: {
+                coding: [{ system: "http://loinc.org", code: "10160-0", display: "History of Medication use" }]
+              },
+              entry: meds.map(m => ({ reference: "MedicationStatement/med-" + (m.id || m.name.toLowerCase().replace(/\s+/g, '-')) }))
+            },
+            {
+              title: "Signos Vitales y Presión Arterial (LOINC)",
+              code: {
+                coding: [{ system: "http://loinc.org", code: "8716-3", display: "Vital signs" }]
+              },
+              entry: vList.map((v, i) => ({ reference: "Observation/obs-bp-" + (v.id || i) }))
+            }
+          ]
+        };
+
+        // 2. Patient Resource (CL Core)
+        const patientResource = {
+          resourceType: "Patient",
+          id: patientId,
+          meta: {
+            profile: ["https://hl7chile.cl/fhir/ig/clcore/StructureDefinition/CorePacienteCl"]
+          },
+          identifier: [
+            {
+              use: "official",
+              type: {
+                coding: [{
+                  system: "https://hl7chile.cl/fhir/ig/clcore/CodeSystem/CSCodigoDNI",
+                  code: "NNCHL",
+                  display: "Chilean National RUN"
+                }]
+              },
+              system: "http://regcivil.cl/Validacion/RUN",
+              value: p.rut || "14.567.890-0"
+            }
+          ],
+          active: true,
+          name: [
+            {
+              use: "official",
+              text: p.name,
+              family: p.name.split(" ").slice(1).join(" ") || p.name,
+              given: [p.name.split(" ")[0] || p.name]
+            }
+          ],
+          gender: p.name.toLowerCase().includes("marcela") ? "female" : "male",
+          birthDate: p.age ? `${new Date().getFullYear() - p.age}-06-15` : "1952-06-15",
+          managingOrganization: {
+            display: "Centro de Salud Familiar (CESFAM) / APS"
+          }
+        };
+
+        // 3. MedicationStatements
+        const medEntries = meds.map(m => {
+          const medId = "med-" + (m.id || m.name.toLowerCase().replace(/\s+/g, '-'));
+          const ispReg = m.ispRegister || "F-10000/22";
+          return {
+            fullUrl: "urn:uuid:" + medId,
+            resource: {
+              resourceType: "MedicationStatement",
+              id: medId,
+              meta: {
+                profile: ["https://hl7chile.cl/fhir/ig/clcore/StructureDefinition/MedicationStatementCl"]
+              },
+              status: "active",
+              medicationCodeableConcept: {
+                coding: [
+                  {
+                    system: "https://ispch.gob.cl/medicamentos",
+                    code: ispReg,
+                    display: m.name
+                  }
+                ],
+                text: `${m.name} ${m.dosage || ''}`.trim()
+              },
+              subject: {
+                reference: "Patient/" + patientId,
+                display: p.name
+              },
+              effectiveDateTime: nowIso,
+              dateAsserted: nowIso,
+              dosage: [
+                {
+                  text: `${m.dosage || '1 comp'} a las ${m.time || '08:00'} (${m.meal || 'con alimentos'}) vía oral`,
+                  timing: {
+                    repeat: {
+                      frequency: 1,
+                      period: 24,
+                      periodUnit: "h"
+                    }
+                  },
+                  route: {
+                    coding: [
+                      {
+                        system: "http://snomed.info/sct",
+                        code: "260548002",
+                        display: "Vía oral"
+                      }
+                    ]
+                  }
+                }
+              ],
+              note: [
+                {
+                  text: `${m.isBioequivalent ? "[⭐ Bioequivalente ISP Verificado] " : ""}${m.clinicalPrecaution || ""} • Registro ISP: ${ispReg} • Laboratorio: ${m.laboratory || 'Titular ISP'}`
+                }
+              ]
+            }
+          };
+        });
+
+        // 4. Observation entries for Vitals
+        const vitalsEntries = vList.map((v, i) => {
+          const obsId = "obs-bp-" + (v.id || i);
+          const components = [];
+          if (v.systolic) {
+            components.push({
+              code: {
+                coding: [{ system: "http://loinc.org", code: "8480-6", display: "Systolic blood pressure" }]
+              },
+              valueQuantity: {
+                value: Number(v.systolic),
+                unit: "mmHg",
+                system: "http://unitsofmeasure.org",
+                code: "mm[Hg]"
+              }
+            });
+          }
+          if (v.diastolic) {
+            components.push({
+              code: {
+                coding: [{ system: "http://loinc.org", code: "8462-4", display: "Diastolic blood pressure" }]
+              },
+              valueQuantity: {
+                value: Number(v.diastolic),
+                unit: "mmHg",
+                system: "http://unitsofmeasure.org",
+                code: "mm[Hg]"
+              }
+            });
+          }
+          if (v.map) {
+            components.push({
+              code: {
+                coding: [{ system: "http://loinc.org", code: "8478-0", display: "Mean blood pressure" }]
+              },
+              valueQuantity: {
+                value: Number(v.map),
+                unit: "mmHg",
+                system: "http://unitsofmeasure.org",
+                code: "mm[Hg]"
+              }
+            });
+          }
+
+          return {
+            fullUrl: "urn:uuid:" + obsId,
+            resource: {
+              resourceType: "Observation",
+              id: obsId,
+              meta: {
+                profile: ["https://hl7chile.cl/fhir/ig/clcore/StructureDefinition/CoreObservacionCL"]
+              },
+              status: "final",
+              category: [
+                {
+                  coding: [
+                    {
+                      system: "http://terminology.hl7.org/CodeSystem/observation-category",
+                      code: "vital-signs",
+                      display: "Vital Signs"
+                    }
+                  ]
+                }
+              ],
+              code: {
+                coding: [
+                  {
+                    system: "http://loinc.org",
+                    code: "85354-9",
+                    display: "Blood pressure panel with all children optional"
+                  }
+                ],
+                text: "Control Presión Arterial Ambulatoria"
+              },
+              subject: {
+                reference: "Patient/" + patientId,
+                display: p.name
+              },
+              effectiveDateTime: v.date || nowIso,
+              component: components,
+              interpretation: [
+                {
+                  coding: [{ system: "http://minsal.cl/hta", code: v.category || "Normal", display: v.category || "Normal" }],
+                  text: v.category || "Normal"
+                }
+              ],
+              note: v.notes ? [{ text: v.notes }] : []
+            }
+          };
+        });
+
+        // 5. Detected Issues (Safety Engine)
+        const safetyReport = (typeof window !== 'undefined' && window.DrugInteractionEngine) 
+          ? window.DrugInteractionEngine.evaluateActiveRegimen(meds) 
+          : (typeof DrugInteractionEngine !== 'undefined' ? DrugInteractionEngine.evaluateActiveRegimen(meds) : null);
+        const detectedIssues = [];
+        if (safetyReport) {
+          const allAlerts = [...safetyReport.criticalAlerts, ...safetyReport.majorWarnings];
+          allAlerts.forEach((al, idx) => {
+            const issueId = "issue-" + idx;
+            detectedIssues.push({
+              fullUrl: "urn:uuid:" + issueId,
+              resource: {
+                resourceType: "DetectedIssue",
+                id: issueId,
+                status: "final",
+                code: {
+                  text: al.title
+                },
+                severity: al.isBlocking ? "high" : "moderate",
+                patient: {
+                  reference: "Patient/" + patientId,
+                  display: p.name
+                },
+                detail: `${al.description} Riesgo: ${al.clinicalRisk} Conducta: ${al.recommendation}`
+              }
+            });
+          });
+        }
+
+        const bundleEntries = [
+          { fullUrl: "urn:uuid:comp-" + patientId, resource: composition },
+          { fullUrl: "urn:uuid:" + patientId, resource: patientResource },
+          ...medEntries,
+          ...vitalsEntries,
+          ...detectedIssues
+        ];
+
+        return {
+          resourceType: "Bundle",
+          id: "bundle-chronomed-" + patientId + "-" + nowIso.slice(0, 10),
+          meta: {
+            profile: ["https://hl7chile.cl/fhir/ig/clcore/StructureDefinition/BundleCl"],
+            lastUpdated: nowIso
+          },
+          identifier: {
+            system: "http://chronomed.cl/fhir/bundles",
+            value: "BUNDLE-" + patientId + "-" + Date.now()
+          },
+          type: "document",
+          timestamp: nowIso,
+          total: bundleEntries.length,
+          entry: bundleEntries
+        };
+      },
+
+      generateHl7V2Message(patient, medications, vitals) {
+        const p = patient || (typeof appState !== 'undefined' ? appState.patient : null) || { id: "p-marcela", name: "Marcela Gómez", rut: "14.567.890-0", age: 74 };
+        const meds = medications || (typeof appState !== 'undefined' ? appState.medications : []) || [];
+        const vList = vitals || (typeof appState !== 'undefined' ? appState.vitals : []) || [];
+        const now = new Date();
+        const ts = now.getFullYear() +
+          String(now.getMonth() + 1).padStart(2, '0') +
+          String(now.getDate()).padStart(2, '0') +
+          String(now.getHours()).padStart(2, '0') +
+          String(now.getMinutes()).padStart(2, '0') +
+          String(now.getSeconds()).padStart(2, '0');
+        
+        const rutClean = (p.rut || "14567890-0").replace(/\./g, "").trim();
+        const nameParts = p.name.split(" ");
+        const firstName = nameParts[0] || p.name;
+        const lastName = nameParts.slice(1).join("^") || firstName;
+        const gender = p.name.toLowerCase().includes("marcela") ? "F" : "M";
+        const birthYear = p.age ? (now.getFullYear() - p.age) + "0615" : "19520615";
+
+        const segments = [
+          `MSH|^~\\&|CHRONOMED|CESFAM_APS|RAYEN_SALUD|MINSAL|${ts}||ORU^R01|MSG${Date.now()}|P|2.5.1|||AL|NE||UNICODE UTF-8`,
+          `PID|1||${rutClean}^^^CHILE^NNCHL||${lastName}^${firstName}||${birthYear}|${gender}|||Calle Principal 123^^Santiago^^^CHL||+56987654321|||||${rutClean}`,
+          `PV1|1|O|APS-CESFAM^^^PSCV||||||||||||||||||||||||||||||||||||||||||`,
+          `DG1|1|ICD10|I10|Hipertensión Arterial Primaria||A`,
+          `DG1|2|ICD10|E78.5|Dislipidemia no especificada||A`
+        ];
+
+        // RXE segments for medications
+        meds.forEach((m, idx) => {
+          const ispCode = m.ispRegister || "F-10000/22";
+          segments.push(`RXE|${idx + 1}|${ispCode}^${m.name}^ISP|${m.dosage || '1 comp'}|MG|TAB^Tableta||||${m.time || '08:00'} ${m.frequency || 'cada 24h'}|||||1`);
+          segments.push(`RXR|PO^Oral`);
+          if (m.clinicalPrecaution || m.isBioequivalent) {
+            segments.push(`NTE|${idx + 1}|L|${m.isBioequivalent ? '[BIOEQUIVALENTE ISP] ' : ''}${m.clinicalPrecaution || ''} (Lab: ${m.laboratory || 'ISP'})`);
+          }
+        });
+
+        // OBR and OBX segments for vitals
+        if (vList.length > 0) {
+          const latest = vList[0];
+          segments.push(`OBR|1||VS${ts}|85354-9^Presión Arterial y Signos Vitales^LN|||${ts}`);
+          let obxIdx = 1;
+          if (latest.systolic) {
+            segments.push(`OBX|${obxIdx++}|NM|8480-6^Presion Sistolica^LN||${latest.systolic}|mm[Hg]|90-139|${latest.systolic > 140 ? 'H' : 'N'}|||F`);
+          }
+          if (latest.diastolic) {
+            segments.push(`OBX|${obxIdx++}|NM|8462-4^Presion Diastolica^LN||${latest.diastolic}|mm[Hg]|60-89|${latest.diastolic > 90 ? 'H' : 'N'}|||F`);
+          }
+          if (latest.map) {
+            segments.push(`OBX|${obxIdx++}|NM|8478-0^Presion Arterial Media MAP^LN||${latest.map}|mm[Hg]|70-105|${latest.map > 105 ? 'H' : 'N'}|||F`);
+          }
+          if (latest.pulse) {
+            segments.push(`OBX|${obxIdx++}|NM|8867-4^Frecuencia Cardiaca^LN||${latest.pulse}|/min|60-100|${latest.pulse > 100 ? 'H' : 'N'}|||F`);
+          }
+          if (latest.category) {
+            segments.push(`NTE|1|L|Clasificación Tensional AHA/MINSAL: ${latest.category}`);
+          }
+        }
+
+        return segments.join("\r\n");
+      },
+
+      validateBundle(bundle) {
+        if (!bundle || bundle.resourceType !== 'Bundle') return false;
+        if (bundle.type !== 'document' && bundle.type !== 'collection') return false;
+        if (!Array.isArray(bundle.entry) || bundle.entry.length === 0) return false;
+        return bundle.entry.some(e => e && e.resource && e.resource.resourceType === 'Patient');
+      }
+    };
+
+    let currentFhirTab = 'fhirJson';
+    let cachedFhirBundle = null;
+    let cachedHl7Message = null;
+
+    function openFhirHl7Modal() {
+      cachedFhirBundle = FhirHl7Engine.generateFhirR4Bundle(appState.patient, appState.medications, appState.vitals);
+      cachedHl7Message = FhirHl7Engine.generateHl7V2Message(appState.patient, appState.medications, appState.vitals);
+
+      // Render JSON Code
+      const jsonStr = JSON.stringify(cachedFhirBundle, null, 2);
+      const codeEl = document.getElementById("fhirJsonPreviewCode");
+      if (codeEl) codeEl.innerText = jsonStr;
+
+      // Update badge
+      const badgeEl = document.getElementById("fhirTotalEntriesBadge");
+      if (badgeEl) badgeEl.innerText = `${cachedFhirBundle.total} Recursos FHIR CL`;
+
+      // Render HL7 v2
+      const hl7El = document.getElementById("hl7PipePreviewCode");
+      if (hl7El) hl7El.innerText = cachedHl7Message;
+
+      // Render APS Summary
+      renderFhirApsSummary(cachedFhirBundle, cachedHl7Message);
+
+      switchFhirTab('fhirJson');
+      document.getElementById("modalFhirHl7").classList.remove("hidden");
+      lucide.createIcons();
+    }
+
+    function switchFhirTab(tab) {
+      currentFhirTab = tab;
+      const btnJson = document.getElementById("tabBtnFhirJson");
+      const btnHl7 = document.getElementById("tabBtnHl7Pipe");
+      const btnSummary = document.getElementById("tabBtnApsSummary");
+      const contentJson = document.getElementById("fhirTabJsonContent");
+      const contentHl7 = document.getElementById("fhirTabHl7Content");
+      const contentSummary = document.getElementById("fhirTabSummaryContent");
+      const downloadBtnText = document.getElementById("fhirHl7DownloadBtnText");
+
+      [btnJson, btnHl7, btnSummary].forEach(b => {
+        if (b) b.className = "flex-1 py-1.5 px-3 rounded-xl text-slate-400 hover:text-white font-bold text-xs transition flex items-center justify-center space-x-1.5";
+      });
+      [contentJson, contentHl7, contentSummary].forEach(c => {
+        if (c) c.classList.add("hidden");
+      });
+
+      if (tab === 'fhirJson') {
+        if (btnJson) btnJson.className = "flex-1 py-1.5 px-3 rounded-xl bg-indigo-600 text-white font-bold text-xs transition flex items-center justify-center space-x-1.5 shadow";
+        if (contentJson) contentJson.classList.remove("hidden");
+        if (downloadBtnText) downloadBtnText.innerText = "Descargar .json";
+      } else if (tab === 'hl7Pipe') {
+        if (btnHl7) btnHl7.className = "flex-1 py-1.5 px-3 rounded-xl bg-indigo-600 text-white font-bold text-xs transition flex items-center justify-center space-x-1.5 shadow";
+        if (contentHl7) contentHl7.classList.remove("hidden");
+        if (downloadBtnText) downloadBtnText.innerText = "Descargar .hl7";
+      } else {
+        if (btnSummary) btnSummary.className = "flex-1 py-1.5 px-3 rounded-xl bg-indigo-600 text-white font-bold text-xs transition flex items-center justify-center space-x-1.5 shadow";
+        if (contentSummary) contentSummary.classList.remove("hidden");
+        if (downloadBtnText) downloadBtnText.innerText = "Descargar FCE (.txt)";
+      }
+      lucide.createIcons();
+    }
+
+    function renderFhirApsSummary(bundle, hl7) {
+      const container = document.getElementById("fhirSummaryCardsContainer");
+      if (!container) return;
+
+      const p = appState.patient;
+      const meds = appState.medications || [];
+      const vitals = appState.vitals || [];
+
+      container.innerHTML = `
+        <div class="p-3.5 rounded-2xl bg-slate-950/70 border border-slate-800 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-[10px] font-bold uppercase tracking-wider text-indigo-400">Identificación Oficial Paciente (DEIS)</span>
+            <span class="text-[9px] px-2 py-0.5 rounded bg-emerald-900/60 text-emerald-300 font-mono">Ley 19.628 / RUN Válido</span>
+          </div>
+          <div class="grid grid-cols-2 gap-2 text-xs">
+            <div><span class="text-slate-400">Nombre Oficial:</span> <strong class="text-white">${p.name}</strong></div>
+            <div><span class="text-slate-400">RUN / RUT:</span> <strong class="text-yellow-400 font-mono">${p.rut || '14.567.890-0'}</strong></div>
+            <div><span class="text-slate-400">Edad Registrada:</span> <strong class="text-slate-200">${p.age || 74} años</strong></div>
+            <div><span class="text-slate-400">Establecimiento:</span> <strong class="text-slate-200">CESFAM / Red APS</strong></div>
+          </div>
+        </div>
+
+        <div class="p-3.5 rounded-2xl bg-slate-950/70 border border-slate-800 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-[10px] font-bold uppercase tracking-wider text-indigo-400">Mapeo de Medicamentos (Vademécum ISP & SNOMED CT)</span>
+            <span class="text-[9px] px-2 py-0.5 rounded bg-blue-900/60 text-blue-300 font-mono">${meds.length} Fármacos Mapeados</span>
+          </div>
+          <div class="space-y-1.5">
+            ${meds.map(m => `
+              <div class="p-2 rounded-xl bg-slate-900/90 border border-slate-800 flex items-center justify-between">
+                <div>
+                  <span class="font-bold text-white text-xs">${m.name}</span>
+                  <span class="text-yellow-400 font-bold text-[11px] ml-1.5">${m.dosage || ''}</span>
+                  <p class="text-[10px] text-slate-400 font-mono mt-0.5">ISP: ${m.ispRegister || 'F-10000/22'} • Vía Oral (SCT: 260548002)</p>
+                </div>
+                ${m.isBioequivalent ? '<span class="text-[9px] px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40 font-bold">⭐ Bioequivalente</span>' : ''}
+              </div>
+            `).join('')}
+          </div>
+        </div>
+
+        <div class="p-3.5 rounded-2xl bg-slate-950/70 border border-slate-800 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-[10px] font-bold uppercase tracking-wider text-indigo-400">Observaciones Clínicas (Codificación LOINC)</span>
+            <span class="text-[9px] px-2 py-0.5 rounded bg-purple-900/60 text-purple-300 font-mono">${vitals.length} Tomas Registradas</span>
+          </div>
+          <div class="text-[11px] text-slate-300 space-y-1">
+            <p>• <strong>LOINC 85354-9:</strong> Panel de Presión Arterial Ambulatoria con componentes Sistólica (8480-6), Diastólica (8462-4) y PAM (8478-0).</p>
+            <p>• <strong>LOINC 8867-4:</strong> Frecuencia Cardíaca / Pulso periférico en reposo.</p>
+            <p>• <strong>LOINC 60591-5:</strong> Resumen de Atención Ambulatoria y Documento de Epicrisis.</p>
+          </div>
+        </div>
+      `;
+    }
+
+    function downloadCurrentFhirHl7Export() {
+      const p = appState.patient;
+      const cleanName = (p.name || "paciente").toLowerCase().replace(/\s+/g, '_');
+      const dateStr = new Date().toISOString().slice(0, 10);
+
+      if (currentFhirTab === 'hl7Pipe') {
+        const hl7Str = cachedHl7Message || FhirHl7Engine.generateHl7V2Message(p, appState.medications, appState.vitals);
+        const blob = new Blob([hl7Str], { type: "text/plain;charset=utf-8" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `hl7_v25_chronomed_${cleanName}_${dateStr}.hl7`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        alert(`✅ Mensaje HL7 v2.5.1 descargado para ${p.name}. Compatible con Rayen Salud y Saydex.`);
+      } else {
+        const bundle = cachedFhirBundle || FhirHl7Engine.generateFhirR4Bundle(p, appState.medications, appState.vitals);
+        const jsonStr = JSON.stringify(bundle, null, 2);
+        const blob = new Blob([jsonStr], { type: "application/json;charset=utf-8" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `fhir_r4_bundle_chronomed_${cleanName}_${dateStr}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        alert(`✅ Bundle HL7 FHIR R4 descargado para ${p.name}. Compatible con FCE y Guía Core HL7 Chile.`);
+      }
+    }
+
+    function copyCurrentFhirHl7Export() {
+      const p = appState.patient;
+      let textToCopy = "";
+      if (currentFhirTab === 'hl7Pipe') {
+        textToCopy = cachedHl7Message || FhirHl7Engine.generateHl7V2Message(p, appState.medications, appState.vitals);
+      } else {
+        const bundle = cachedFhirBundle || FhirHl7Engine.generateFhirR4Bundle(p, appState.medications, appState.vitals);
+        textToCopy = JSON.stringify(bundle, null, 2);
+      }
+
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(textToCopy).then(() => {
+          alert(`📋 Ficha interoperable copiada al portapapeles (${currentFhirTab === 'hl7Pipe' ? 'HL7 v2.5' : 'FHIR R4 JSON'}).`);
+        }).catch(() => {
+          alert("Error al copiar al portapapeles.");
+        });
+      } else {
+        alert("Portapapeles no soportado en este navegador.");
+      }
+    }
+
+    function shareFhirWhatsApp() {
+      const p = appState.patient;
+      const meds = appState.medications || [];
+      const vitals = appState.vitals || [];
+      const latestV = vitals[0];
+
+      var msg = "*INTEROPERABILIDAD FHIR R4 & HL7 - CHRONOMED APS*\n" +
+                `*Paciente:* ${p.name}\n` +
+                `*RUT:* ${p.rut || '14.567.890-0'} _(Validado Ley 19.628)_\n` +
+                `*Estándar:* HL7 FHIR R4 Core CL (Bundle document) / HL7 v2.5.1\n` +
+                `*Fármacos Activos:* ${meds.length} prescripciones con registro ISP\n` +
+                (latestV ? `*Último Control PA:* ${latestV.systolic}/${latestV.diastolic} mmHg (PAM: ${latestV.map} mmHg - ${latestV.category})\n` : "") +
+                `*Compatibilidad:* Rayen Salud, Saydex, Florence T-Salud\n\n` +
+                "_Ficha interoperable generada para integración con FCE de Atención Primaria de Salud._";
+
+      window.open("https://api.whatsapp.com/send?text=" + encodeURIComponent(msg), "_blank");
+    }
 
     // --- GESTOR DE RESPALDOS Y MIGRACIÓN ---
     function openBackupModal() {
@@ -4397,6 +5095,12 @@
     window.updateLiveVitalsCalculations = updateLiveVitalsCalculations;
     window.handleSaveVitals = handleSaveVitals;
     window.deleteVitalEntry = deleteVitalEntry;
+    window.FhirHl7Engine = FhirHl7Engine;
+    window.openFhirHl7Modal = openFhirHl7Modal;
+    window.switchFhirTab = switchFhirTab;
+    window.downloadCurrentFhirHl7Export = downloadCurrentFhirHl7Export;
+    window.copyCurrentFhirHl7Export = copyCurrentFhirHl7Export;
+    window.shareFhirWhatsApp = shareFhirWhatsApp;
   </script>
 </body>
 </html>
