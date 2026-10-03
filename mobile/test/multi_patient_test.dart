@@ -88,6 +88,53 @@ void main() {
       expect(storage.allIntakes.first['intakeId'], equals('intake-roberto-lunch'));
     });
 
+    test('Guarantees voice notes isolation between patients', () async {
+      // Configure voice note for Marcela (active)
+      await storage.saveVoiceNote(
+        slot: SeniorTimeSlot.lunch,
+        author: 'Hija Andrea',
+        audioPath: 'voice_marcela_lunch.m4a',
+        messageText: 'Mamá Marcela, toma tu Losartán.',
+      );
+
+      expect(storage.hasVoiceNote(SeniorTimeSlot.lunch), isTrue);
+      expect(storage.getVoiceNote(SeniorTimeSlot.lunch)?['author'], equals('Hija Andrea'));
+
+      // Add Roberto and switch to Roberto
+      final roberto = PatientProfile(
+        id: 'patient-roberto-2',
+        name: 'Roberto Gómez',
+        rut: '12.345.678-5',
+      );
+      await storage.addPatient(roberto, setActive: true);
+
+      // Roberto should NOT have Marcela's voice note
+      expect(storage.hasVoiceNote(SeniorTimeSlot.lunch), isFalse);
+      expect(storage.getVoiceNote(SeniorTimeSlot.lunch), isNull);
+
+      // Record a voice note for Roberto
+      await storage.saveVoiceNote(
+        slot: SeniorTimeSlot.morning,
+        author: 'Hijo Carlos',
+        audioPath: 'voice_roberto_morning.m4a',
+        messageText: 'Papá Roberto, toma tu pastilla matutina.',
+      );
+      expect(storage.hasVoiceNote(SeniorTimeSlot.morning), isTrue);
+      expect(storage.getVoiceNote(SeniorTimeSlot.morning)?['author'], equals('Hijo Carlos'));
+
+      // Switch back to Marcela -> has lunch note, but not morning note
+      await storage.switchPatient('patient-marcela-1');
+      expect(storage.hasVoiceNote(SeniorTimeSlot.lunch), isTrue);
+      expect(storage.getVoiceNote(SeniorTimeSlot.lunch)?['author'], equals('Hija Andrea'));
+      expect(storage.hasVoiceNote(SeniorTimeSlot.morning), isFalse);
+
+      // Switch back to Roberto -> has morning note, but not lunch note
+      await storage.switchPatient('patient-roberto-2');
+      expect(storage.hasVoiceNote(SeniorTimeSlot.morning), isTrue);
+      expect(storage.getVoiceNote(SeniorTimeSlot.morning)?['author'], equals('Hijo Carlos'));
+      expect(storage.hasVoiceNote(SeniorTimeSlot.lunch), isFalse);
+    });
+
     test('Patient profile updates are persisted reactively', () async {
       await storage.updatePatientProfile(
         id: 'patient-marcela-1',

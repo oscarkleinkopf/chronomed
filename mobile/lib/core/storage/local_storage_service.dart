@@ -163,6 +163,7 @@ class LocalStorageService {
       cabinetItems: _cabinetItems,
       routine: _routine,
       intakes: _intakes,
+      voiceNotes: _voiceNotes,
     );
   }
 
@@ -181,6 +182,7 @@ class LocalStorageService {
       cabinetItems: _cabinetItems,
       routine: _routine,
       intakes: _intakes,
+      voiceNotes: _voiceNotes,
     );
 
     if (idx >= 0) {
@@ -199,6 +201,7 @@ class LocalStorageService {
     _cabinetItems = List<MedicineCabinetItem>.from(p.cabinetItems);
     _routine = p.routine;
     _intakes = List<Map<String, dynamic>>.from(p.intakes);
+    _voiceNotes = Map<String, Map<String, dynamic>>.from(p.voiceNotes);
   }
 
   Future<void> switchPatient(String patientId) async {
@@ -661,6 +664,10 @@ class LocalStorageService {
     return _voiceNotes.containsKey(slot.name);
   }
 
+  Map<String, Map<String, dynamic>> getAllVoiceNotes() {
+    return Map.unmodifiable(_voiceNotes);
+  }
+
   Future<void> saveVoiceNote({
     required SeniorTimeSlot slot,
     required String author,
@@ -839,6 +846,7 @@ class LocalStorageService {
       id: 'patient-marcela-1',
       name: 'Marcela',
       rut: '14.567.890-K',
+      voiceNotes: _voiceNotes,
     );
     _patients = [defaultP];
     _activePatientId = defaultP.id;

@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import '../../medicine_cabinet/models/medicine_cabinet_item.dart';
 import '../../schedule/models/circadian_routine.dart';
@@ -14,7 +15,7 @@ class PatientProfile {
   final List<MedicineCabinetItem> cabinetItems;
   final CircadianRoutine routine;
   final List<Map<String, dynamic>> intakes;
-  final Map<String, String> voiceNotes;
+  final Map<String, Map<String, dynamic>> voiceNotes;
   final List<VitalSignEntry> vitalSigns;
   final DateTime createdAt;
 
@@ -28,16 +29,51 @@ class PatientProfile {
     List<MedicineCabinetItem>? cabinetItems,
     CircadianRoutine? routine,
     List<Map<String, dynamic>>? intakes,
-    Map<String, String>? voiceNotes,
+    Map<String, dynamic>? voiceNotes,
     List<VitalSignEntry>? vitalSigns,
     DateTime? createdAt,
   })  : stocks = stocks != null ? Map<String, int>.from(stocks) : _defaultStocks(),
         cabinetItems = cabinetItems != null ? List<MedicineCabinetItem>.from(cabinetItems) : _defaultCabinetItems(),
         routine = routine ?? CircadianRoutine.home,
         intakes = intakes != null ? List<Map<String, dynamic>>.from(intakes) : [],
-        voiceNotes = voiceNotes != null ? Map<String, String>.from(voiceNotes) : {},
+        voiceNotes = voiceNotes != null ? _parseVoiceNotes(voiceNotes) : {},
         vitalSigns = vitalSigns != null ? List<VitalSignEntry>.from(vitalSigns) : [],
         createdAt = createdAt ?? DateTime.now();
+
+  static Map<String, Map<String, dynamic>> _parseVoiceNotes(Map<String, dynamic> raw) {
+    final Map<String, Map<String, dynamic>> result = {};
+    raw.forEach((k, v) {
+      if (v is Map) {
+        result[k.toString()] = Map<String, dynamic>.from(v);
+      } else if (v is String) {
+        try {
+          final decoded = jsonDecode(v);
+          if (decoded is Map) {
+            result[k.toString()] = Map<String, dynamic>.from(decoded);
+          } else {
+            result[k.toString()] = {
+              'slot': k.toString(),
+              'author': 'Familiar',
+              'messageText': v,
+              'audioPath': 'voice_note_${k.toString()}.m4a',
+              'durationSeconds': 4,
+              'recordedAt': DateTime.now().toIso8601String(),
+            };
+          }
+        } catch (_) {
+          result[k.toString()] = {
+            'slot': k.toString(),
+            'author': 'Familiar',
+            'messageText': v,
+            'audioPath': 'voice_note_${k.toString()}.m4a',
+            'durationSeconds': 4,
+            'recordedAt': DateTime.now().toIso8601String(),
+          };
+        }
+      }
+    });
+    return result;
+  }
 
   Color get avatarColor => Color(avatarColorValue);
 
@@ -105,7 +141,7 @@ class PatientProfile {
     List<MedicineCabinetItem>? cabinetItems,
     CircadianRoutine? routine,
     List<Map<String, dynamic>>? intakes,
-    Map<String, String>? voiceNotes,
+    Map<String, dynamic>? voiceNotes,
     List<VitalSignEntry>? vitalSigns,
     DateTime? createdAt,
   }) {
@@ -170,11 +206,9 @@ class PatientProfile {
           .toList();
     }
 
-    Map<String, String> loadedVoices = {};
+    Map<String, dynamic> loadedVoices = {};
     if (json['voiceNotes'] != null && json['voiceNotes'] is Map) {
-      (json['voiceNotes'] as Map).forEach((k, v) {
-        loadedVoices[k.toString()] = v.toString();
-      });
+      loadedVoices = Map<String, dynamic>.from(json['voiceNotes'] as Map);
     }
 
     List<VitalSignEntry> loadedVitals = [];

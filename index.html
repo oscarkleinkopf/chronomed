@@ -286,9 +286,16 @@
       </div>
 
       <!-- Indicador Circadiano -->
-      <div id="seniorMomentBadge" class="inline-flex items-center space-x-2 bg-amber-500/20 border-2 border-yellow-400 px-4 py-2 rounded-2xl mb-4">
+      <div id="seniorMomentBadge" class="inline-flex items-center space-x-2 bg-amber-500/20 border-2 border-yellow-400 px-4 py-2 rounded-2xl mb-2">
         <span id="seniorMomentEmoji" class="text-2xl">🍲</span>
         <span id="seniorMomentText" class="text-base font-black text-yellow-400">ALMUERZO (13:30)</span>
+      </div>
+
+      <!-- Badge de Voz Familiar Afectuosa si existe -->
+      <div id="seniorFamiliarVoiceBadge" onclick="speakCurrentInstruction()" class="hidden mb-4 cursor-pointer inline-flex items-center space-x-2 bg-rose-500/20 border border-rose-500/50 px-3 py-1.5 rounded-2xl hover:bg-rose-500/30 transition">
+        <span class="text-rose-400">❤️</span>
+        <span id="seniorFamiliarVoiceText" class="text-xs font-bold text-rose-300">Mensaje de amor de Andrea</span>
+        <span class="text-xs text-yellow-400 font-bold">🔊</span>
       </div>
 
       <!-- Tarjeta Dinámica de la Pastilla Activa -->
@@ -443,6 +450,17 @@
             <span class="text-[9px] bg-indigo-900/60 text-indigo-300 border border-indigo-700/50 px-1.5 py-0.5 rounded font-bold">Rayen • Saydex • Florence</span>
           </div>
           <p class="text-[10px] text-indigo-300">Exportar Ficha Clínica interoperable estándar HL7 FHIR CL y mensajería HL7 v2.5 para CESFAM</p>
+        </div>
+        <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400"></i>
+      </button>
+      <button onclick="openVoiceNotesModal()" class="senior-card p-3 rounded-2xl border text-left flex items-center space-x-2.5 hover:border-rose-500 transition col-span-2">
+        <div class="p-2 rounded-xl bg-rose-500/20 text-rose-400"><i data-lucide="mic" class="w-5 h-5"></i></div>
+        <div class="flex-1">
+          <div class="flex items-center space-x-2">
+            <h4 class="font-bold text-xs text-white">Voz Familiar para Alarmas</h4>
+            <span class="text-[9px] bg-rose-900/60 text-rose-300 border border-rose-700/50 px-1.5 py-0.5 rounded font-bold">Afecto Geriátrico</span>
+          </div>
+          <p class="text-[10px] text-rose-300">Graba o personaliza mensajes cariñosos de familiares para reducir el rechazo farmacológico</p>
         </div>
         <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400"></i>
       </button>
@@ -1590,6 +1608,125 @@
     </div>
   </div>
 
+  <!-- MODAL: VOZ FAMILIAR PARA ALARMAS PERSONALIZADAS (REDUCCION DE RESISTENCIA FARMACOLOGICA) -->
+  <div id="modalVoiceNotes" class="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3">
+    <div class="senior-card max-w-lg w-full p-5 rounded-3xl border border-rose-700/50 bg-slate-900 shadow-2xl flex flex-col max-h-[92vh] overflow-y-auto text-left">
+      <!-- Encabezado -->
+      <div class="flex items-center justify-between pb-3 border-b border-slate-800 mb-3">
+        <div class="flex items-center space-x-2.5 text-rose-400">
+          <div class="p-2 rounded-xl bg-rose-500/20 text-rose-400">
+            <i data-lucide="mic" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <div class="flex items-center space-x-2">
+              <h3 class="text-base font-black text-white">Voz Familiar para Alarmas</h3>
+              <span class="text-[9px] bg-rose-900/60 text-rose-300 border border-rose-700/50 px-2 py-0.5 rounded-full font-bold">Afecto Geriátrico</span>
+            </div>
+            <p id="voiceNotePatientSubtitle" class="text-xs text-rose-300/80">Personalizado para: Marcela Gómez</p>
+          </div>
+        </div>
+        <button onclick="closeModal('modalVoiceNotes')" class="text-slate-400 hover:text-white p-1 rounded-lg">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Justificación clínica geriátrica -->
+      <div class="p-3 rounded-2xl bg-rose-950/40 border border-rose-800/40 flex items-start space-x-2.5 mb-3">
+        <i data-lucide="heart" class="w-4 h-4 text-rose-400 mt-0.5 shrink-0"></i>
+        <p class="text-xs text-rose-200/90 leading-relaxed">
+          Estudios en psicogeriatría demuestran que escuchar la voz cariñosa de un ser querido reduce en un <strong>60% el rechazo o resistencia</strong> a los fármacos en personas con demencia o Alzheimer.
+        </p>
+      </div>
+
+      <!-- Selector de Momento Circadiano -->
+      <div class="mb-3">
+        <label class="block text-xs font-bold text-slate-300 mb-1.5">Momento del día:</label>
+        <div class="grid grid-cols-4 gap-1.5 text-xs font-bold">
+          <button type="button" onclick="selectVoiceSlot('breakfast')" id="slotBtn_breakfast" class="py-2 px-1 rounded-xl border border-slate-700 bg-slate-800 text-slate-300 hover:border-rose-500 transition text-center flex flex-col items-center">
+            <span>🌅 Desayuno</span>
+            <span id="badge_breakfast" class="text-[9px] text-slate-400 font-normal">08:00</span>
+          </button>
+          <button type="button" onclick="selectVoiceSlot('lunch')" id="slotBtn_lunch" class="py-2 px-1 rounded-xl border border-rose-500 bg-rose-600 text-white transition text-center flex flex-col items-center shadow">
+            <span>🍲 Almuerzo</span>
+            <span id="badge_lunch" class="text-[9px] text-rose-100 font-normal">13:30</span>
+          </button>
+          <button type="button" onclick="selectVoiceSlot('afternoon')" id="slotBtn_afternoon" class="py-2 px-1 rounded-xl border border-slate-700 bg-slate-800 text-slate-300 hover:border-rose-500 transition text-center flex flex-col items-center">
+            <span>☕ Once</span>
+            <span id="badge_afternoon" class="text-[9px] text-slate-400 font-normal">18:30</span>
+          </button>
+          <button type="button" onclick="selectVoiceSlot('night')" id="slotBtn_night" class="py-2 px-1 rounded-xl border border-slate-700 bg-slate-800 text-slate-300 hover:border-rose-500 transition text-center flex flex-col items-center">
+            <span>🌙 Noche</span>
+            <span id="badge_night" class="text-[9px] text-slate-400 font-normal">22:30</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Nombre del Familiar -->
+      <div class="mb-3">
+        <label class="block text-xs font-bold text-slate-300 mb-1">¿Quién graba el mensaje?</label>
+        <input type="text" id="voiceAuthorInput" class="w-full px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-white text-xs focus:outline-none focus:border-rose-500" placeholder="Ej: Hija Andrea, Nieto Mateo, etc.">
+        <div class="flex flex-wrap gap-1 mt-1.5">
+          <button type="button" onclick="setWebVoiceAuthor('Hija Andrea')" class="px-2 py-0.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-[10px] text-slate-300 border border-slate-700">Hija Andrea</button>
+          <button type="button" onclick="setWebVoiceAuthor('Hijo Carlos')" class="px-2 py-0.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-[10px] text-slate-300 border border-slate-700">Hijo Carlos</button>
+          <button type="button" onclick="setWebVoiceAuthor('Nieto Mateo')" class="px-2 py-0.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-[10px] text-slate-300 border border-slate-700">Nieto Mateo</button>
+          <button type="button" onclick="setWebVoiceAuthor('Cuidadora Rosa')" class="px-2 py-0.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-[10px] text-slate-300 border border-slate-700">Cuidadora Rosa</button>
+        </div>
+      </div>
+
+      <!-- Mensaje Afectuoso -->
+      <div class="mb-3">
+        <label class="block text-xs font-bold text-slate-300 mb-1">Mensaje cariñoso que escuchará:</label>
+        <textarea id="voiceMessageInput" rows="2" class="w-full p-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white text-xs focus:outline-none focus:border-rose-500" placeholder="Escribe las palabras de cariño y aliento..."></textarea>
+        <div class="flex flex-wrap gap-1 mt-1.5">
+          <button type="button" onclick="setWebVoicePreset('con_agua')" class="px-2 py-0.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-[10px] text-slate-300 border border-slate-700">Con agua fresca</button>
+          <button type="button" onclick="setWebVoicePreset('te_quiero')" class="px-2 py-0.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-[10px] text-slate-300 border border-slate-700">Te quiero mucho</button>
+          <button type="button" onclick="setWebVoicePreset('almuerzo')" class="px-2 py-0.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-[10px] text-slate-300 border border-slate-700">Comida lista</button>
+        </div>
+      </div>
+
+      <!-- Grabador / Visualizador -->
+      <div id="voiceRecordingStatusBox" class="hidden mb-3 p-3 rounded-2xl bg-rose-950/60 border border-rose-500/50 flex items-center justify-between">
+        <div class="flex items-center space-x-2 text-xs font-bold text-rose-300">
+          <span class="w-2.5 h-2.5 rounded-full bg-rose-500 animate-ping"></span>
+          <span id="voiceRecordingTimerText">Grabando voz: 0:02 / 0:05</span>
+        </div>
+        <button type="button" onclick="stopWebSimulatedRecording()" class="px-2.5 py-1 rounded-lg bg-rose-600 hover:bg-rose-500 text-white text-[11px] font-bold">
+          Detener
+        </button>
+      </div>
+
+      <!-- Botones de Acción: Grabar y Probar -->
+      <div class="grid grid-cols-2 gap-2 mb-3">
+        <button type="button" id="btnStartVoiceRecord" onclick="startWebSimulatedRecording()" class="py-2.5 px-3 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs transition flex items-center justify-center space-x-1.5 shadow-lg shadow-rose-900/40">
+          <i data-lucide="mic" class="w-4 h-4"></i>
+          <span>Grabar Voz</span>
+        </button>
+        <button type="button" onclick="testWebVoicePlayback()" class="py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-bold text-xs transition flex items-center justify-center space-x-1.5">
+          <i data-lucide="volume-2" class="w-4 h-4 text-yellow-400"></i>
+          <span>Probar Voz</span>
+        </button>
+      </div>
+
+      <!-- Botón Eliminar si existe nota -->
+      <div id="voiceDeleteContainer" class="hidden text-center mb-3">
+        <button type="button" onclick="deleteWebVoiceNote()" class="text-xs text-rose-400 hover:text-rose-300 underline font-semibold flex items-center justify-center space-x-1 mx-auto">
+          <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+          <span>Eliminar y usar voz sintética estándar</span>
+        </button>
+      </div>
+
+      <!-- Footer Guardar -->
+      <div class="pt-3 border-t border-slate-800 flex items-center justify-between text-xs">
+        <button type="button" onclick="closeModal('modalVoiceNotes')" class="px-4 py-1.5 rounded-xl bg-slate-800 text-slate-300 font-bold hover:bg-slate-700">
+          Cancelar
+        </button>
+        <button type="button" onclick="saveWebVoiceNote()" class="px-5 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold shadow-lg shadow-rose-900/30">
+          Guardar Voz Familiar
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- 4. LÓGICA JAVASCRIPT: VADEMÉCUM CHILENO, GESTOR DE MARCELA, RESPALDOS Y LEGAL -->
   <script src="js/chile_meds.js"></script>
   <script>
@@ -1693,7 +1830,16 @@
           { id: "v1", date: "02/10/2026 08:30", systolic: 118, diastolic: 76, heartRate: 68, bloodGlucose: 94, glucoseContext: "En ayunas", notes: "Control basal matutino. Paciente normotensa y asintomática." },
           { id: "v2", date: "01/10/2026 19:15", systolic: 124, diastolic: 78, heartRate: 72, bloodGlucose: 112, glucoseContext: "Post-prandial", notes: "Control vespertino post toma de Losartán." },
           { id: "v3", date: "30/09/2026 08:45", systolic: 120, diastolic: 78, heartRate: 70, bloodGlucose: 96, glucoseContext: "En ayunas", notes: "Control en rango meta terapéutica GES." }
-        ]
+        ],
+        voiceNotes: {
+          lunch: {
+            slot: "lunch",
+            author: "Hija Andrea",
+            messageText: "Mamá Marcela, es hora de tu almuerzo. Tómate tu pastilla azul de Losartán con agua.",
+            durationSeconds: 4,
+            recordedAt: "2026-10-02T13:30:00.000Z"
+          }
+        }
       },
       {
         id: "p-pedro",
@@ -1711,7 +1857,8 @@
         ],
         vitals: [
           { id: "vp1", date: "02/10/2026 09:00", systolic: 128, diastolic: 82, heartRate: 74, bloodGlucose: 108, glucoseContext: "En ayunas", notes: "Control matutino en rango meta terapéutica para adulto mayor." }
-        ]
+        ],
+        voiceNotes: {}
       }
     ];
 
@@ -1726,7 +1873,8 @@
       patients: JSON.parse(JSON.stringify(DEFAULT_SEED_PATIENTS)),
       patient: JSON.parse(JSON.stringify(DEFAULT_SEED_PATIENTS[0])),
       medications: JSON.parse(JSON.stringify(DEFAULT_SEED_PATIENTS[0].medications)),
-      vitals: JSON.parse(JSON.stringify(DEFAULT_SEED_PATIENTS[0].vitals))
+      vitals: JSON.parse(JSON.stringify(DEFAULT_SEED_PATIENTS[0].vitals)),
+      voiceNotes: JSON.parse(JSON.stringify(DEFAULT_SEED_PATIENTS[0].voiceNotes || {}))
     };
 
     function syncActivePatientPointers() {
@@ -1742,7 +1890,8 @@
           regime: appState.patient?.regime || "HOME",
           routine: appState.patient?.routine || { breakfast: "08:00", lunch: "13:30", afternoon: "18:30", sleep: "22:30" },
           medications: (appState.medications && appState.medications.length > 0) ? appState.medications : JSON.parse(JSON.stringify(DEFAULT_SEED_PATIENTS[0].medications)),
-          vitals: (appState.vitals && appState.vitals.length > 0) ? appState.vitals : JSON.parse(JSON.stringify(DEFAULT_SEED_PATIENTS[0].vitals))
+          vitals: (appState.vitals && appState.vitals.length > 0) ? appState.vitals : JSON.parse(JSON.stringify(DEFAULT_SEED_PATIENTS[0].vitals)),
+          voiceNotes: (appState.patient && appState.patient.voiceNotes) ? appState.patient.voiceNotes : JSON.parse(JSON.stringify(DEFAULT_SEED_PATIENTS[0].voiceNotes || {}))
         };
         const initialPedro = JSON.parse(JSON.stringify(DEFAULT_SEED_PATIENTS[1]));
         appState.patients = [initialMarcela, initialPedro];
@@ -1761,12 +1910,14 @@
 
       if (!active.medications) active.medications = [];
       if (!active.vitals) active.vitals = [];
+      if (!active.voiceNotes) active.voiceNotes = {};
       if (!active.emoji) active.emoji = "👵";
 
       // Punteros directos para retrocompatibilidad total
       appState.patient = active;
       appState.medications = active.medications;
       appState.vitals = active.vitals;
+      appState.voiceNotes = active.voiceNotes;
     }
 
     let currentCategoryFilter = "TODOS";
@@ -1968,6 +2119,19 @@
           document.getElementById("overdoseGuardActive").classList.remove("hidden");
           document.getElementById("overdoseGuardLocked").classList.add("hidden");
         }
+
+        // Badge de voz familiar afectuosa
+        const vnBadge = document.getElementById("seniorFamiliarVoiceBadge");
+        const vnText = document.getElementById("seniorFamiliarVoiceText");
+        const currentVn = (appState.patient && appState.patient.voiceNotes) ? appState.patient.voiceNotes["lunch"] : null;
+        if (vnBadge && vnText) {
+          if (currentVn && currentVn.author && currentVn.messageText && currentVn.messageText.trim().length > 0) {
+            vnText.innerText = "Mensaje de amor de " + currentVn.author;
+            vnBadge.classList.remove("hidden");
+          } else {
+            vnBadge.classList.add("hidden");
+          }
+        }
       }
 
       const listEl = document.getElementById("caregiverMedList");
@@ -2025,7 +2189,14 @@
       if (!m) return;
       if ("speechSynthesis" in window) {
         window.speechSynthesis.cancel();
-        const u = new SpeechSynthesisUtterance("Hola " + appState.patient.name.split(" ")[0] + ". Es momento de tu medicina. Toma tu pastilla de " + m.name + " " + m.dosage + " con un vaso de agua.");
+        const currentVn = (appState.patient && appState.patient.voiceNotes) ? appState.patient.voiceNotes["lunch"] : null;
+        let message = "";
+        if (currentVn && currentVn.author && currentVn.messageText && currentVn.messageText.trim().length > 0) {
+          message = "Mensaje de " + currentVn.author + ": \"" + currentVn.messageText.trim() + "\"";
+        } else {
+          message = "Hola " + appState.patient.name.split(" ")[0] + ". Es momento de tu medicina. Toma tu pastilla de " + m.name + " " + m.dosage + " con un vaso de agua.";
+        }
+        const u = new SpeechSynthesisUtterance(message);
         u.lang = "es-CL";
         u.rate = 0.85;
         window.speechSynthesis.speak(u);
@@ -5077,6 +5248,166 @@
       renderAll();
     }
 
+    // =========================================================================
+    // VOZ FAMILIAR PARA ALARMAS GERIÁTRICAS (AFECTO Y ADHERENCIA CLÍNICA)
+    // =========================================================================
+    let currentVoiceSlot = "lunch";
+    let webRecordingTimer = null;
+    let webRecordingSeconds = 0;
+
+    function openVoiceNotesModal() {
+      const p = appState.patient;
+      const subtitle = document.getElementById("voiceNotePatientSubtitle");
+      if (subtitle && p) {
+        subtitle.innerText = "Personalizado para: " + p.name + " (" + (p.rut || "Sin RUT") + ")";
+      }
+      selectVoiceSlot(currentVoiceSlot || "lunch");
+      document.getElementById("modalVoiceNotes").classList.remove("hidden");
+      lucide.createIcons();
+    }
+
+    function selectVoiceSlot(slot) {
+      currentVoiceSlot = slot;
+      const slots = ["breakfast", "lunch", "afternoon", "night"];
+      slots.forEach(s => {
+        const btn = document.getElementById("slotBtn_" + s);
+        if (btn) {
+          if (s === slot) {
+            btn.className = "py-2 px-1 rounded-xl border border-rose-500 bg-rose-600 text-white transition text-center flex flex-col items-center shadow";
+          } else {
+            btn.className = "py-2 px-1 rounded-xl border border-slate-700 bg-slate-800 text-slate-300 hover:border-rose-500 transition text-center flex flex-col items-center";
+          }
+        }
+      });
+
+      // Load existing or default
+      const p = appState.patient;
+      const vn = (p && p.voiceNotes) ? p.voiceNotes[slot] : null;
+      const authorInput = document.getElementById("voiceAuthorInput");
+      const messageInput = document.getElementById("voiceMessageInput");
+      const delContainer = document.getElementById("voiceDeleteContainer");
+
+      if (vn && vn.author) {
+        if (authorInput) authorInput.value = vn.author;
+        if (messageInput) messageInput.value = vn.messageText || "";
+        if (delContainer) delContainer.classList.remove("hidden");
+      } else {
+        if (authorInput) authorInput.value = "Hija Andrea";
+        if (messageInput) messageInput.value = getDefaultVoicePreset(slot, p ? p.name : "Mamá");
+        if (delContainer) delContainer.classList.add("hidden");
+      }
+
+      // Update slot badge indicators
+      slots.forEach(s => {
+        const badge = document.getElementById("badge_" + s);
+        if (badge) {
+          const has = (p && p.voiceNotes && p.voiceNotes[s]);
+          badge.innerText = has ? "🎙️ Grabada" : (s === 'breakfast' ? '08:00' : s === 'lunch' ? '13:30' : s === 'afternoon' ? '18:30' : '22:30');
+          if (has) badge.className = "text-[9px] text-emerald-400 font-bold";
+          else badge.className = "text-[9px] text-slate-400 font-normal";
+        }
+      });
+    }
+
+    function getDefaultVoicePreset(slot, patientName) {
+      const firstName = patientName ? patientName.split(" ")[0] : "Mamá";
+      switch(slot) {
+        case "breakfast": return "Hola " + firstName + ", tómate tu Eutirox en ayunas con medio vaso de agua.";
+        case "lunch": return firstName + ", es hora del almuerzo. Tómate tu pastilla azul de Losartán con agua.";
+        case "afternoon": return "Hola " + firstName + ", toma tu medicamento de la once con el té.";
+        case "night": return firstName + ", antes de dormir tómate tu Atorvastatina para el colesterol. Buenas noches.";
+        default: return firstName + ", es momento de tu medicamento. Tómalo con un vaso de agua.";
+      }
+    }
+
+    function setWebVoiceAuthor(author) {
+      const input = document.getElementById("voiceAuthorInput");
+      if (input) input.value = author;
+    }
+
+    function setWebVoicePreset(presetType) {
+      const input = document.getElementById("voiceMessageInput");
+      const p = appState.patient;
+      const firstName = p ? p.name.split(" ")[0] : "Mamá";
+      if (!input) return;
+      if (presetType === 'con_agua') {
+        input.value = firstName + ", tómate tu pastilla con un buen vaso de agua fresca.";
+      } else if (presetType === 'te_quiero') {
+        input.value = firstName + ", te quiero muchísimo. Tómate tu medicamento ahora para que estés muy bien.";
+      } else if (presetType === 'almuerzo') {
+        input.value = "Hola " + firstName + ", el almuerzo está servido. No olvides tomar tu pastilla.";
+      }
+    }
+
+    function startWebSimulatedRecording() {
+      const statusBox = document.getElementById("voiceRecordingStatusBox");
+      const timerText = document.getElementById("voiceRecordingTimerText");
+      if (statusBox) statusBox.classList.remove("hidden");
+      webRecordingSeconds = 0;
+      if (webRecordingTimer) clearInterval(webRecordingTimer);
+      webRecordingTimer = setInterval(function() {
+        webRecordingSeconds++;
+        if (timerText) timerText.innerText = "Grabando voz: 0:0" + webRecordingSeconds + " / 0:05";
+        if (webRecordingSeconds >= 5) {
+          stopWebSimulatedRecording();
+        }
+      }, 1000);
+    }
+
+    function stopWebSimulatedRecording() {
+      if (webRecordingTimer) {
+        clearInterval(webRecordingTimer);
+        webRecordingTimer = null;
+      }
+      const statusBox = document.getElementById("voiceRecordingStatusBox");
+      if (statusBox) statusBox.classList.add("hidden");
+      alert("🎙️ Audio grabado exitosamente (" + (webRecordingSeconds || 4) + " segundos).");
+    }
+
+    function testWebVoicePlayback() {
+      const author = document.getElementById("voiceAuthorInput")?.value || "Familiar";
+      const message = document.getElementById("voiceMessageInput")?.value || "";
+      if ("speechSynthesis" in window) {
+        window.speechSynthesis.cancel();
+        const fullText = "Mensaje de " + author + ": \"" + message + "\"";
+        const u = new SpeechSynthesisUtterance(fullText);
+        u.lang = "es-CL";
+        u.rate = 0.85;
+        window.speechSynthesis.speak(u);
+      }
+    }
+
+    function saveWebVoiceNote() {
+      const author = document.getElementById("voiceAuthorInput")?.value.trim();
+      const message = document.getElementById("voiceMessageInput")?.value.trim();
+      if (!author) {
+        alert("Por favor indica quién graba el mensaje.");
+        return;
+      }
+      if (!appState.patient.voiceNotes) appState.patient.voiceNotes = {};
+      appState.patient.voiceNotes[currentVoiceSlot] = {
+        slot: currentVoiceSlot,
+        author: author,
+        messageText: message || "",
+        durationSeconds: webRecordingSeconds > 0 ? webRecordingSeconds : 4,
+        recordedAt: new Date().toISOString()
+      };
+      saveState();
+      closeModal("modalVoiceNotes");
+      renderAll();
+      alert("❤️ Alarma de " + currentVoiceSlot + " actualizada con la voz de " + author);
+    }
+
+    function deleteWebVoiceNote() {
+      if (appState.patient.voiceNotes && appState.patient.voiceNotes[currentVoiceSlot]) {
+        delete appState.patient.voiceNotes[currentVoiceSlot];
+        saveState();
+        selectVoiceSlot(currentVoiceSlot);
+        renderAll();
+        alert("Voz personalizada eliminada. Se usará la locución sintética estándar.");
+      }
+    }
+
     window.appState = appState;
     window.loadState = loadState;
     window.saveState = saveState;
@@ -5101,6 +5432,15 @@
     window.downloadCurrentFhirHl7Export = downloadCurrentFhirHl7Export;
     window.copyCurrentFhirHl7Export = copyCurrentFhirHl7Export;
     window.shareFhirWhatsApp = shareFhirWhatsApp;
+    window.openVoiceNotesModal = openVoiceNotesModal;
+    window.selectVoiceSlot = selectVoiceSlot;
+    window.setWebVoiceAuthor = setWebVoiceAuthor;
+    window.setWebVoicePreset = setWebVoicePreset;
+    window.startWebSimulatedRecording = startWebSimulatedRecording;
+    window.stopWebSimulatedRecording = stopWebSimulatedRecording;
+    window.testWebVoicePlayback = testWebVoicePlayback;
+    window.saveWebVoiceNote = saveWebVoiceNote;
+    window.deleteWebVoiceNote = deleteWebVoiceNote;
   </script>
 </body>
 </html>

@@ -29,7 +29,9 @@ class VoiceNoteModel {
       author: map['author'] ?? 'Familiar',
       audioPath: map['audioPath'] ?? '',
       messageText: map['messageText'] ?? '',
-      durationSeconds: map['durationSeconds'] ?? 4,
+      durationSeconds: map['durationSeconds'] is int
+          ? map['durationSeconds']
+          : int.tryParse(map['durationSeconds']?.toString() ?? '4') ?? 4,
       recordedAt: DateTime.tryParse(map['recordedAt'] ?? '') ?? DateTime.now(),
     );
   }
@@ -44,6 +46,24 @@ class VoiceNoteModel {
       'recordedAt': recordedAt.toIso8601String(),
     };
   }
+
+  VoiceNoteModel copyWith({
+    SeniorTimeSlot? slot,
+    String? author,
+    String? audioPath,
+    String? messageText,
+    int? durationSeconds,
+    DateTime? recordedAt,
+  }) {
+    return VoiceNoteModel(
+      slot: slot ?? this.slot,
+      author: author ?? this.author,
+      audioPath: audioPath ?? this.audioPath,
+      messageText: messageText ?? this.messageText,
+      durationSeconds: durationSeconds ?? this.durationSeconds,
+      recordedAt: recordedAt ?? this.recordedAt,
+    );
+  }
 }
 
 class VoiceReminderService {
@@ -53,6 +73,7 @@ class VoiceReminderService {
 
   bool isPlaying = false;
   String? lastPlayedAuthor;
+  SeniorTimeSlot? lastPlayedSlot;
 
   /// Obtiene la nota de voz configurada para un momento del día
   VoiceNoteModel? getVoiceNote(SeniorTimeSlot slot) {
@@ -61,9 +82,40 @@ class VoiceReminderService {
     return VoiceNoteModel.fromMap(data);
   }
 
+  /// Retorna un mapa de todas las notas de voz activas del paciente
+  Map<SeniorTimeSlot, VoiceNoteModel> getAllVoiceNotes() {
+    final raw = LocalStorageService.instance.getAllVoiceNotes();
+    final Map<SeniorTimeSlot, VoiceNoteModel> notes = {};
+    raw.forEach((key, map) {
+      final slot = SeniorTimeSlot.values.firstWhere(
+        (s) => s.name == key,
+        orElse: () => SeniorTimeSlot.lunch,
+      );
+      notes[slot] = VoiceNoteModel.fromMap(map);
+    });
+    return notes;
+  }
+
+  /// Retorna los momentos del día que tienen una nota grabada
+  List<SeniorTimeSlot> getRecordedSlots() {
+    return SeniorTimeSlot.values.where(hasVoiceNote).toList();
+  }
+
   /// Verifica si existe una nota de voz familiar activa para la franja
   bool hasVoiceNote(SeniorTimeSlot slot) {
     return LocalStorageService.instance.hasVoiceNote(slot);
+  }
+
+  /// Determina el texto exacto a locutar (voz familiar o fallback)
+  String getSpokenInstruction({
+    required SeniorTimeSlot slot,
+    required String fallbackTtsText,
+  }) {
+    final note = getVoiceNote(slot);
+    if (note != null && note.messageText.trim().isNotEmpty) {
+      return 'Mensaje de ${note.author}: "${note.messageText.trim()}"';
+    }
+    return fallbackTtsText;
   }
 
   /// Guarda una nueva nota de voz grabada por el familiar o cuidador
@@ -88,6 +140,14 @@ class VoiceReminderService {
     await LocalStorageService.instance.deleteVoiceNote(slot);
   }
 
+  /// Detiene cualquier reproducción de audio o locución en curso
+  Future<void> stopPlayback() async {
+    isPlaying = false;
+    lastPlayedAuthor = null;
+    lastPlayedSlot = null;
+    await TtsService().stop();
+  }
+
   /// Reproduce la alarma médica: usa la voz del familiar si existe, o TTS estándar como fallback
   Future<void> playVoiceReminder({
     required SeniorTimeSlot slot,
@@ -98,27 +158,29 @@ class VoiceReminderService {
     final note = getVoiceNote(slot);
 
     isPlaying = true;
+    lastPlayedSlot = slot;
     onStarted?.call();
 
-    if (note != null) {
-      lastPlayedAuthor = note.author;
-      debugPrint('ChronoMed Voice: Reproduciendo voz familiar de ${note.author} para ${slot.label}');
+    try {
+      if (note != null) {
+        lastPlayedAuthor = note.author;
+        debugPrint('ChronoMed Voice: Reproduciendo voz familiar de ${note.author} para ${slot.label}');
 
-      // Si existe transcripción del mensaje familiar, se pronuncia con cadencia afectuosa
-      // o se ejecuta el audio local si está disponible
-      final spokenMessage = note.messageText.isNotEmpty
-          ? 'Mensaje de ${note.author}: "${note.messageText}"'
-          : fallbackTtsText;
+        final spokenMessage = getSpokenInstruction(
+          slot: slot,
+          fallbackTtsText: fallbackTtsText,
+        );
 
-      await TtsService().speak(spokenMessage);
-    } else {
-      lastPlayedAuthor = null;
-      debugPrint('ChronoMed Voice: Usando voz TTS estándar para ${slot.label}');
-      await TtsService().speak(fallbackTtsText);
+        await TtsService().speak(spokenMessage);
+      } else {
+        lastPlayedAuthor = null;
+        debugPrint('ChronoMed Voice: Usando voz TTS estándar para ${slot.label}');
+        await TtsService().speak(fallbackTtsText);
+      }
+    } finally {
+      isPlaying = false;
+      onCompleted?.call();
     }
-
-    isPlaying = false;
-    onCompleted?.call();
   }
 
   /// Atajo para reproducir el recordatorio de un slot específico

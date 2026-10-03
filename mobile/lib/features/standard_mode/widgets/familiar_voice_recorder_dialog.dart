@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../../core/services/voice_reminder_service.dart';
+import '../../../core/storage/local_storage_service.dart';
 import '../../senior_mode/models/senior_intake_item.dart';
 
 class FamiliarVoiceRecorderDialog extends StatefulWidget {
@@ -16,13 +18,25 @@ class FamiliarVoiceRecorderDialog extends StatefulWidget {
   State<FamiliarVoiceRecorderDialog> createState() => _FamiliarVoiceRecorderDialogState();
 }
 
-class _FamiliarVoiceRecorderDialogState extends State<FamiliarVoiceRecorderDialog> {
+class _FamiliarVoiceRecorderDialogState extends State<FamiliarVoiceRecorderDialog>
+    with SingleTickerProviderStateMixin {
   late SeniorTimeSlot _selectedSlot;
   late TextEditingController _authorController;
   late TextEditingController _messageController;
   bool _isRecording = false;
   bool _isPlaying = false;
   bool _hasRecordedAudio = false;
+  int _recordingSeconds = 0;
+  Timer? _recordingTimer;
+  late AnimationController _waveController;
+
+  static const List<String> _quickAuthors = [
+    'Hija Andrea',
+    'Hijo Carlos',
+    'Nieto Mateo',
+    'Cuidadora Rosa',
+    'Doctor/a',
+  ];
 
   @override
   void initState() {
@@ -30,6 +44,10 @@ class _FamiliarVoiceRecorderDialogState extends State<FamiliarVoiceRecorderDialo
     _selectedSlot = widget.initialSlot;
     _authorController = TextEditingController(text: 'Hija Andrea');
     _messageController = TextEditingController();
+    _waveController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 600),
+    );
     _loadExistingVoiceNote();
   }
 
@@ -60,29 +78,59 @@ class _FamiliarVoiceRecorderDialogState extends State<FamiliarVoiceRecorderDialo
 
   @override
   void dispose() {
+    _recordingTimer?.cancel();
+    _waveController.dispose();
     _authorController.dispose();
     _messageController.dispose();
     super.dispose();
   }
 
-  Future<void> _startSimulatedRecording() async {
-    setState(() => _isRecording = true);
-    await Future.delayed(const Duration(seconds: 2));
-    if (mounted) {
+  void _startRecording() {
+    setState(() {
+      _isRecording = true;
+      _recordingSeconds = 0;
+      _hasRecordedAudio = false;
+    });
+    _waveController.repeat(reverse: true);
+
+    _recordingTimer?.cancel();
+    _recordingTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted) return;
       setState(() {
-        _isRecording = false;
-        _hasRecordedAudio = true;
+        _recordingSeconds++;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          backgroundColor: Color(0xFF047857),
-          content: Text('🎙️ Audio grabado exitosamente (4 segundos)'),
+      if (_recordingSeconds >= 6) {
+        _stopRecording();
+      }
+    });
+  }
+
+  void _stopRecording() {
+    _recordingTimer?.cancel();
+    _waveController.stop();
+    if (!mounted) return;
+    setState(() {
+      _isRecording = false;
+      _hasRecordedAudio = true;
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        backgroundColor: const Color(0xFF047857),
+        behavior: SnackBarBehavior.floating,
+        content: Text(
+          '🎙️ Nota de voz de ${_authorController.text} grabada ($_recordingSeconds seg)',
         ),
-      );
-    }
+      ),
+    );
   }
 
   Future<void> _testAudioPlayback() async {
+    if (_isPlaying) {
+      await VoiceReminderService.instance.stopPlayback();
+      if (mounted) setState(() => _isPlaying = false);
+      return;
+    }
+
     setState(() => _isPlaying = true);
     await VoiceReminderService.instance.playVoiceReminder(
       slot: _selectedSlot,
@@ -95,29 +143,37 @@ class _FamiliarVoiceRecorderDialogState extends State<FamiliarVoiceRecorderDialo
   }
 
   Future<void> _saveVoiceNote() async {
-    if (_authorController.text.trim().isEmpty) {
+    final author = _authorController.text.trim();
+    if (author.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(backgroundColor: Colors.red, content: Text('Por favor indica quién graba el mensaje')),
+        const SnackBar(
+          backgroundColor: Colors.red,
+          content: Text('Por favor indica quién graba el mensaje'),
+        ),
       );
       return;
     }
 
+    final activePatientId = LocalStorageService.instance.activePatientId;
+    final audioFile = 'voice_note_${activePatientId}_${_selectedSlot.name}.m4a';
+
     await VoiceReminderService.instance.saveVoiceNote(
       slot: _selectedSlot,
-      author: _authorController.text.trim(),
-      audioPath: 'voice_note_${_selectedSlot.name}.m4a',
+      author: author,
+      audioPath: audioFile,
       messageText: _messageController.text.trim(),
-      durationSeconds: 4,
+      durationSeconds: _recordingSeconds > 0 ? _recordingSeconds : 4,
     );
 
     widget.onVoiceUpdated?.call();
 
     if (mounted) {
       Navigator.pop(context);
+      final patientName = LocalStorageService.instance.patientName;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           backgroundColor: const Color(0xFF0F172A),
-          content: Text('❤️ Alarma de ${_selectedSlot.label} actualizada con la voz de ${_authorController.text}'),
+          content: Text('❤️ Alarma de ${_selectedSlot.label} para $patientName actualizada con la voz de $author'),
         ),
       );
     }
@@ -142,6 +198,7 @@ class _FamiliarVoiceRecorderDialogState extends State<FamiliarVoiceRecorderDialo
   @override
   Widget build(BuildContext context) {
     final hasNote = VoiceReminderService.instance.hasVoiceNote(_selectedSlot);
+    final patientName = LocalStorageService.instance.patientName;
 
     return AlertDialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
@@ -157,10 +214,20 @@ class _FamiliarVoiceRecorderDialogState extends State<FamiliarVoiceRecorderDialo
             child: const Icon(Icons.record_voice_over_rounded, color: Color(0xFFDC2626), size: 24),
           ),
           const SizedBox(width: 10),
-          const Expanded(
-            child: Text(
-              'Voz Familiar para Alarmas',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Color(0xFF0F172A)),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  'Voz Familiar para Alarmas',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17, color: Color(0xFF0F172A)),
+                ),
+                Text(
+                  'Para: $patientName',
+                  style: const TextStyle(fontSize: 12, color: Color(0xFF2563EB), fontWeight: FontWeight.w600),
+                ),
+              ],
             ),
           ),
         ],
@@ -193,15 +260,32 @@ class _FamiliarVoiceRecorderDialogState extends State<FamiliarVoiceRecorderDialo
             ),
             const SizedBox(height: 16),
 
-            // Selector de franja temporal
+            // Selector de franja temporal con badge si ya tiene nota grabada
             const Text('Momento del día:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF475569))),
             const SizedBox(height: 6),
             Wrap(
               spacing: 6,
+              runSpacing: 4,
               children: SeniorTimeSlot.values.map((slot) {
                 final isSelected = slot == _selectedSlot;
+                final slotHasNote = VoiceReminderService.instance.hasVoiceNote(slot);
                 return ChoiceChip(
-                  label: Text('${slot.emoji} ${slot.label}', style: TextStyle(fontSize: 11, fontWeight: isSelected ? FontWeight.bold : FontWeight.normal)),
+                  label: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text('${slot.emoji} ${slot.label}'),
+                      if (slotHasNote) ...[
+                        const SizedBox(width: 4),
+                        const Icon(Icons.mic_rounded, size: 13, color: Color(0xFF16A34A)),
+                      ],
+                    ],
+                  ),
+                  labelStyle: TextStyle(
+                    fontSize: 11,
+                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                    color: isSelected ? Colors.white : const Color(0xFF1E293B),
+                  ),
+                  selectedColor: const Color(0xFF2563EB),
                   selected: isSelected,
                   onSelected: (selected) {
                     if (selected) {
@@ -216,7 +300,7 @@ class _FamiliarVoiceRecorderDialogState extends State<FamiliarVoiceRecorderDialo
             ),
             const SizedBox(height: 14),
 
-            // Nombre de quién graba
+            // Nombre de quién graba con chips rápidos
             const Text('¿Quién graba el mensaje?', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF475569))),
             const SizedBox(height: 4),
             TextField(
@@ -227,7 +311,25 @@ class _FamiliarVoiceRecorderDialogState extends State<FamiliarVoiceRecorderDialo
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 6),
+            Wrap(
+              spacing: 4,
+              runSpacing: 2,
+              children: _quickAuthors.map((author) {
+                return ActionChip(
+                  label: Text(author, style: const TextStyle(fontSize: 10)),
+                  backgroundColor: const Color(0xFFF1F5F9),
+                  padding: EdgeInsets.zero,
+                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  onPressed: () {
+                    setState(() {
+                      _authorController.text = author;
+                    });
+                  },
+                );
+              }).toList(),
+            ),
+            const SizedBox(height: 14),
 
             // Mensaje o transcripción
             const Text('Mensaje de voz afectuoso:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF475569))),
@@ -241,22 +343,76 @@ class _FamiliarVoiceRecorderDialogState extends State<FamiliarVoiceRecorderDialo
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 14),
 
-            // Estado de grabación y acciones de audio
+            // Visualizador animado durante grabación
+            if (_isRecording) ...[
+              Container(
+                padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFEF2F2),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: const Color(0xFFFCA5A5)),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      width: 12,
+                      height: 12,
+                      decoration: const BoxDecoration(
+                        color: Colors.red,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Grabando audio: 0:0$_recordingSeconds / 0:06',
+                      style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.red, fontSize: 13),
+                    ),
+                    const SizedBox(width: 12),
+                    // Visualizer wave bars
+                    AnimatedBuilder(
+                      animation: _waveController,
+                      builder: (ctx, child) {
+                        return Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: List.generate(4, (i) {
+                            final factor = ((i + 1) * 0.25);
+                            final val = (_waveController.value * (1.0 - factor) + factor).clamp(0.2, 1.0);
+                            return Container(
+                              margin: const EdgeInsets.symmetric(horizontal: 2),
+                              width: 3,
+                              height: 8 + (val * 16),
+                              decoration: BoxDecoration(
+                                color: Colors.redAccent,
+                                borderRadius: BorderRadius.circular(2),
+                              ),
+                            );
+                          }),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+            ],
+
+            // Botones de acción: Grabar / Detener y Probar / Pausar
             Row(
               children: [
                 Expanded(
                   child: ElevatedButton.icon(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: _isRecording ? Colors.red : const Color(0xFFDC2626),
+                      backgroundColor: _isRecording ? Colors.red.shade700 : const Color(0xFFDC2626),
                       foregroundColor: Colors.white,
                       minimumSize: const Size(0, 48),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                     ),
-                    icon: Icon(_isRecording ? Icons.fiber_manual_record_rounded : Icons.mic_rounded),
-                    label: Text(_isRecording ? 'Grabando...' : 'Grabar Voz', style: const TextStyle(fontWeight: FontWeight.bold)),
-                    onPressed: _isRecording ? null : _startSimulatedRecording,
+                    icon: Icon(_isRecording ? Icons.stop_circle_rounded : Icons.mic_rounded),
+                    label: Text(_isRecording ? 'Detener (0:0$_recordingSeconds)' : 'Grabar Voz', style: const TextStyle(fontWeight: FontWeight.bold)),
+                    onPressed: _isRecording ? _stopRecording : _startRecording,
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -268,7 +424,7 @@ class _FamiliarVoiceRecorderDialogState extends State<FamiliarVoiceRecorderDialo
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                     ),
                     icon: Icon(_isPlaying ? Icons.stop_rounded : Icons.play_arrow_rounded),
-                    label: Text(_isPlaying ? 'Pausar' : 'Probar', style: const TextStyle(fontWeight: FontWeight.bold)),
+                    label: Text(_isPlaying ? 'Detener' : 'Probar', style: const TextStyle(fontWeight: FontWeight.bold)),
                     onPressed: _hasRecordedAudio || hasNote ? _testAudioPlayback : null,
                   ),
                 ),

@@ -237,7 +237,10 @@ class _SeniorSingleActionScreenState extends State<SeniorSingleActionScreen> {
             iconSize: 40,
             tooltip: 'Escuchar indicación médica por voz',
             icon: const Icon(Icons.volume_up_rounded, color: SeniorTheme.accentYellow),
-            onPressed: () => TtsService().speak(_currentIntake.voiceInstruction),
+            onPressed: () => VoiceReminderService.instance.playVoiceReminder(
+              slot: _currentIntake.timeSlot,
+              fallbackTtsText: _currentIntake.voiceInstruction,
+            ),
           ),
           const SizedBox(width: 4),
           IconButton(
@@ -278,7 +281,49 @@ class _SeniorSingleActionScreenState extends State<SeniorSingleActionScreen> {
                   ),
                 ),
               ),
-              const SizedBox(height: 20),
+              if (VoiceReminderService.instance.hasVoiceNote(_currentIntake.timeSlot)) ...[
+                const SizedBox(height: 10),
+                Builder(
+                  builder: (context) {
+                    final note = VoiceReminderService.instance.getVoiceNote(_currentIntake.timeSlot);
+                    return InkWell(
+                      onTap: () {
+                        VoiceReminderService.instance.playVoiceReminder(
+                          slot: _currentIntake.timeSlot,
+                          fallbackTtsText: _currentIntake.voiceInstruction,
+                        );
+                      },
+                      borderRadius: BorderRadius.circular(16),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF1E293B),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: const Color(0xFFF43F5E), width: 1.5),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.favorite_rounded, color: Color(0xFFF43F5E), size: 18),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Mensaje de amor de ${note?.author ?? "tu familiar"}',
+                              style: const TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            const Icon(Icons.volume_up_rounded, color: SeniorTheme.accentYellow, size: 18),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ],
+              const SizedBox(height: 16),
               Expanded(
                 child: Container(
                   width: double.infinity,
