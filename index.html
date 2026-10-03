@@ -103,6 +103,12 @@
           <i data-lucide="qr-code" class="w-3.5 h-3.5 text-amber-400"></i>
           <span>P2P</span>
         </button>
+        <!-- Selector de Paciente Activo -->
+        <button onclick="openPatientSwitchModal()" id="headerPatientBtn" class="px-2 py-1.5 rounded-xl text-xs font-bold bg-slate-800 hover:bg-slate-700 text-teal-300 border border-slate-700 shadow transition flex items-center space-x-1" title="Cambiar Paciente Activo">
+          <span id="headerPatientEmoji" class="text-xs">👵</span>
+          <span id="headerPatientName" class="font-bold text-white max-w-[70px] truncate">Marcela</span>
+          <i data-lucide="chevron-down" class="w-3 h-3 text-slate-400"></i>
+        </button>
         <button onclick="openPatientModal()" class="px-2.5 py-1.5 rounded-xl text-xs font-bold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 shadow transition flex items-center space-x-1" title="Cambiar Rol de Usuario">
           <i data-lucide="users" class="w-3.5 h-3.5 text-blue-400"></i>
           <span>Rol</span>
@@ -198,7 +204,7 @@
 
           <div>
             <label class="block text-[11px] font-bold text-slate-400 mb-1">RUT o N° de Ficha Clínica</label>
-            <input type="text" id="inputPatientRut" placeholder="Ej: 14.567.890-K" value="14.567.890-K" class="w-full bg-slate-900 border border-slate-700 text-white rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-blue-500">
+            <input type="text" id="inputPatientRut" placeholder="Ej: 14.567.890-0" value="14.567.890-0" class="w-full bg-slate-900 border border-slate-700 text-white rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-blue-500">
           </div>
         </div>
 
@@ -355,18 +361,30 @@
       </button>
     </div>
 
-    <div class="flex items-center justify-between pt-1">
+    <div class="flex flex-wrap items-center justify-between gap-2 pt-1">
       <div>
         <span class="text-xs font-semibold text-slate-400">Paciente en supervisión:</span>
         <div class="flex items-center space-x-2">
+          <span id="caregiverPatientEmoji" class="text-xl">👵</span>
           <h2 id="caregiverPatientTitle" class="text-xl font-bold text-white">Marcela</h2>
-          <button onclick="openPatientModal()" class="text-xs bg-slate-800 text-blue-400 px-2 py-0.5 rounded border border-slate-700 hover:bg-slate-700">Editar Ficha</button>
+          <button onclick="openPatientSwitchModal()" class="text-xs bg-slate-800 text-teal-300 px-2.5 py-1 rounded-xl border border-slate-700 hover:bg-slate-700 font-bold flex items-center space-x-1 shadow transition" title="Cambiar paciente en supervisión">
+            <i data-lucide="users" class="w-3.5 h-3.5 text-teal-400"></i>
+            <span>Cambiar</span>
+            <span id="badgePatientCount" class="px-1.5 py-0.2 rounded-full bg-teal-900/60 text-teal-300 text-[9px] border border-teal-700/50">2</span>
+          </button>
+          <button onclick="openPatientModal()" class="text-xs bg-slate-800 text-slate-300 px-2 py-1 rounded-xl border border-slate-700 hover:bg-slate-700 font-medium">Ficha</button>
         </div>
       </div>
-      <button onclick="openAddMedModal()" class="bg-blue-600 hover:bg-blue-500 text-white px-3 py-2 rounded-2xl flex items-center space-x-1 text-xs font-bold shadow-lg shadow-blue-500/30">
-        <i data-lucide="search" class="w-4 h-4"></i>
-        <span>Buscar Medicamento Chile</span>
-      </button>
+      <div class="flex items-center space-x-2">
+        <button onclick="openAddPatientModal()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-2.5 py-2 rounded-2xl flex items-center space-x-1 text-xs font-bold shadow-lg shadow-emerald-500/30" title="Añadir nuevo paciente a supervisión">
+          <i data-lucide="user-plus" class="w-4 h-4"></i>
+          <span>+ Paciente</span>
+        </button>
+        <button onclick="openAddMedModal()" class="bg-blue-600 hover:bg-blue-500 text-white px-3 py-2 rounded-2xl flex items-center space-x-1 text-xs font-bold shadow-lg shadow-blue-500/30">
+          <i data-lucide="search" class="w-4 h-4"></i>
+          <span>Buscar Medicamento Chile</span>
+        </button>
+      </div>
     </div>
 
     <!-- Métrica de Adherencia en Tiempo Real -->
@@ -374,7 +392,7 @@
       <div class="flex justify-between items-center mb-3">
         <div class="flex items-center space-x-2">
           <i data-lucide="activity" class="w-5 h-5"></i>
-          <span class="font-bold text-sm text-blue-100">Adherencia de Marcela</span>
+          <span class="font-bold text-sm text-blue-100">Adherencia de <span id="caregiverAdherencePatientName">Marcela</span></span>
         </div>
         <button onclick="openPdfModal()" class="bg-white/20 hover:bg-white/30 px-3 py-1 rounded-xl text-xs font-bold flex items-center space-x-1 backdrop-blur">
           <i data-lucide="file-text" class="w-3.5 h-3.5"></i>
@@ -1289,10 +1307,276 @@
     </div>
   </div>
 
+  <!-- MODAL: SELECTOR RÁPIDO DE PACIENTES (MULTI-PACIENTE APS / HOGAR / ELEAM) -->
+  <div id="modalPatientSwitch" class="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3">
+    <div class="senior-card max-w-lg w-full p-5 rounded-3xl border border-slate-700 bg-slate-900 shadow-2xl flex flex-col max-h-[92vh]">
+      <!-- Encabezado -->
+      <div class="flex items-center justify-between pb-3 border-b border-slate-800 mb-3">
+        <div class="flex items-center space-x-2.5">
+          <div class="p-2 rounded-xl bg-teal-500/20 text-teal-400">
+            <i data-lucide="users" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-white">Pacientes en Supervisión</h3>
+            <p class="text-xs text-slate-400">Gestión multi-perfil con aislamiento clínico total</p>
+          </div>
+        </div>
+        <div class="flex items-center space-x-2">
+          <button onclick="closeModal('modalPatientSwitch'); openAddPatientModal();" class="text-xs font-bold px-2.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white transition flex items-center space-x-1 shadow-md">
+            <i data-lucide="user-plus" class="w-3.5 h-3.5"></i>
+            <span>+ Paciente</span>
+          </button>
+          <button onclick="closeModal('modalPatientSwitch')" class="text-slate-400 hover:text-white p-1 rounded-lg">
+            <i data-lucide="x" class="w-5 h-5"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Lista de Pacientes -->
+      <div id="patientSwitchListContainer" class="flex-1 overflow-y-auto space-y-2.5 pr-1 py-1">
+        <!-- Rellenado dinámicamente por renderPatientSwitchList() -->
+      </div>
+
+      <!-- Footer -->
+      <div class="pt-3 border-t border-slate-800 mt-3 flex items-center justify-between text-xs">
+        <span class="text-slate-400 text-[10px]">Trazabilidad Ley 20.584 • Aislamiento de fichas</span>
+        <button onclick="closeModal('modalPatientSwitch')" class="px-4 py-1.5 rounded-xl bg-slate-800 text-slate-300 font-bold hover:bg-slate-700">
+          Cerrar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: REGISTRAR NUEVO PACIENTE (CON VALIDACIÓN DE RUT CHILENO) -->
+  <div id="modalAddPatient" class="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3">
+    <div class="senior-card max-w-md w-full p-5 rounded-3xl border border-slate-700 bg-slate-900 shadow-2xl flex flex-col max-h-[92vh] overflow-y-auto">
+      <!-- Encabezado -->
+      <div class="flex items-center justify-between pb-3 border-b border-slate-800 mb-3">
+        <div class="flex items-center space-x-2.5">
+          <div class="p-2 rounded-xl bg-emerald-500/20 text-emerald-400">
+            <i data-lucide="user-plus" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-white">Nuevo Paciente</h3>
+            <p class="text-xs text-slate-400">Crear ficha clínica y pastillero circadiano</p>
+          </div>
+        </div>
+        <button onclick="closeModal('modalAddPatient')" class="text-slate-400 hover:text-white p-1 rounded-lg">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form onsubmit="handleCreatePatient(event)" class="space-y-3.5 text-xs">
+        <!-- Nombre y Avatar -->
+        <div>
+          <label class="font-bold text-white block mb-1">Nombre Completo del Paciente:</label>
+          <div class="flex space-x-2">
+            <select id="newPatientEmoji" class="bg-slate-950 border border-slate-700 rounded-xl px-2.5 py-2 text-base text-center focus:border-emerald-500 focus:outline-none">
+              <option value="👵">👵</option>
+              <option value="👴">👴</option>
+              <option value="👩">👩</option>
+              <option value="👨">👨</option>
+              <option value="🧑">🧑</option>
+            </select>
+            <input type="text" id="newPatientName" placeholder="Ej: Don Pedro Morales" required
+              class="flex-1 bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-white font-semibold focus:border-emerald-500 focus:outline-none" />
+          </div>
+        </div>
+
+        <!-- RUT Chileno con Validación Reactiva Módulo 11 -->
+        <div>
+          <div class="flex items-center justify-between mb-1">
+            <label class="font-bold text-white">RUN / RUT Chileno:</label>
+            <span class="text-[10px] text-slate-400">Validado Ley 19.628</span>
+          </div>
+          <input type="text" id="newPatientRut" placeholder="Ej: 11.234.567-1" required
+            oninput="handleNewPatientRutInput(this)"
+            class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-white font-mono font-bold focus:border-emerald-500 focus:outline-none" />
+          <p id="newPatientRutFeedback" class="text-[10px] mt-1 text-slate-400">Ingresa RUT con o sin puntos (se formatea automáticamente).</p>
+        </div>
+
+        <!-- Edad y Diagnósticos -->
+        <div class="grid grid-cols-3 gap-2">
+          <div>
+            <label class="font-bold text-white block mb-1">Edad:</label>
+            <input type="number" id="newPatientAge" min="1" max="120" placeholder="78"
+              class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2 text-white font-bold text-center focus:border-emerald-500 focus:outline-none" />
+          </div>
+          <div class="col-span-2">
+            <label class="font-bold text-white block mb-1">Diagnósticos Base (GES):</label>
+            <input type="text" id="newPatientDiagnoses" placeholder="Ej: HTA, Diabetes Tipo 2"
+              class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2 text-white text-xs focus:border-emerald-500 focus:outline-none" />
+          </div>
+        </div>
+
+        <!-- Régimen Circadiano Inicial -->
+        <div>
+          <label class="font-bold text-white block mb-1">Entorno y Régimen Horario:</label>
+          <div class="grid grid-cols-2 gap-2">
+            <label class="flex items-center space-x-2 bg-slate-950 p-2.5 rounded-xl border border-slate-800 cursor-pointer hover:border-slate-700">
+              <input type="radio" name="newPatientRegime" value="HOME" checked class="text-blue-600 focus:ring-0" />
+              <div>
+                <span class="font-bold text-white block text-[11px]">🏠 Hogar</span>
+                <span class="text-[9px] text-slate-400">08:00 - 13:30 - 18:30 - 22:30</span>
+              </div>
+            </label>
+            <label class="flex items-center space-x-2 bg-slate-950 p-2.5 rounded-xl border border-slate-800 cursor-pointer hover:border-slate-700">
+              <input type="radio" name="newPatientRegime" value="HOSPITAL" class="text-blue-600 focus:ring-0" />
+              <div>
+                <span class="font-bold text-white block text-[11px]">🏥 Hospital / ELEAM</span>
+                <span class="text-[9px] text-slate-400">07:00 - 12:00 - 17:30 - 21:00</span>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <!-- PIN de Seguridad Modo Senior -->
+        <div>
+          <label class="font-bold text-white block mb-1">PIN Modo Senior (4 dígitos):</label>
+          <input type="password" id="newPatientPin" maxlength="4" placeholder="1234" value="1234" required
+            class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2 text-white font-mono text-center tracking-widest text-sm focus:border-emerald-500 focus:outline-none" />
+        </div>
+
+        <!-- Botones de Acción -->
+        <div class="flex items-center space-x-2 pt-2">
+          <button type="button" onclick="closeModal('modalAddPatient')"
+            class="flex-1 py-2.5 rounded-xl border border-slate-700 text-slate-300 hover:bg-slate-800 text-xs font-bold transition">
+            Cancelar
+          </button>
+          <button type="submit"
+            class="flex-1 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-lg shadow-emerald-600/30 transition flex items-center justify-center space-x-1.5">
+            <i data-lucide="check" class="w-4 h-4"></i>
+            <span>Crear y Activar</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- 4. LÓGICA JAVASCRIPT: VADEMÉCUM CHILENO, GESTOR DE MARCELA, RESPALDOS Y LEGAL -->
   <script src="js/chile_meds.js"></script>
   <script>
     const STORAGE_KEY = "chronomed_marcela_v1";
+
+    // =========================================================================
+    // VALIDACIÓN Y FORMATEO DE RUN / RUT CHILENO (ALGORITMO MÓDULO 11 - LEY 19.628)
+    // =========================================================================
+    function cleanChileanRut(rut) {
+      if (!rut) return "";
+      return String(rut).replace(/\./g, "").replace(/-/g, "").replace(/\s+/g, "").trim().toUpperCase();
+    }
+
+    function computeChileanDv(body) {
+      let sum = 0;
+      let multiplier = 2;
+      for (let i = body.length - 1; i >= 0; i--) {
+        sum += parseInt(body[i], 10) * multiplier;
+        multiplier = (multiplier === 7) ? 2 : multiplier + 1;
+      }
+      const remainder = 11 - (sum % 11);
+      if (remainder === 11) return '0';
+      if (remainder === 10) return 'K';
+      return remainder.toString();
+    }
+
+    function isValidChileanRut(rut) {
+      const cleaned = cleanChileanRut(rut);
+      if (cleaned.length < 2) return false;
+      const body = cleaned.slice(0, -1);
+      const expectedDv = cleaned.slice(-1);
+      const digits = parseInt(body, 10);
+      if (isNaN(digits) || digits < 1000000 || digits > 99999999) return false;
+      return computeChileanDv(body) === expectedDv;
+    }
+
+    function formatChileanRut(rut) {
+      const cleaned = cleanChileanRut(rut);
+      if (cleaned.length < 2) return rut;
+      const body = cleaned.slice(0, -1);
+      const dv = cleaned.slice(-1);
+      const reversed = body.split("").reverse();
+      const parts = [];
+      for (let i = 0; i < reversed.length; i++) {
+        if (i > 0 && i % 3 === 0) parts.push(".");
+        parts.push(reversed[i]);
+      }
+      const formatted = parts.reverse().join("");
+      return `${formatted}-${dv}`;
+    }
+
+    function handleNewPatientRutInput(input) {
+      const val = input.value;
+      const feedback = document.getElementById("newPatientRutFeedback");
+      if (!val || val.trim().length === 0) {
+        if (feedback) {
+          feedback.className = "text-[10px] mt-1 text-slate-400";
+          feedback.innerText = "Ingresa RUT con o sin puntos (se formatea automáticamente).";
+        }
+        return;
+      }
+      const cleaned = cleanChileanRut(val);
+      if (cleaned.length >= 8) {
+        if (isValidChileanRut(cleaned)) {
+          input.value = formatChileanRut(cleaned);
+          if (feedback) {
+            feedback.className = "text-[10px] mt-1 text-emerald-400 font-semibold flex items-center space-x-1";
+            feedback.innerHTML = "<span>✓</span> <span>RUT chileno válido según Módulo 11 (Ley 19.628)</span>";
+          }
+        } else {
+          if (feedback) {
+            feedback.className = "text-[10px] mt-1 text-red-400 font-semibold flex items-center space-x-1";
+            feedback.innerHTML = "<span>✕</span> <span>Dígito verificador o cuerpo de RUT inválido</span>";
+          }
+        }
+      } else {
+        if (feedback) {
+          feedback.className = "text-[10px] mt-1 text-amber-400";
+          feedback.innerText = "Escribiendo RUN (" + cleaned.length + " caracteres)...";
+        }
+      }
+    }
+
+    const DEFAULT_SEED_PATIENTS = [
+      {
+        id: "p-marcela",
+        name: "Marcela Gómez",
+        emoji: "👵",
+        rut: "14.567.890-0",
+        age: 74,
+        diagnoses: "HTA, Hipotiroidismo, Dislipidemia",
+        pin: "1234",
+        regime: "HOME",
+        routine: { breakfast: "08:00", lunch: "13:30", afternoon: "18:30", sleep: "22:30" },
+        medications: [
+          { id: "1", name: "Eutirox", dosage: "100 mcg", color: "#FFFFFF", colorName: "blanca", time: "07:30", meal: "FASTING", frequency: 24, stock: 28, takenToday: true, ispRegister: "F-18452/19", isBioequivalent: true, laboratory: "Merck S.A.", clinicalPrecaution: "🥛 Ayuno estricto (30-60 min antes de desayuno). Separar de calcio/leche." },
+          { id: "2", name: "Losartán Potásico", dosage: "50 mg", color: "#3B82F6", colorName: "azul", time: "13:30", meal: "WITH_MEAL", frequency: 12, stock: 14, takenToday: false, ispRegister: "F-14205/20", isBioequivalent: true, laboratory: "Laboratorio Chile / Teva", clinicalPrecaution: "⚡ Controlar K+ y función renal. Separar de AINEs." },
+          { id: "3", name: "Atorvastatina", dosage: "20 mg", color: "#FACC15", colorName: "amarilla", time: "22:00", meal: "BEFORE_SLEEP", frequency: 24, stock: 30, takenToday: false, ispRegister: "F-19320/21", isBioequivalent: true, laboratory: "Laboratorio Mintlab", clinicalPrecaution: "🌙 Toma nocturna (pico circadiano HMG-CoA). Evitar jugo de pomelo." }
+        ],
+        vitals: [
+          { id: "v1", date: "02/10/2026 08:30", systolic: 118, diastolic: 76, heartRate: 68, bloodGlucose: 94, glucoseContext: "En ayunas", notes: "Control basal matutino. Paciente normotensa y asintomática." },
+          { id: "v2", date: "01/10/2026 19:15", systolic: 124, diastolic: 78, heartRate: 72, bloodGlucose: 112, glucoseContext: "Post-prandial", notes: "Control vespertino post toma de Losartán." },
+          { id: "v3", date: "30/09/2026 08:45", systolic: 120, diastolic: 78, heartRate: 70, bloodGlucose: 96, glucoseContext: "En ayunas", notes: "Control en rango meta terapéutica GES." }
+        ]
+      },
+      {
+        id: "p-pedro",
+        name: "Pedro Morales",
+        emoji: "👴",
+        rut: "11.234.567-1",
+        age: 81,
+        diagnoses: "Diabetes Tipo 2, HTA",
+        pin: "1234",
+        regime: "HOME",
+        routine: { breakfast: "08:00", lunch: "13:30", afternoon: "18:30", sleep: "22:30" },
+        medications: [
+          { id: "p1", name: "Metformina", dosage: "850 mg", color: "#FFFFFF", colorName: "blanca", time: "13:30", meal: "WITH_MEAL", frequency: 12, stock: 40, takenToday: true, ispRegister: "F-15632/19", isBioequivalent: true, laboratory: "Laboratorio Chile", clinicalPrecaution: "🍽️ Tomar inmediatamente con almuerzo para reducir molestias gastrointestinales." },
+          { id: "p2", name: "Enalapril Maleato", dosage: "10 mg", color: "#EF4444", colorName: "roja", time: "08:00", meal: "WITH_MEAL", frequency: 24, stock: 25, takenToday: false, ispRegister: "F-13421/18", isBioequivalent: true, laboratory: "Mintlab", clinicalPrecaution: "⚠️ Precaución con hipotensión ortostática al levantarse rápido." }
+        ],
+        vitals: [
+          { id: "vp1", date: "02/10/2026 09:00", systolic: 128, diastolic: 82, heartRate: 74, bloodGlucose: 108, glucoseContext: "En ayunas", notes: "Control matutino en rango meta terapéutica para adulto mayor." }
+        ]
+      }
+    ];
 
     let appState = {
       currentUser: {
@@ -1301,23 +1585,52 @@
         title: "Cuidador/a Familiar",
         organization: "Hogar"
       },
-      patient: {
-        name: "Marcela",
-        rut: "14.567.890-K",
-        pin: "1234",
-        routine: { breakfast: "08:00", lunch: "13:30", afternoon: "18:30", sleep: "22:30" }
-      },
-      medications: [
-        { id: "1", name: "Eutirox", dosage: "100 mcg", color: "#FFFFFF", colorName: "blanca", time: "07:30", meal: "FASTING", frequency: 24, stock: 28, takenToday: true, ispRegister: "F-18452/19", isBioequivalent: true, laboratory: "Merck S.A.", clinicalPrecaution: "🥛 Ayuno estricto (30-60 min antes de desayuno). Separar de calcio/leche." },
-        { id: "2", name: "Losartán Potásico", dosage: "50 mg", color: "#3B82F6", colorName: "azul", time: "13:30", meal: "WITH_MEAL", frequency: 12, stock: 14, takenToday: false, ispRegister: "F-14205/20", isBioequivalent: true, laboratory: "Laboratorio Chile / Teva", clinicalPrecaution: "⚡ Controlar K+ y función renal. Separar de AINEs." },
-        { id: "3", name: "Atorvastatina", dosage: "20 mg", color: "#FACC15", colorName: "amarilla", time: "22:00", meal: "BEFORE_SLEEP", frequency: 24, stock: 30, takenToday: false, ispRegister: "F-19320/21", isBioequivalent: true, laboratory: "Laboratorio Mintlab", clinicalPrecaution: "🌙 Toma nocturna (pico circadiano HMG-CoA). Evitar jugo de pomelo." }
-      ],
-      vitals: [
-        { id: "v1", date: "02/10/2026 08:30", systolic: 118, diastolic: 76, heartRate: 68, bloodGlucose: 94, glucoseContext: "En ayunas", notes: "Control basal matutino. Paciente normotensa y asintomática." },
-        { id: "v2", date: "01/10/2026 19:15", systolic: 124, diastolic: 78, heartRate: 72, bloodGlucose: 112, glucoseContext: "Post-prandial", notes: "Control vespertino post toma de Losartán." },
-        { id: "v3", date: "30/09/2026 08:45", systolic: 120, diastolic: 78, heartRate: 70, bloodGlucose: 96, glucoseContext: "En ayunas", notes: "Control en rango meta terapéutica GES." }
-      ]
+      activePatientId: "p-marcela",
+      patients: JSON.parse(JSON.stringify(DEFAULT_SEED_PATIENTS)),
+      patient: JSON.parse(JSON.stringify(DEFAULT_SEED_PATIENTS[0])),
+      medications: JSON.parse(JSON.stringify(DEFAULT_SEED_PATIENTS[0].medications)),
+      vitals: JSON.parse(JSON.stringify(DEFAULT_SEED_PATIENTS[0].vitals))
     };
+
+    function syncActivePatientPointers() {
+      if (!appState.patients || !Array.isArray(appState.patients) || appState.patients.length === 0) {
+        const initialMarcela = {
+          id: "p-marcela",
+          name: appState.patient?.name || "Marcela Gómez",
+          emoji: appState.patient?.emoji || "👵",
+          rut: appState.patient?.rut || "14.567.890-0",
+          age: appState.patient?.age || 74,
+          diagnoses: appState.patient?.diagnoses || "HTA, Hipotiroidismo, Dislipidemia",
+          pin: appState.patient?.pin || "1234",
+          regime: appState.patient?.regime || "HOME",
+          routine: appState.patient?.routine || { breakfast: "08:00", lunch: "13:30", afternoon: "18:30", sleep: "22:30" },
+          medications: (appState.medications && appState.medications.length > 0) ? appState.medications : JSON.parse(JSON.stringify(DEFAULT_SEED_PATIENTS[0].medications)),
+          vitals: (appState.vitals && appState.vitals.length > 0) ? appState.vitals : JSON.parse(JSON.stringify(DEFAULT_SEED_PATIENTS[0].vitals))
+        };
+        const initialPedro = JSON.parse(JSON.stringify(DEFAULT_SEED_PATIENTS[1]));
+        appState.patients = [initialMarcela, initialPedro];
+        appState.activePatientId = "p-marcela";
+      }
+
+      if (!appState.activePatientId) {
+        appState.activePatientId = appState.patients[0].id;
+      }
+
+      let active = appState.patients.find(p => p.id === appState.activePatientId);
+      if (!active) {
+        active = appState.patients[0];
+        appState.activePatientId = active.id;
+      }
+
+      if (!active.medications) active.medications = [];
+      if (!active.vitals) active.vitals = [];
+      if (!active.emoji) active.emoji = "👵";
+
+      // Punteros directos para retrocompatibilidad total
+      appState.patient = active;
+      appState.medications = active.medications;
+      appState.vitals = active.vitals;
+    }
 
     let currentCategoryFilter = "TODOS";
     let selectedWebRole = "caregiver";
@@ -1377,24 +1690,38 @@
           if (!appState.currentUser) {
             appState.currentUser = { role: "caregiver", name: "Carlos Gómez", title: "Cuidador/a Familiar", organization: "Hogar" };
           }
+          syncActivePatientPointers();
           if (appState.medications) {
             appState.medications = appState.medications.map(enrichMedicationDetails);
           }
-          if (!appState.vitals || !Array.isArray(appState.vitals) || appState.vitals.length === 0) {
-            appState.vitals = [
-              { id: "v1", date: "02/10/2026 08:30", systolic: 118, diastolic: 76, heartRate: 68, bloodGlucose: 94, glucoseContext: "En ayunas", notes: "Control basal matutino. Paciente normotensa y asintomática." },
-              { id: "v2", date: "01/10/2026 19:15", systolic: 124, diastolic: 78, heartRate: 72, bloodGlucose: 112, glucoseContext: "Post-prandial", notes: "Control vespertino post toma de Losartán." },
-              { id: "v3", date: "30/09/2026 08:45", systolic: 120, diastolic: 78, heartRate: 70, bloodGlucose: 96, glucoseContext: "En ayunas", notes: "Control en rango meta terapéutica GES." }
-            ];
-          }
-        } catch(e){}
+        } catch(e){
+          syncActivePatientPointers();
+        }
       } else {
+        syncActivePatientPointers();
         saveState();
       }
       selectedWebRole = appState.currentUser?.role || "caregiver";
     }
 
     function saveState() {
+      if (appState.patients && appState.activePatientId) {
+        const active = appState.patients.find(p => p.id === appState.activePatientId);
+        if (active) {
+          active.medications = appState.medications;
+          active.vitals = appState.vitals;
+          if (appState.patient) {
+            active.name = appState.patient.name;
+            active.rut = appState.patient.rut;
+            active.pin = appState.patient.pin;
+            active.routine = appState.patient.routine;
+            if (appState.patient.emoji) active.emoji = appState.patient.emoji;
+            if (appState.patient.age !== undefined) active.age = appState.patient.age;
+            if (appState.patient.diagnoses) active.diagnoses = appState.patient.diagnoses;
+            if (appState.patient.regime) active.regime = appState.patient.regime;
+          }
+        }
+      }
       localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
     }
 
@@ -1412,6 +1739,39 @@
       const firstName = appState.patient.name.split(" ")[0];
       document.getElementById("seniorDisplayName").innerText = "Hola, " + firstName + " 👋";
       document.getElementById("caregiverPatientTitle").innerText = appState.patient.name;
+
+      // Header patient badge and emoji
+      const pEmoji = appState.patient.emoji || "👵";
+      const headerEmojiEl = document.getElementById("headerPatientEmoji");
+      if (headerEmojiEl) headerEmojiEl.innerText = pEmoji;
+      const headerNameEl = document.getElementById("headerPatientName");
+      if (headerNameEl) headerNameEl.innerText = firstName;
+
+      const cgEmojiEl = document.getElementById("caregiverPatientEmoji");
+      if (cgEmojiEl) cgEmojiEl.innerText = pEmoji;
+
+      const badgeCountEl = document.getElementById("badgePatientCount");
+      if (badgeCountEl) {
+        badgeCountEl.innerText = appState.patients ? appState.patients.length : 1;
+      }
+
+      // Adherence Card in caregiver view
+      const adherenceNameEl = document.getElementById("caregiverAdherencePatientName");
+      if (adherenceNameEl) adherenceNameEl.innerText = firstName;
+
+      const rateEl = document.getElementById("caregiverAdherenceRate");
+      const detailEl = document.getElementById("caregiverAdherenceDetail");
+      const barEl = document.getElementById("caregiverAdherenceBar");
+
+      if (rateEl && detailEl && barEl) {
+        const totalMeds = appState.medications ? appState.medications.length : 0;
+        const takenMeds = appState.medications ? appState.medications.filter(m => m.takenToday).length : 0;
+        const pct = totalMeds > 0 ? Math.round((takenMeds / totalMeds) * 100) : 100;
+        rateEl.innerText = pct + "%";
+        detailEl.innerText = `${takenMeds} de ${totalMeds} tomas hoy`;
+        if (barEl.style) barEl.style.width = pct + "%";
+        barEl.className = pct >= 80 ? "bg-emerald-400 h-2.5 rounded-full" : (pct >= 50 ? "bg-amber-400 h-2.5 rounded-full" : "bg-rose-400 h-2.5 rounded-full");
+      }
 
       // Header role badge
       const user = appState.currentUser || { role: 'caregiver', name: 'Carlos Gómez', title: 'Cuidador/a Familiar', organization: 'Hogar' };
@@ -1545,7 +1905,7 @@
 
       if ("speechSynthesis" in window) {
         window.speechSynthesis.cancel();
-        const u = new SpeechSynthesisUtterance("Excelente Marcela. Tu toma de " + m.name + " ha quedado registrada.");
+        const u = new SpeechSynthesisUtterance("Excelente " + appState.patient.name.split(" ")[0] + ". Tu toma de " + (m ? m.name : "tu medicamento") + " ha quedado registrada.");
         u.lang = "es-CL";
         window.speechSynthesis.speak(u);
       }
@@ -1687,11 +2047,11 @@
       saveState();
       closeModal("modalAddMed");
       renderAll();
-      alert("¡" + enriched.name + " (" + enriched.dosage + ") agregado a la ficha de Marcela!");
+      alert("¡" + enriched.name + " (" + enriched.dosage + ") agregado a la ficha de " + appState.patient.name.split(" ")[0] + "!");
     }
 
     function deleteMedication(id) {
-      if (confirm("¿Eliminar este medicamento del tratamiento de Marcela?")) {
+      if (confirm("¿Eliminar este medicamento del tratamiento de " + appState.patient.name.split(" ")[0] + "?")) {
         appState.medications = appState.medications.filter(m => m.id !== id);
         saveState();
         renderAll();
@@ -2553,10 +2913,27 @@
           if (imported && imported.patient) {
             var confirmImport = confirm("¿Deseas importar el tratamiento de " + imported.patient.name + " recibido por enlace Air-Gapped?");
             if (confirmImport) {
-              appState.patient = imported.patient;
-              if (imported.medications) appState.medications = imported.medications.map(enrichMedicationDetails);
-              if (imported.vitals) appState.vitals = imported.vitals;
+              var importedId = imported.patient.id || ("p-" + Date.now());
+              imported.patient.id = importedId;
+              if (imported.medications) imported.patient.medications = imported.medications.map(enrichMedicationDetails);
+              if (imported.vitals) imported.patient.vitals = imported.vitals;
+              
+              if (!appState.patients || !Array.isArray(appState.patients)) {
+                appState.patients = [];
+              }
+              var existingIdx = appState.patients.findIndex(function(p) {
+                return p.id === importedId || (p.rut && p.rut === imported.patient.rut);
+              });
+              if (existingIdx >= 0) {
+                appState.patients[existingIdx] = imported.patient;
+                appState.activePatientId = appState.patients[existingIdx].id;
+              } else {
+                appState.patients.push(imported.patient);
+                appState.activePatientId = importedId;
+              }
+
               if (imported.currentUser) appState.currentUser = imported.currentUser;
+              syncActivePatientPointers();
               saveState();
               renderAll();
               window.location.hash = "";
@@ -2599,7 +2976,7 @@
     }
 
     function renderQrCodeForCurrentMode() {
-      var patient = appState.patient || { name: "Marcela", rut: "14.567.890-K", pin: "1234" };
+      var patient = appState.patient || { name: "Marcela", rut: "14.567.890-0", pin: "1234" };
       var secretKey = 'Chronomed-Clinical-HMAC-Key-2026';
       var displayQrData = '';
       var explanationHtml = '';
@@ -2609,7 +2986,7 @@
         // Formato estándar compatible con PairingService.processScannedRawData() en Flutter
         var payloadObj = {
           caregiverId: appState.currentUser ? appState.currentUser.name : "Carlos Gómez",
-          patientId: patient.rut || "14.567.890-K",
+          patientId: patient.rut || "14.567.890-0",
           patientName: patient.name || "Marcela",
           seniorPin: patient.pin || "1234",
           expiresAt: Math.floor(Date.now() / 1000) + (24 * 3600),
@@ -2719,14 +3096,14 @@
 
     function simulateQrScanReception() {
       try {
-        var patient = appState.patient || { name: "Marcela", rut: "14.567.890-K" };
+        var patient = appState.patient || { name: "Marcela", rut: "14.567.890-0" };
         var medNames = appState.medications ? appState.medications.map(function(m){ return m.name; }).join(", ") : "Sin fármacos";
         alert(
           "📱 Simulación de Recepción en App Móvil ChronoMed:\n" +
           "═══════════════════════════════════════════\n" +
           "✔ Código QR Air-Gapped escaneado con éxito\n" +
           "✔ Firma Criptográfica HMAC-SHA256: VÁLIDA (Certificada)\n" +
-          "✔ Paciente Vinculado: " + patient.name + " (" + (patient.rut || "14.567.890-K") + ")\n" +
+          "✔ Paciente Vinculado: " + patient.name + " (" + (patient.rut || "14.567.890-0") + ")\n" +
           "✔ Régimen de Comidas: 4 tomas sincronizadas\n" +
           "✔ Fármacos transferidos (" + (appState.medications ? appState.medications.length : 0) + "): " + medNames + "\n" +
           "✔ Control de Sobredosis: Activado (Ventana 30 min)\n" +
@@ -3227,14 +3604,14 @@
       var totalMeds = appState.medications ? appState.medications.length : 0;
       var takenMeds = appState.medications ? appState.medications.filter(function(m){ return m.takenToday; }).length : 0;
       var adherencePct = totalMeds > 0 ? Math.round((takenMeds / totalMeds) * 100) : 100;
-      var hmac = calculateDocumentHmacJs("Chronomed-Clinical-HMAC-Key-2026", appState.patient.name + "|" + (appState.patient.rut || "14.567.890-K") + "|" + (adherencePct / 100).toFixed(2) + "|" + dateFormatted);
+      var hmac = calculateDocumentHmacJs("Chronomed-Clinical-HMAC-Key-2026", appState.patient.name + "|" + (appState.patient.rut || "14.567.890-0") + "|" + (adherencePct / 100).toFixed(2) + "|" + dateFormatted);
 
       var userTitle = appState.currentUser ? appState.currentUser.title : "Cuidador/a Familiar";
       var userName = appState.currentUser ? appState.currentUser.name : "Carlos Gómez";
 
       var text = "📋 *INFORME CLÍNICO Y EPICRISIS DE FARMACOTERAPIA - CHRONOMED*\n" +
                  "• *Paciente:* " + appState.patient.name + "\n" +
-                 "• *RUT:* " + (appState.patient.rut || "14.567.890-K") + " _(Protegido Ley 19.628)_\n" +
+                 "• *RUT:* " + (appState.patient.rut || "14.567.890-0") + " _(Protegido Ley 19.628)_\n" +
                  "• *Emisión:* " + dateFormatted + "\n" +
                  "• *Responsable:* " + userName + " (" + userTitle + ")\n" +
                  "• *Establecimiento:* " + (appState.currentUser && appState.currentUser.organization ? appState.currentUser.organization : "CESFAM / Domicilio") + "\n\n" +
@@ -3282,10 +3659,10 @@
       var totalMeds = appState.medications ? appState.medications.length : 0;
       var takenMeds = appState.medications ? appState.medications.filter(function(m){ return m.takenToday; }).length : 0;
       var adherencePct = totalMeds > 0 ? Math.round((takenMeds / totalMeds) * 100) : 100;
-      var hmac = calculateDocumentHmacJs("Chronomed-Clinical-HMAC-Key-2026", appState.patient.name + "|" + (appState.patient.rut || "14.567.890-K") + "|" + (adherencePct / 100).toFixed(2) + "|" + dateFormatted);
+      var hmac = calculateDocumentHmacJs("Chronomed-Clinical-HMAC-Key-2026", appState.patient.name + "|" + (appState.patient.rut || "14.567.890-0") + "|" + (adherencePct / 100).toFixed(2) + "|" + dateFormatted);
 
       var user = appState.currentUser || { role: 'caregiver', name: 'Carlos Gómez', title: 'Cuidador/a Familiar', organization: 'Hogar' };
-      var patient = appState.patient || { name: 'Marcela', rut: '14.567.890-K', routine: { breakfast: '08:00', lunch: '13:30', afternoon: '18:30', sleep: '22:30' } };
+      var patient = appState.patient || { name: 'Marcela', rut: '14.567.890-0', routine: { breakfast: '08:00', lunch: '13:30', afternoon: '18:30', sleep: '22:30' } };
       var vitalsList = appState.vitals || [];
 
       // Construcción del HTML Clínico Imprimible
@@ -3323,7 +3700,7 @@
               <i data-lucide="user" class="w-3.5 h-3.5"></i> Ficha de Identificación del Paciente
             </h3>
             <p><strong class="text-slate-800">Nombre Completo:</strong> ${patient.name}</p>
-            <p><strong class="text-slate-800">RUN / RUT:</strong> ${patient.rut || "14.567.890-K"} <span class="text-[9px] text-slate-500 font-medium">(Ofuscación Ley 19.628)</span></p>
+            <p><strong class="text-slate-800">RUN / RUT:</strong> ${patient.rut || "14.567.890-0"} <span class="text-[9px] text-slate-500 font-medium">(Ofuscación Ley 19.628)</span></p>
             <p><strong class="text-slate-800">Previsión:</strong> FONASA Tramo B (Gratuidad Total GES)</p>
             <p><strong class="text-slate-800">Régimen Circadiano:</strong> Desayuno ${patient.routine?.breakfast || '08:00'} | Almuerzo ${patient.routine?.lunch || '13:30'} | Once ${patient.routine?.afternoon || '18:30'} | Noche ${patient.routine?.sleep || '22:30'}</p>
             <p><strong class="text-slate-800">Diagnósticos Base (GES):</strong> HTA Primaria (GES N° 21), Dislipidemia, Hipotiroidismo.</p>
@@ -3617,6 +3994,251 @@
       }
     }
 
+    // =========================================================================
+    // GESTIÓN MULTI-PACIENTE Y AISLAMIENTO CLÍNICO (LEY 20.584)
+    // =========================================================================
+    function openPatientSwitchModal() {
+      renderPatientSwitchList();
+      document.getElementById("modalPatientSwitch").classList.remove("hidden");
+      lucide.createIcons();
+    }
+
+    function renderPatientSwitchList() {
+      var container = document.getElementById("patientSwitchListContainer");
+      if (!container) return;
+      container.innerHTML = "";
+
+      if (!appState.patients || appState.patients.length === 0) {
+        container.innerHTML = '<div class="p-4 text-center text-xs text-slate-400">No hay pacientes registrados en el sistema.</div>';
+        return;
+      }
+
+      appState.patients.forEach(function(p) {
+        var isActive = p.id === appState.activePatientId;
+        var meds = p.medications || [];
+        var medsCount = meds.length;
+        var takenToday = meds.filter(function(m) { return m.takenToday; }).length;
+        var adherenceRate = medsCount > 0 ? Math.round((takenToday / medsCount) * 100) : 0;
+        var adherenceText = medsCount > 0 ? adherenceRate + "% (" + takenToday + "/" + medsCount + ")" : "Sin fármacos";
+
+        var lastBpText = "-- / --";
+        if (p.vitals && p.vitals.length > 0 && p.vitals[0].systolic && p.vitals[0].diastolic) {
+          lastBpText = p.vitals[0].systolic + "/" + p.vitals[0].diastolic;
+        }
+
+        var div = document.createElement("div");
+        div.className = "p-3.5 rounded-2xl border transition flex flex-col space-y-2.5 " + (
+          isActive 
+            ? "bg-slate-800/90 border-teal-500/50 shadow-lg ring-1 ring-teal-500/30" 
+            : "bg-slate-950/70 border-slate-800 hover:border-slate-700"
+        );
+
+        var activateBtnHtml = !isActive
+          ? '<button onclick="switchActivePatient(\'' + p.id + '\')" class="px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs shadow-md transition flex items-center space-x-1">' +
+              '<i data-lucide="check" class="w-3.5 h-3.5"></i>' +
+              '<span>Activar</span>' +
+            '</button>'
+          : '<span class="text-xs text-emerald-400 font-bold px-2.5 py-1 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center space-x-1">' +
+              '<i data-lucide="check-circle" class="w-3.5 h-3.5"></i>' +
+              '<span>En uso</span>' +
+            '</span>';
+
+        var deleteBtnHtml = (appState.patients.length > 1)
+          ? '<button onclick="deletePatient(\'' + p.id + '\')" class="text-slate-500 hover:text-red-400 p-1.5 rounded-xl hover:bg-slate-800 transition" title="Eliminar paciente">' +
+              '<i data-lucide="trash-2" class="w-4 h-4"></i>' +
+            '</button>'
+          : '';
+
+        div.innerHTML = 
+          '<div class="flex items-center justify-between">' +
+            '<div class="flex items-center space-x-3">' +
+              '<div class="w-10 h-10 rounded-2xl bg-teal-500/20 text-teal-300 flex items-center justify-center text-xl shrink-0 border border-teal-500/30">' +
+                (p.emoji || "👵") +
+              '</div>' +
+              '<div>' +
+                '<div class="flex items-center space-x-2">' +
+                  '<h4 class="font-bold text-white text-sm">' + p.name + '</h4>' +
+                  (isActive ? '<span class="px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-400 font-bold text-[9px] border border-emerald-500/40">ACTIVO</span>' : '') +
+                '</div>' +
+                '<p class="text-[11px] text-slate-400 font-mono">RUN: <span class="text-slate-200">' + (p.rut ? formatChileanRut(p.rut) : "Sin registrar") + '</span>' + (p.age ? ' • ' + p.age + ' años' : '') + '</p>' +
+              '</div>' +
+            '</div>' +
+            '<div class="flex items-center space-x-1.5">' +
+              activateBtnHtml +
+              deleteBtnHtml +
+            '</div>' +
+          '</div>' +
+          '<div class="grid grid-cols-3 gap-1.5 pt-2 border-t border-slate-800/80 text-[10px]">' +
+            '<div class="bg-slate-900/80 p-2 rounded-xl border border-slate-800">' +
+              '<span class="text-slate-400 block text-[9px]">Fármacos Activos</span>' +
+              '<span class="font-bold text-white">' + medsCount + ' fármacos</span>' +
+            '</div>' +
+            '<div class="bg-slate-900/80 p-2 rounded-xl border border-slate-800">' +
+              '<span class="text-slate-400 block text-[9px]">Adherencia Hoy</span>' +
+              '<span class="font-bold ' + (adherenceRate >= 80 ? 'text-emerald-400' : (adherenceRate > 0 ? 'text-amber-300' : 'text-slate-300')) + '">' + adherenceText + '</span>' +
+            '</div>' +
+            '<div class="bg-slate-900/80 p-2 rounded-xl border border-slate-800">' +
+              '<span class="text-slate-400 block text-[9px]">Última PA</span>' +
+              '<span class="font-bold text-teal-300">' + lastBpText + '</span>' +
+            '</div>' +
+          '</div>' +
+          (p.diagnoses ? '<div class="text-[10px] text-slate-400 truncate flex items-center space-x-1 pt-1"><span class="font-semibold text-slate-500">GES/Diagnóstico:</span> <span class="text-slate-300">' + p.diagnoses + '</span></div>' : '');
+
+        container.appendChild(div);
+      });
+
+      lucide.createIcons();
+    }
+
+    function switchActivePatient(patientId) {
+      if (appState.activePatientId === patientId) {
+        closeModal("modalPatientSwitch");
+        return;
+      }
+      appState.activePatientId = patientId;
+      syncActivePatientPointers();
+      saveState();
+      closeModal("modalPatientSwitch");
+      renderAll();
+
+      var firstName = appState.patient.name.split(" ")[0];
+      if ("speechSynthesis" in window && typeof SpeechSynthesisUtterance !== "undefined") {
+        window.speechSynthesis.cancel();
+        var u = new SpeechSynthesisUtterance("Perfil activo cambiado a " + firstName);
+        u.lang = "es-CL";
+        u.rate = 0.9;
+        window.speechSynthesis.speak(u);
+      }
+    }
+
+    function openAddPatientModal() {
+      document.getElementById("newPatientName").value = "";
+      document.getElementById("newPatientRut").value = "";
+      document.getElementById("newPatientAge").value = "";
+      document.getElementById("newPatientDiagnoses").value = "";
+      document.getElementById("newPatientPin").value = "1234";
+      document.getElementById("newPatientEmoji").value = "👵";
+      var feedback = document.getElementById("newPatientRutFeedback");
+      if (feedback) {
+        feedback.className = "text-[10px] mt-1 text-slate-400";
+        feedback.innerText = "Ingresa RUT con o sin puntos (se formatea automáticamente).";
+      }
+      document.getElementById("modalAddPatient").classList.remove("hidden");
+      lucide.createIcons();
+    }
+
+    function handleCreatePatient(event) {
+      if (event) event.preventDefault();
+
+      var name = document.getElementById("newPatientName").value.trim();
+      var emoji = document.getElementById("newPatientEmoji").value || "👵";
+      var rutInput = document.getElementById("newPatientRut").value.trim();
+      var ageVal = document.getElementById("newPatientAge").value.trim();
+      var age = ageVal ? parseInt(ageVal, 10) : null;
+      var diagnoses = document.getElementById("newPatientDiagnoses").value.trim() || "Control General";
+      var pin = document.getElementById("newPatientPin").value.trim() || "1234";
+
+      var regimeRadios = document.getElementsByName("newPatientRegime");
+      var regime = "HOME";
+      for (var i = 0; i < regimeRadios.length; i++) {
+        if (regimeRadios[i].checked) {
+          regime = regimeRadios[i].value;
+          break;
+        }
+      }
+
+      if (!isValidChileanRut(rutInput)) {
+        var feedback = document.getElementById("newPatientRutFeedback");
+        if (feedback) {
+          feedback.className = "text-[10px] mt-1 text-red-400 font-bold";
+          feedback.innerText = "⚠️ Por favor ingresa un RUN / RUT chileno válido según Módulo 11 (ej: 14.567.890-0 o 11.234.567-1).";
+        }
+        document.getElementById("newPatientRut").focus();
+        return;
+      }
+
+      var formattedRut = formatChileanRut(rutInput);
+      var newId = "p-" + Date.now();
+
+      var routine = regime === "HOSPITAL"
+        ? { breakfast: "07:00", lunch: "12:00", afternoon: "17:30", sleep: "21:00" }
+        : { breakfast: "08:00", lunch: "13:30", afternoon: "18:30", sleep: "22:30" };
+
+      var newPatient = {
+        id: newId,
+        name: name,
+        emoji: emoji,
+        rut: formattedRut,
+        age: age,
+        diagnoses: diagnoses,
+        pin: pin,
+        regime: regime,
+        routine: routine,
+        medications: [],
+        vitals: []
+      };
+
+      if (!appState.patients || !Array.isArray(appState.patients)) {
+        appState.patients = [];
+      }
+
+      appState.patients.push(newPatient);
+      appState.activePatientId = newId;
+      syncActivePatientPointers();
+      saveState();
+
+      closeModal("modalAddPatient");
+      renderAll();
+
+      if (typeof confetti === "function") {
+        confetti({ particleCount: 70, spread: 60, origin: { y: 0.6 } });
+      }
+
+      if ("speechSynthesis" in window && typeof SpeechSynthesisUtterance !== "undefined") {
+        window.speechSynthesis.cancel();
+        var u = new SpeechSynthesisUtterance("Nuevo paciente " + name.split(" ")[0] + " registrado y activado.");
+        u.lang = "es-CL";
+        u.rate = 0.9;
+        window.speechSynthesis.speak(u);
+      }
+    }
+
+    function deletePatient(patientId) {
+      if (!appState.patients || appState.patients.length <= 1) {
+        alert("Debe mantenerse al menos un paciente registrado en el sistema para garantizar la continuidad asistencial (Ley 20.584).");
+        return;
+      }
+
+      var target = appState.patients.find(function(p) { return p.id === patientId; });
+      var targetName = target ? target.name : "este paciente";
+
+      if (!confirm("¿Estás seguro de eliminar la ficha clínica de \"" + targetName + "\"?\n\nEsta acción es irreversible y eliminará su pastillero, horarios y registros de signos vitales.")) {
+        return;
+      }
+
+      appState.patients = appState.patients.filter(function(p) { return p.id !== patientId; });
+      if (appState.activePatientId === patientId) {
+        appState.activePatientId = appState.patients[0].id;
+      }
+      syncActivePatientPointers();
+      saveState();
+      renderPatientSwitchList();
+      renderAll();
+    }
+
+    window.appState = appState;
+    window.loadState = loadState;
+    window.saveState = saveState;
+    window.renderAll = renderAll;
+    window.isValidChileanRut = isValidChileanRut;
+    window.formatChileanRut = formatChileanRut;
+    window.handleNewPatientRutInput = handleNewPatientRutInput;
+    window.openPatientSwitchModal = openPatientSwitchModal;
+    window.renderPatientSwitchList = renderPatientSwitchList;
+    window.switchActivePatient = switchActivePatient;
+    window.openAddPatientModal = openAddPatientModal;
+    window.handleCreatePatient = handleCreatePatient;
+    window.deletePatient = deletePatient;
     window.openRecordVitalsModal = openRecordVitalsModal;
     window.openVitalsHistoryModal = openVitalsHistoryModal;
     window.updateLiveVitalsCalculations = updateLiveVitalsCalculations;
