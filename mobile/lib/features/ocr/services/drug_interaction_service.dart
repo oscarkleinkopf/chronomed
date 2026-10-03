@@ -101,33 +101,33 @@ class DrugInteractionService {
 
     // 1. REGLAS DE CONTRAINDICACIÓN CRÍTICA (Bloqueo por riesgo vital)
 
-    // Ibuprofeno / AINE + Acenocumarol (Neosintrom)
-    if (_isIbuprofen(candidate) && _hasAcenocoumarol(activeList) ||
-        _isAcenocoumarol(candidate) && _hasIbuprofen(activeList)) {
+    // AINE (Ibuprofeno/Diclofenaco/Ketoprofeno/Aspirina) + Anticoagulante (Acenocumarol/Warfarina/DOACs)
+    if ((_isNsaid(candidate) && _hasAnticoagulant(activeList)) ||
+        (_isAnticoagulant(candidate) && _hasNsaid(activeList))) {
       return const DrugInteractionResult(
         severity: InteractionSeverity.criticalContraindication,
         title: '🚨 CONTRAINDICACIÓN CRÍTICA (RIESGO VITAL)',
-        description: 'Interacción de alto riesgo: AINE (Ibuprofeno) + Acenocumarol (Anticoagulante).',
-        clinicalRisk: 'Inhibición de COX-1 y función plaquetaria por el AINE sumado al bloqueo de factores de coagulación. Hemorragia digestiva masiva o sangrado intracraneal.',
+        description: 'Interacción de alto riesgo: AINE (Antiinflamatorio) + Anticoagulante.',
+        clinicalRisk: 'Inhibición de COX-1 y agregación plaquetaria por el AINE sumado al bloqueo de factores de coagulación. Hemorragia digestiva masiva o sangrado intracraneal.',
         recommendation: 'Alerta Roja Bloqueante: No administrar conjuntamente. Recomienda suspender el AINE de inmediato y consultar al médico por alternativa segura (ej. Paracetamol).',
         isBlocking: true,
       );
     }
 
-    // Atorvastatina + Claritromicina
-    if (_isAtorvastatin(candidate) && _hasClarithromycin(activeList) ||
-        _isClarithromycin(candidate) && _hasAtorvastatin(activeList)) {
+    // Estatinas (Atorvastatina/Simvastatina) + Macrólidos (Claritromicina/Eritromicina)
+    if ((_isStatin(candidate) && _hasMacrolide(activeList)) ||
+        (_isMacrolide(candidate) && _hasStatin(activeList))) {
       return const DrugInteractionResult(
         severity: InteractionSeverity.criticalContraindication,
         title: '🚨 CONTRAINDICACIÓN CRÍTICA (RIESGO VITAL)',
-        description: 'Interacción severa: Atorvastatina + Claritromicina (Macrólido).',
-        clinicalRisk: 'La Claritromicina es un potente inhibidor del CYP3A4 hepático, cuadruplicando los niveles séricos de Atorvastatina. Alto riesgo de Rabdomiólisis aguda y fallo renal agudo.',
+        description: 'Interacción severa: Estatina + Macrólido (Claritromicina/Eritromicina).',
+        clinicalRisk: 'El antibiótico macrólido es un potente inhibidor del CYP3A4 hepático, cuadruplicando los niveles séricos de la estatina. Alto riesgo de Rabdomiólisis aguda y fallo renal agudo.',
         recommendation: 'Alerta Roja Bloqueante: Suspender transitoriamente la estatina mientras dure el ciclo antibiótico bajo supervisión médica.',
         isBlocking: true,
       );
     }
 
-    // Benzodiacepinas (Clonazepam) + Opioides (Tramadol)
+    // Benzodiacepinas (Clonazepam/Alprazolam) + Opioides (Tramadol/Morfina)
     if ((_isBenzodiazepine(candidate) && _hasOpioid(activeList)) ||
         (_isOpioid(candidate) && _hasBenzodiazepine(activeList))) {
       return const DrugInteractionResult(
@@ -140,15 +140,54 @@ class DrugInteractionService {
       );
     }
 
+    // Doble bloqueo del SRAA: IECA (Enalapril) + ARA-II (Losartán)
+    if ((_isAceInhibitor(candidate) && _hasArb(activeList)) ||
+        (_isArb(candidate) && _hasAceInhibitor(activeList))) {
+      return const DrugInteractionResult(
+        severity: InteractionSeverity.criticalContraindication,
+        title: '🚨 CONTRAINDICACIÓN CRÍTICA (DOBLE BLOQUEO SRAA)',
+        description: 'Doble bloqueo del SRAA: IECA (Enalapril) + ARA-II (Losartán).',
+        clinicalRisk: 'Fallo renal agudo (LRA), hiperpotasemia severa e hipotensión arterial sintomática sin beneficio clínico cardiovascular (Guías MINSAL/AHA).',
+        recommendation: 'Alerta Roja Bloqueante: Combinación formalmente desaconsejada. Suspender uno de los dos agentes y mantener monoterapia bajo control médico.',
+        isBlocking: true,
+      );
+    }
+
+    // Digoxina + Amiodarona / Verapamilo
+    if ((_isDigoxin(candidate) && _hasDigoxinInteractors(activeList)) ||
+        (_isDigoxinInteractor(candidate) && _hasDigoxin(activeList))) {
+      return const DrugInteractionResult(
+        severity: InteractionSeverity.criticalContraindication,
+        title: '🚨 CONTRAINDICACIÓN CRÍTICA (INTOXICACIÓN DIGITÁLICA)',
+        description: 'Digoxina + Inhibidor de P-glicoproteína (Amiodarona / Verapamilo).',
+        clinicalRisk: 'Inhibición de la excreción biliar y renal de Digoxina, duplicando la digoxinemia sérica. Riesgo letal de arritmias ventriculares y bloqueo AV completo.',
+        recommendation: 'Alerta Roja Bloqueante: Reducir dosis de Digoxina en 50%, monitorizar niveles plasmáticos (rango 0.5-0.9 ng/mL) y vigilar signos de intoxicación.',
+        isBlocking: true,
+      );
+    }
+
+    // AINEs + Corticoides Sistémicos (Prednisona / Dexametasona)
+    if ((_isNsaid(candidate) && _hasCorticosteroid(activeList)) ||
+        (_isCorticosteroid(candidate) && _hasNsaid(activeList))) {
+      return const DrugInteractionResult(
+        severity: InteractionSeverity.criticalContraindication,
+        title: '🚨 CONTRAINDICACIÓN CRÍTICA (HEMORRAGIA DIGESTIVA)',
+        description: 'AINE (Ibuprofeno/Diclofenaco/Ketoprofeno) + Corticoide Sistémico (Prednisona).',
+        clinicalRisk: 'Multiplicación sinérgica por más de 10 veces del riesgo de úlcera péptica activa, perforación gástrica y hemorragia digestiva masiva en adultos mayores.',
+        recommendation: 'Alerta Roja Bloqueante: Evitar co-administración. Si el uso es imprescindible, añadir gastroprotección intensiva con IBP y evaluar sustitución analgésica.',
+        isBlocking: true,
+      );
+    }
+
     // 2. ADVERTENCIAS MAYORES (Alerta Ámbar)
 
-    // Losartán + Espironolactona
-    if (_isLosartan(candidate) && _hasSpironolactone(activeList) ||
-        _isSpironolactone(candidate) && _hasLosartan(activeList)) {
+    // SRAA (Losartán / Enalapril) + Espironolactona
+    if ((_isAntihypertensiveRaas(candidate) && _hasSpironolactone(activeList)) ||
+        (_isSpironolactone(candidate) && _hasAntihypertensiveRaas(activeList))) {
       return const DrugInteractionResult(
         severity: InteractionSeverity.majorWarning,
         title: '⚠️ ADVERTENCIA CLÍNICA MAYOR',
-        description: 'Sinergia ahorradora de potasio: Losartán (ARA-II) + Espironolactona.',
+        description: 'Sinergia ahorradora de potasio: SRAA (Losartán/Enalapril) + Espironolactona.',
         clinicalRisk: 'Riesgo inminente de Hiperpotasemia severa (K+ > 6.0 mEq/L) que puede inducir arritmias cardíacas ventriculares.',
         recommendation: 'Requiere control urgente de electrolitos plasmáticos (potasemia) y validación del médico tratante antes del inicio.',
         isBlocking: false,
@@ -156,14 +195,53 @@ class DrugInteractionService {
     }
 
     // Losartán / Enalapril + AINEs (Ibuprofeno/Ketoprofeno/Diclofenaco)
-    if ((_isAntihypertensiveRaas(candidate) && _hasIbuprofen(activeList)) ||
-        (_isIbuprofen(candidate) && _hasAntihypertensiveRaas(activeList))) {
+    if ((_isAntihypertensiveRaas(candidate) && _hasNsaid(activeList)) ||
+        (_isNsaid(candidate) && _hasAntihypertensiveRaas(activeList))) {
       return const DrugInteractionResult(
         severity: InteractionSeverity.majorWarning,
         title: '⚠️ ADVERTENCIA CLÍNICA MAYOR',
-        description: 'Antihipertensivo (ARA-II / IECA) + AINE (Ibuprofeno).',
+        description: 'Antihipertensivo (ARA-II / IECA) + AINE.',
         clinicalRisk: 'Inhibición de prostaglandinas vasodilatadoras renales por el AINE, reduciendo el filtrado glomerular y atenuando el control de la presión arterial.',
         recommendation: 'Monitorear presión arterial y función renal. Evitar cursos prolongados de AINEs en hipertensos.',
+        isBlocking: false,
+      );
+    }
+
+    // Clopidogrel + Omeprazol / Esomeprazol
+    if ((_isClopidogrel(candidate) && _hasOmeprazole(activeList)) ||
+        (_isOmeprazole(candidate) && _hasClopidogrel(activeList))) {
+      return const DrugInteractionResult(
+        severity: InteractionSeverity.majorWarning,
+        title: '⚠️ ADVERTENCIA CLÍNICA MAYOR (PÉRDIDA EFECTO ANTIAGREGANTE)',
+        description: 'Clopidogrel + Inhibidor de CYP2C19 (Omeprazol / Esomeprazol).',
+        clinicalRisk: 'Omeprazol inhibe la bioactivación de Clopidogrel a su forma activa. Incrementa el riesgo de trombosis del stent y recurrencia de infarto agudo al miocardio.',
+        recommendation: 'Sustituir Omeprazol por Pantoprazol (menor afinidad por CYP2C19) para gastroprotección sin neutralizar el efecto antiplaquetario.',
+        isBlocking: false,
+      );
+    }
+
+    // Benzodiacepina + Antihistamínico Sedante (Clorfenamina / Hidroxicina)
+    if ((_isBenzodiazepine(candidate) && _hasSedatingAntihistamine(activeList)) ||
+        (_isSedatingAntihistamine(candidate) && _hasBenzodiazepine(activeList))) {
+      return const DrugInteractionResult(
+        severity: InteractionSeverity.majorWarning,
+        title: '⚠️ ADVERTENCIA CLÍNICA MAYOR (SEDACIÓN Y CAÍDAS)',
+        description: 'Benzodiacepina + Antihistamínico Sedante de 1ª generación (Clorfenamina).',
+        clinicalRisk: 'Depresión aditiva del SNC y efectos anticolinérgicos. Alto riesgo de caídas con fractura osteoporótica, confusión mental y delirium en adultos mayores (Criterios de Beers).',
+        recommendation: 'Evitar asociación sedante. En rinitis o alergias, preferir antihistamínicos de 2ª generación no sedantes (ej. Loratadina o Desloratadina).',
+        isBlocking: false,
+      );
+    }
+
+    // Alopurinol + Azatioprina
+    if ((_isAllopurinol(candidate) && _hasAzathioprine(activeList)) ||
+        (_isAzathioprine(candidate) && _hasAllopurinol(activeList))) {
+      return const DrugInteractionResult(
+        severity: InteractionSeverity.majorWarning,
+        title: '⚠️ ADVERTENCIA CLÍNICA MAYOR (MIELOTOXICIDAD SEVERA)',
+        description: 'Alopurinol + Azatioprina.',
+        clinicalRisk: 'Inhibición de la xantina oxidasa por el alopurinol, bloqueando la degradación de azatioprina y desencadenando pancitopenia o neutropenia febril.',
+        recommendation: 'Reducir la dosis de azatioprina al 25% de la habitual si la co-administración es mandatoria y vigilar hemograma seriado.',
         isBlocking: false,
       );
     }
@@ -175,15 +253,15 @@ class DrugInteractionService {
       return const DrugInteractionResult(
         severity: InteractionSeverity.foodRestriction,
         title: '🥛 RESTRICCIÓN DIETARIA (LÁCTEOS Y CALCIO)',
-        description: 'Interacción físico-química: Levotiroxina con Calcio y Alimentos.',
-        clinicalRisk: 'Los iones de calcio forman quelatos insolubles con la levotiroxina, reduciendo drásticamente su absorción digestiva.',
-        recommendation: 'Ingerir en estricto ayuno 30 a 60 minutos antes del desayuno. No mezclar con leche, yogur o café.',
+        description: 'Interacción físico-química: Levotiroxina con Calcio, Hierro y Alimentos.',
+        clinicalRisk: 'Los iones de calcio y hierro forman quelatos insolubles con la levotiroxina, reduciendo drásticamente su absorción digestiva.',
+        recommendation: 'Ingerir en estricto ayuno 30 a 60 minutos antes del desayuno. No mezclar con leche, yogur o café. Separar de sulfato ferroso al menos 4 horas.',
         isBlocking: false,
       );
     }
 
     // Atorvastatina (Pomelo / Noche)
-    if (_isAtorvastatin(candidate)) {
+    if (_isStatin(candidate)) {
       return const DrugInteractionResult(
         severity: InteractionSeverity.foodRestriction,
         title: '🍊 RESTRICCIÓN DIETARIA Y CRONOFARMACOLOGÍA (POMELO)',
@@ -207,13 +285,25 @@ class DrugInteractionService {
     }
 
     // Acenocumarol (Vitamina K)
-    if (_isAcenocoumarol(candidate)) {
+    if (_isAnticoagulant(candidate)) {
       return const DrugInteractionResult(
         severity: InteractionSeverity.foodRestriction,
         title: '🥗 RESTRICCIÓN DIETARIA (VITAMINA K)',
-        description: 'Acenocumarol + Vegetales verdes con alta Vitamina K.',
+        description: 'Anticoagulante Oral + Vegetales verdes con alta Vitamina K.',
         clinicalRisk: 'Las fluctuaciones en el consumo de vitamina K alteran el INR terapéutico, comprometiendo la anticoagulación.',
         recommendation: 'Mantener un consumo estable y regular de verduras de hoja verde (espinacas, acelga, brócoli) sin cambios bruscos.',
+        isBlocking: false,
+      );
+    }
+
+    // Furosemida (Diurético de Asa)
+    if (_isFurosemide(candidate)) {
+      return const DrugInteractionResult(
+        severity: InteractionSeverity.foodRestriction,
+        title: '⚡ PRECAUCIÓN HIDROELECTROLÍTICA (CONTROL DE POTASIO)',
+        description: 'Furosemida + Pérdida renal de Potasio y Deshidratación.',
+        clinicalRisk: 'La furosemida produce excreción marcada de potasio y sodio. Riesgo de hipopotasemia severa (calambres, debilidad, arritmias cardíacas) y deshidratación.',
+        recommendation: 'Asegurar ingesta de alimentos ricos en potasio (plátanos, naranjas, legumbres) y control periódico de electrolitos en CESFAM.',
         isBlocking: false,
       );
     }
@@ -221,34 +311,136 @@ class DrugInteractionService {
     return const DrugInteractionResult();
   }
 
-  bool _isIbuprofen(String s) => s.contains('ibuprof') || s.contains('ketoprof') || s.contains('diclofen');
-  bool _hasIbuprofen(List<String> l) => l.any(_isIbuprofen);
+  bool _isNsaid(String s) =>
+      s.contains('ibuprof') ||
+      s.contains('ketoprof') ||
+      s.contains('diclofen') ||
+      s.contains('naproxen') ||
+      s.contains('meloxic') ||
+      s.contains('celecox') ||
+      s.contains('ketorolac') ||
+      s.contains('aspirin') ||
+      s.contains('ácido acetilsalicílico') ||
+      s.contains('aas');
+  bool _hasNsaid(List<String> l) => l.any(_isNsaid);
 
-  bool _isAcenocoumarol(String s) => s.contains('acenoc') || s.contains('neosint') || s.contains('warfar');
-  bool _hasAcenocoumarol(List<String> l) => l.any(_isAcenocoumarol);
+  bool _isAnticoagulant(String s) =>
+      s.contains('acenoc') ||
+      s.contains('neosint') ||
+      s.contains('warfar') ||
+      s.contains('rivarox') ||
+      s.contains('apixab') ||
+      s.contains('dabigatr') ||
+      s.contains('xarelto') ||
+      s.contains('eliquis');
+  bool _hasAnticoagulant(List<String> l) => l.any(_isAnticoagulant);
 
-  bool _isAtorvastatin(String s) => s.contains('atorvast') || s.contains('simvast');
-  bool _hasAtorvastatin(List<String> l) => l.any(_isAtorvastatin);
+  // Backward compatibility alias for existing tests
+  bool _isIbuprofen(String s) => _isNsaid(s);
+  bool _hasIbuprofen(List<String> l) => _hasNsaid(l);
+  bool _isAcenocoumarol(String s) => _isAnticoagulant(s);
+  bool _hasAcenocoumarol(List<String> l) => _hasAnticoagulant(l);
 
-  bool _isClarithromycin(String s) => s.contains('claritr') || s.contains('eritrom');
-  bool _hasClarithromycin(List<String> l) => l.any(_isClarithromycin);
+  bool _isStatin(String s) =>
+      s.contains('atorvast') ||
+      s.contains('simvast') ||
+      s.contains('rosuvast') ||
+      s.contains('lovast');
+  bool _hasStatin(List<String> l) => l.any(_isStatin);
+  bool _isAtorvastatin(String s) => _isStatin(s);
+  bool _hasAtorvastatin(List<String> l) => _hasStatin(l);
 
-  bool _isLosartan(String s) => s.contains('losart') || s.contains('valsart') || s.contains('candesart');
-  bool _hasLosartan(List<String> l) => l.any(_isLosartan);
+  bool _isMacrolide(String s) =>
+      s.contains('claritr') || s.contains('eritrom') || s.contains('azitrom');
+  bool _hasMacrolide(List<String> l) => l.any(_isMacrolide);
+  bool _isClarithromycin(String s) => _isMacrolide(s);
+  bool _hasClarithromycin(List<String> l) => _hasMacrolide(l);
 
-  bool _isAntihypertensiveRaas(String s) => _isLosartan(s) || s.contains('enalapr');
+  bool _isBenzodiazepine(String s) =>
+      s.contains('clonazep') ||
+      s.contains('alprazol') ||
+      s.contains('diazepam') ||
+      s.contains('lorazep') ||
+      s.contains('midazol') ||
+      s.contains('rivotril');
+  bool _hasBenzodiazepine(List<String> l) => l.any(_isBenzodiazepine);
+
+  bool _isOpioid(String s) =>
+      s.contains('tramadol') ||
+      s.contains('morfina') ||
+      s.contains('codein') ||
+      s.contains('fentanil') ||
+      s.contains('metadona') ||
+      s.contains('buprenorf') ||
+      s.contains('zaldiar');
+  bool _hasOpioid(List<String> l) => l.any(_isOpioid);
+
+  bool _isArb(String s) =>
+      s.contains('losart') ||
+      s.contains('valsart') ||
+      s.contains('candesart') ||
+      s.contains('telmisart') ||
+      s.contains('irbesart');
+  bool _hasArb(List<String> l) => l.any(_isArb);
+  bool _isLosartan(String s) => _isArb(s);
+  bool _hasLosartan(List<String> l) => _hasArb(l);
+
+  bool _isAceInhibitor(String s) =>
+      s.contains('enalapr') ||
+      s.contains('captopr') ||
+      s.contains('ramipr') ||
+      s.contains('lisinopr');
+  bool _hasAceInhibitor(List<String> l) => l.any(_isAceInhibitor);
+
+  bool _isAntihypertensiveRaas(String s) => _isArb(s) || _isAceInhibitor(s);
   bool _hasAntihypertensiveRaas(List<String> l) => l.any(_isAntihypertensiveRaas);
 
   bool _isSpironolactone(String s) => s.contains('espiron');
   bool _hasSpironolactone(List<String> l) => l.any(_isSpironolactone);
 
-  bool _isLevothyroxine(String s) => s.contains('levotirox') || s.contains('eutirox');
+  bool _isDigoxin(String s) => s.contains('digoxin') || s.contains('lanicor');
+  bool _hasDigoxin(List<String> l) => l.any(_isDigoxin);
 
-  bool _isMetformin(String s) => s.contains('metform');
+  bool _isDigoxinInteractor(String s) =>
+      s.contains('amiodar') || s.contains('verapamil');
+  bool _hasDigoxinInteractors(List<String> l) => l.any(_isDigoxinInteractor);
 
-  bool _isBenzodiazepine(String s) => s.contains('clonazep') || s.contains('alprazol') || s.contains('diazepam') || s.contains('lorazep');
-  bool _hasBenzodiazepine(List<String> l) => l.any(_isBenzodiazepine);
+  bool _isCorticosteroid(String s) =>
+      s.contains('prednison') ||
+      s.contains('prednisolon') ||
+      s.contains('betametason') ||
+      s.contains('dexametason') ||
+      s.contains('hidrocortison');
+  bool _hasCorticosteroid(List<String> l) => l.any(_isCorticosteroid);
 
-  bool _isOpioid(String s) => s.contains('tramadol') || s.contains('morfina') || s.contains('codein') || s.contains('fentanil');
-  bool _hasOpioid(List<String> l) => l.any(_isOpioid);
+  bool _isClopidogrel(String s) =>
+      s.contains('clopidogrel') || s.contains('plavix');
+  bool _hasClopidogrel(List<String> l) => l.any(_isClopidogrel);
+
+  bool _isOmeprazole(String s) =>
+      s.contains('omeprazol') ||
+      s.contains('esomeprazol') ||
+      s.contains('losecon');
+  bool _hasOmeprazole(List<String> l) => l.any(_isOmeprazole);
+
+  bool _isSedatingAntihistamine(String s) =>
+      s.contains('clorfenamin') || s.contains('hidroxicin');
+  bool _hasSedatingAntihistamine(List<String> l) => l.any(_isSedatingAntihistamine);
+
+  bool _isAllopurinol(String s) =>
+      s.contains('alopurinol') || s.contains('zyloric');
+  bool _hasAllopurinol(List<String> l) => l.any(_isAllopurinol);
+
+  bool _isAzathioprine(String s) =>
+      s.contains('azatioprin') || s.contains('imuran');
+  bool _hasAzathioprine(List<String> l) => l.any(_isAzathioprine);
+
+  bool _isLevothyroxine(String s) =>
+      s.contains('levotirox') || s.contains('eutirox');
+
+  bool _isMetformin(String s) =>
+      s.contains('metform') || s.contains('glafornil');
+
+  bool _isFurosemide(String s) =>
+      s.contains('furosemid') || s.contains('lasix');
 }

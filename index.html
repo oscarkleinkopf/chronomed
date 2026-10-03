@@ -2113,47 +2113,108 @@
     }
 
     const DrugInteractionEngine = {
-      isIbuprofen(s) { return /ibuprof|ketoprof|diclofen|naproxen|aspirin|celecox/i.test(s); },
-      isAcenocoumarol(s) { return /acenoc|neosint|warfar|rivarox|apixab|xarelto|eliquis/i.test(s); },
-      isAtorvastatin(s) { return /atorvast|rosuvast|simvast|lipitor|crestor/i.test(s); },
-      isClarithromycin(s) { return /claritr|eritrom|azitrom/i.test(s); },
-      isBenzodiazepine(s) { return /clonazep|alprazol|diazepam|lorazep|rivotril/i.test(s); },
-      isOpioid(s) { return /tramadol|morfina|codein|fentanil|zaldiar/i.test(s); },
-      isLosartan(s) { return /losart|valsart|candesart|telmisart/i.test(s); },
-      isAntihypertensiveRaas(s) { return this.isLosartan(s) || /enalapr|captopr|ramipr/i.test(s); },
-      isSpironolactone(s) { return /espiron/i.test(s); },
-      isLevothyroxine(s) { return /levotirox|eutirox/i.test(s); },
-      isMetformin(s) { return /metform|glafornil/i.test(s); },
+      isNsaid(s) {
+        return /ibuprof|ketoprof|diclofen|naproxen|meloxic|celecox|ketorolac|aspirin|ácido acetilsalicílico|aas/i.test(s);
+      },
+      isIbuprofen(s) { return this.isNsaid(s); },
+      isAnticoagulant(s) {
+        return /acenoc|neosint|warfar|rivarox|apixab|dabigatr|xarelto|eliquis/i.test(s);
+      },
+      isAcenocoumarol(s) { return this.isAnticoagulant(s); },
+      isStatin(s) {
+        return /atorvast|rosuvast|simvast|lovast|lipitor|crestor/i.test(s);
+      },
+      isAtorvastatin(s) { return this.isStatin(s); },
+      isMacrolide(s) {
+        return /claritr|eritrom|azitrom/i.test(s);
+      },
+      isClarithromycin(s) { return this.isMacrolide(s); },
+      isBenzodiazepine(s) {
+        return /clonazep|alprazol|diazepam|lorazep|midazol|rivotril/i.test(s);
+      },
+      isOpioid(s) {
+        return /tramadol|morfina|codein|fentanil|metadona|buprenorf|zaldiar/i.test(s);
+      },
+      isArb(s) {
+        return /losart|valsart|candesart|telmisart|irbesart/i.test(s);
+      },
+      isLosartan(s) { return this.isArb(s); },
+      isAceInhibitor(s) {
+        return /enalapr|captopr|ramipr|lisinopr/i.test(s);
+      },
+      isAntihypertensiveRaas(s) {
+        return this.isArb(s) || this.isAceInhibitor(s);
+      },
+      isSpironolactone(s) {
+        return /espiron/i.test(s);
+      },
+      isDigoxin(s) {
+        return /digoxin|lanicor/i.test(s);
+      },
+      isDigoxinInteractor(s) {
+        return /amiodar|verapamil/i.test(s);
+      },
+      isCorticosteroid(s) {
+        return /prednison|prednisolon|betametason|dexametason|hidrocortison/i.test(s);
+      },
+      isClopidogrel(s) {
+        return /clopidogrel|plavix/i.test(s);
+      },
+      isOmeprazole(s) {
+        return /omeprazol|esomeprazol|losecon/i.test(s);
+      },
+      isSedatingAntihistamine(s) {
+        return /clorfenamin|hidroxicin/i.test(s);
+      },
+      isAllopurinol(s) {
+        return /alopurinol|zyloric/i.test(s);
+      },
+      isAzathioprine(s) {
+        return /azatioprin|imuran/i.test(s);
+      },
+      isLevothyroxine(s) {
+        return /levotirox|eutirox/i.test(s);
+      },
+      isMetformin(s) {
+        return /metform|glafornil/i.test(s);
+      },
+      isFurosemide(s) {
+        return /furosemid|lasix/i.test(s);
+      },
 
       evaluateCandidate(candidateDrug, activeDrugsList) {
         const candidate = (candidateDrug || "").toLowerCase().trim();
         const activeList = (activeDrugsList || []).map(d => (d || "").toLowerCase().trim());
 
         // 1. REGLAS DE CONTRAINDICACIÓN CRÍTICA (Bloqueo por riesgo vital)
-        if ((this.isIbuprofen(candidate) && activeList.some(d => this.isAcenocoumarol(d))) ||
-            (this.isAcenocoumarol(candidate) && activeList.some(d => this.isIbuprofen(d)))) {
+
+        // AINE + Anticoagulante
+        if ((this.isNsaid(candidate) && activeList.some(d => this.isAnticoagulant(d))) ||
+            (this.isAnticoagulant(candidate) && activeList.some(d => this.isNsaid(d)))) {
           return {
             severity: 'criticalContraindication',
             title: '🚨 CONTRAINDICACIÓN CRÍTICA (RIESGO VITAL)',
             description: 'Interacción de alto riesgo: AINE (Antiinflamatorio) + Anticoagulante.',
-            clinicalRisk: 'Inhibición de COX-1 y función plaquetaria por el AINE sumado al bloqueo de factores de coagulación. Alto riesgo de hemorragia digestiva masiva o sangrado intracraneal.',
-            recommendation: 'Alerta Roja Bloqueante: No administrar conjuntamente. Suspender el AINE de inmediato y evaluar alternativa analgésica segura (ej. Paracetamol).',
+            clinicalRisk: 'Inhibición de COX-1 y agregación plaquetaria por el AINE sumado al bloqueo de factores de coagulación. Hemorragia digestiva masiva o sangrado intracraneal.',
+            recommendation: 'Alerta Roja Bloqueante: No administrar conjuntamente. Recomienda suspender el AINE de inmediato y consultar al médico por alternativa segura (ej. Paracetamol).',
             isBlocking: true
           };
         }
 
-        if ((this.isAtorvastatin(candidate) && activeList.some(d => this.isClarithromycin(d))) ||
-            (this.isClarithromycin(candidate) && activeList.some(d => this.isAtorvastatin(d)))) {
+        // Estatina + Macrólido
+        if ((this.isStatin(candidate) && activeList.some(d => this.isMacrolide(d))) ||
+            (this.isMacrolide(candidate) && activeList.some(d => this.isStatin(d)))) {
           return {
             severity: 'criticalContraindication',
             title: '🚨 CONTRAINDICACIÓN CRÍTICA (RIESGO VITAL)',
-            description: 'Interacción severa: Atorvastatina + Claritromicina (Macrólido).',
-            clinicalRisk: 'La Claritromicina es un potente inhibidor del CYP3A4 hepático, cuadruplicando los niveles séricos de Atorvastatina. Riesgo inminente de Rabdomiólisis aguda y fallo renal agudo.',
+            description: 'Interacción severa: Estatina + Macrólido (Claritromicina/Eritromicina).',
+            clinicalRisk: 'El antibiótico macrólido es un potente inhibidor del CYP3A4 hepático, cuadruplicando los niveles séricos de la estatina. Alto riesgo de Rabdomiólisis aguda y fallo renal agudo.',
             recommendation: 'Alerta Roja Bloqueante: Suspender transitoriamente la estatina mientras dure el ciclo antibiótico bajo supervisión médica.',
             isBlocking: true
           };
         }
 
+        // Benzodiacepina + Opioide
         if ((this.isBenzodiazepine(candidate) && activeList.some(d => this.isOpioid(d))) ||
             (this.isOpioid(candidate) && activeList.some(d => this.isBenzodiazepine(d)))) {
           return {
@@ -2166,27 +2227,108 @@
           };
         }
 
+        // Doble bloqueo del SRAA: IECA + ARA-II
+        if ((this.isAceInhibitor(candidate) && activeList.some(d => this.isArb(d))) ||
+            (this.isArb(candidate) && activeList.some(d => this.isAceInhibitor(d)))) {
+          return {
+            severity: 'criticalContraindication',
+            title: '🚨 CONTRAINDICACIÓN CRÍTICA (DOBLE BLOQUEO SRAA)',
+            description: 'Doble bloqueo del SRAA: IECA (Enalapril) + ARA-II (Losartán).',
+            clinicalRisk: 'Fallo renal agudo (LRA), hiperpotasemia severa e hipotensión arterial sintomática sin beneficio clínico cardiovascular (Guías MINSAL/AHA).',
+            recommendation: 'Alerta Roja Bloqueante: Combinación formalmente desaconsejada. Suspender uno de los dos agentes y mantener monoterapia bajo control médico.',
+            isBlocking: true
+          };
+        }
+
+        // Digoxina + Amiodarona / Verapamilo
+        if ((this.isDigoxin(candidate) && activeList.some(d => this.isDigoxinInteractor(d))) ||
+            (this.isDigoxinInteractor(candidate) && activeList.some(d => this.isDigoxin(d)))) {
+          return {
+            severity: 'criticalContraindication',
+            title: '🚨 CONTRAINDICACIÓN CRÍTICA (INTOXICACIÓN DIGITÁLICA)',
+            description: 'Digoxina + Inhibidor de P-glicoproteína (Amiodarona / Verapamilo).',
+            clinicalRisk: 'Inhibición de la excreción biliar y renal de Digoxina, duplicando la digoxinemia sérica. Riesgo letal de arritmias ventriculares y bloqueo AV completo.',
+            recommendation: 'Alerta Roja Bloqueante: Reducir dosis de Digoxina en 50%, monitorizar niveles plasmáticos (rango 0.5-0.9 ng/mL) y vigilar signos de intoxicación.',
+            isBlocking: true
+          };
+        }
+
+        // AINEs + Corticoides Sistémicos
+        if ((this.isNsaid(candidate) && activeList.some(d => this.isCorticosteroid(d))) ||
+            (this.isCorticosteroid(candidate) && activeList.some(d => this.isNsaid(d)))) {
+          return {
+            severity: 'criticalContraindication',
+            title: '🚨 CONTRAINDICACIÓN CRÍTICA (HEMORRAGIA DIGESTIVA)',
+            description: 'AINE (Ibuprofeno/Diclofenaco/Ketoprofeno) + Corticoide Sistémico (Prednisona).',
+            clinicalRisk: 'Multiplicación sinérgica por más de 10 veces del riesgo de úlcera péptica activa, perforación gástrica y hemorragia digestiva masiva en adultos mayores.',
+            recommendation: 'Alerta Roja Bloqueante: Evitar co-administración. Si el uso es imprescindible, añadir gastroprotección intensiva con IBP y evaluar sustitución analgésica.',
+            isBlocking: true
+          };
+        }
+
         // 2. ADVERTENCIAS CLÍNICAS MAYORES (Alerta Ámbar)
-        if ((this.isLosartan(candidate) && activeList.some(d => this.isSpironolactone(d))) ||
-            (this.isSpironolactone(candidate) && activeList.some(d => this.isLosartan(d)))) {
+
+        // SRAA + Espironolactona
+        if ((this.isAntihypertensiveRaas(candidate) && activeList.some(d => this.isSpironolactone(d))) ||
+            (this.isSpironolactone(candidate) && activeList.some(d => this.isAntihypertensiveRaas(d)))) {
           return {
             severity: 'majorWarning',
             title: '⚠️ ADVERTENCIA CLÍNICA MAYOR',
-            description: 'Sinergia ahorradora de potasio: Losartán (ARA-II) + Espironolactona.',
+            description: 'Sinergia ahorradora de potasio: SRAA (Losartán/Enalapril) + Espironolactona.',
             clinicalRisk: 'Riesgo inminente de Hiperpotasemia severa (K+ > 6.0 mEq/L) que puede inducir arritmias cardíacas ventriculares.',
             recommendation: 'Requiere control urgente de electrolitos plasmáticos (potasemia) y validación del médico tratante antes del inicio.',
             isBlocking: false
           };
         }
 
-        if ((this.isAntihypertensiveRaas(candidate) && activeList.some(d => this.isIbuprofen(d))) ||
-            (this.isIbuprofen(candidate) && activeList.some(d => this.isAntihypertensiveRaas(d)))) {
+        // Antihipertensivo (ARA-II / IECA) + AINE
+        if ((this.isAntihypertensiveRaas(candidate) && activeList.some(d => this.isNsaid(d))) ||
+            (this.isNsaid(candidate) && activeList.some(d => this.isAntihypertensiveRaas(d)))) {
           return {
             severity: 'majorWarning',
             title: '⚠️ ADVERTENCIA CLÍNICA MAYOR',
-            description: 'Antihipertensivo (ARA-II / IECA) + AINE (Ibuprofeno/Ketoprofeno).',
+            description: 'Antihipertensivo (ARA-II / IECA) + AINE.',
             clinicalRisk: 'Inhibición de prostaglandinas vasodilatadoras renales por el AINE, reduciendo el filtrado glomerular y atenuando el control de la presión arterial.',
             recommendation: 'Monitorear presión arterial y función renal. Evitar cursos prolongados de AINEs en hipertensos.',
+            isBlocking: false
+          };
+        }
+
+        // Clopidogrel + Omeprazol / Esomeprazol
+        if ((this.isClopidogrel(candidate) && activeList.some(d => this.isOmeprazole(d))) ||
+            (this.isOmeprazole(candidate) && activeList.some(d => this.isClopidogrel(d)))) {
+          return {
+            severity: 'majorWarning',
+            title: '⚠️ ADVERTENCIA CLÍNICA MAYOR (PÉRDIDA EFECTO ANTIAGREGANTE)',
+            description: 'Clopidogrel + Inhibidor de CYP2C19 (Omeprazol / Esomeprazol).',
+            clinicalRisk: 'Omeprazol inhibe la bioactivación de Clopidogrel a su forma activa. Incrementa el riesgo de trombosis del stent y recurrencia de infarto agudo al miocardio.',
+            recommendation: 'Sustituir Omeprazol por Pantoprazol (menor afinidad por CYP2C19) para gastroprotección sin neutralizar el efecto antiplaquetario.',
+            isBlocking: false
+          };
+        }
+
+        // Benzodiacepina + Antihistamínico Sedante
+        if ((this.isBenzodiazepine(candidate) && activeList.some(d => this.isSedatingAntihistamine(d))) ||
+            (this.isSedatingAntihistamine(candidate) && activeList.some(d => this.isBenzodiazepine(d)))) {
+          return {
+            severity: 'majorWarning',
+            title: '⚠️ ADVERTENCIA CLÍNICA MAYOR (SEDACIÓN Y CAÍDAS)',
+            description: 'Benzodiacepina + Antihistamínico Sedante de 1ª generación (Clorfenamina).',
+            clinicalRisk: 'Depresión aditiva del SNC y efectos anticolinérgicos. Alto riesgo de caídas con fractura osteoporótica, confusión mental y delirium en adultos mayores (Criterios de Beers).',
+            recommendation: 'Evitar asociación sedante. En rinitis o alergias, preferir antihistamínicos de 2ª generación no sedantes (ej. Loratadina o Desloratadina).',
+            isBlocking: false
+          };
+        }
+
+        // Alopurinol + Azatioprina
+        if ((this.isAllopurinol(candidate) && activeList.some(d => this.isAzathioprine(d))) ||
+            (this.isAzathioprine(candidate) && activeList.some(d => this.isAllopurinol(d)))) {
+          return {
+            severity: 'majorWarning',
+            title: '⚠️ ADVERTENCIA CLÍNICA MAYOR (MIELOTOXICIDAD SEVERA)',
+            description: 'Alopurinol + Azatioprina.',
+            clinicalRisk: 'Inhibición de la xantina oxidasa por el alopurinol, bloqueando la degradación de azatioprina y desencadenando pancitopenia o neutropenia febril.',
+            recommendation: 'Reducir la dosis de azatioprina al 25% de la habitual si la co-administración es mandatoria y vigilar hemograma seriado.',
             isBlocking: false
           };
         }
@@ -2196,18 +2338,18 @@
           return {
             severity: 'foodRestriction',
             title: '🥛 RESTRICCIÓN DIETARIA (LÁCTEOS Y CALCIO)',
-            description: 'Levotiroxina con Calcio y Alimentos.',
-            clinicalRisk: 'Los iones de calcio forman quelatos insolubles con la levotiroxina, reduciendo drásticamente su absorción digestiva.',
-            recommendation: 'Ingerir en estricto ayuno 30 a 60 minutos antes del desayuno. No mezclar con leche, yogur o café.',
+            description: 'Interacción físico-química: Levotiroxina con Calcio, Hierro y Alimentos.',
+            clinicalRisk: 'Los iones de calcio y hierro forman quelatos insolubles con la levotiroxina, reduciendo drásticamente su absorción digestiva.',
+            recommendation: 'Ingerir en estricto ayuno 30 a 60 minutos antes del desayuno. No mezclar con leche, yogur o café. Separar de sulfato ferroso al menos 4 horas.',
             isBlocking: false
           };
         }
 
-        if (this.isAtorvastatin(candidate)) {
+        if (this.isStatin(candidate)) {
           return {
             severity: 'foodRestriction',
             title: '🍊 RESTRICCIÓN DIETARIA Y CRONOFARMACOLOGÍA (POMELO)',
-            description: 'Atorvastatina + Jugo de Pomelo / Pico Nocturno.',
+            description: 'Atorvastatina + Jugo de Pomelo / Toma Nocturna.',
             clinicalRisk: 'El jugo de pomelo inhibe el CYP3A4 intestinal, aumentando la biodisponibilidad de la estatina y el riesgo de mialgias. La síntesis de colesterol tiene pico circadiano nocturno.',
             recommendation: 'Evitar consumo de pomelo/toronja. Administrar preferentemente en la noche según el ritmo circadiano de la HMG-CoA Reductasa.',
             isBlocking: false
@@ -2225,13 +2367,24 @@
           };
         }
 
-        if (this.isAcenocoumarol(candidate)) {
+        if (this.isAnticoagulant(candidate)) {
           return {
             severity: 'foodRestriction',
             title: '🥗 RESTRICCIÓN DIETARIA (VITAMINA K)',
-            description: 'Acenocumarol + Vegetales con alta Vitamina K.',
+            description: 'Anticoagulante Oral + Vegetales verdes con alta Vitamina K.',
             clinicalRisk: 'Las fluctuaciones en el consumo de vitamina K alteran el INR terapéutico, comprometiendo la anticoagulación.',
             recommendation: 'Mantener un consumo estable y regular de verduras de hoja verde (espinacas, acelga, brócoli) sin cambios bruscos.',
+            isBlocking: false
+          };
+        }
+
+        if (this.isFurosemide(candidate)) {
+          return {
+            severity: 'foodRestriction',
+            title: '⚡ PRECAUCIÓN HIDROELECTROLÍTICA (CONTROL DE POTASIO)',
+            description: 'Furosemida + Pérdida renal de Potasio y Deshidratación.',
+            clinicalRisk: 'La furosemida produce excreción marcada de potasio y sodio. Riesgo de hipopotasemia severa (calambres, debilidad, arritmias cardíacas) y deshidratación.',
+            recommendation: 'Asegurar ingesta de alimentos ricos en potasio (plátanos, naranjas, legumbres) y control periódico de electrolitos en CESFAM.',
             isBlocking: false
           };
         }
